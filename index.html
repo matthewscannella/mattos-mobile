@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a1220">
+<title>MattOS Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1828; --side: #0a1220; --surface: #13213a; --raised: #1b2b47;
+    --text: #dde7f6; --muted: #8da2c0; --rule: #24385c; --accent: #f3c94f; --done: #5fd08f; --flag: #ff8c6b;
+    --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; min-height: 100%; background: var(--side); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 24px; -webkit-text-size-adjust: 100%; }
+  button, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top) + 10px) 16px 10px; background: var(--side); border-bottom: 1px solid var(--rule); }
+  .bar h1 { margin: 0; font-size: 20px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn { background: transparent; border: 1px solid var(--rule); border-radius: 8px; padding: 6px 12px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .btn:active { background: var(--raised); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a1405; font-weight: 600; }
+  .btn.danger { color: var(--flag); }
+  main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 90px); }
+  .status { font-size: 13px; color: var(--muted); padding: 4px 16px 0; min-height: 22px; }
+  .status.err { color: var(--flag); }
+  .status.ok { color: var(--done); }
+  .list { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .note { display: grid; gap: 2px; width: 100%; text-align: left; background: transparent; border: 0; padding: 12px 14px; cursor: pointer; }
+  .note + .note { border-top: 1px solid var(--rule); }
+  .note:active { background: var(--raised); }
+  .note b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { font-size: 13px; line-height: 18px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .empty { text-align: center; color: var(--muted); padding: 48px 16px; }
+  .fab { position: fixed; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 16px); border-radius: 999px; padding: 12px 20px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); }
+  .editor { display: grid; gap: 10px; }
+  .editor input { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--rule); padding: 6px 0 10px; font-size: 22px; line-height: 30px; font-weight: 600; outline: none; }
+  .editor input:focus { border-bottom-color: var(--accent); }
+  .editor textarea { width: 100%; min-height: 55vh; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px; resize: vertical; outline: none; }
+  .editor textarea:focus { border-color: var(--accent); }
+  .setup { display: grid; gap: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; }
+  .setup label { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+  .setup input { width: 100%; background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; padding: 10px; }
+  .setup p { margin: 0; font-size: 14px; color: var(--muted); }
+  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 80px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); }
+  .toast span { flex: 1; }
+</style>
+</head>
+<body>
+<header class="bar"><button class="btn" type="button" id="back" hidden>‹ Notes</button><h1 id="title">Notes</h1><button class="btn" type="button" id="refresh">Refresh</button><button class="btn" type="button" id="settings" title="Settings">⚙️</button></header>
+<div class="status" id="status" role="status"></div>
+<main id="main"></main>
+<button class="btn primary fab" type="button" id="new" hidden>+ New Note</button>
+<div class="toast" id="toast" hidden><span id="toastmsg"></span><button class="btn" type="button" id="undo">Undo</button></div>
+<script>
+/* MattOS Notes for the phone. Reads and writes notesRegistry.md in the private mattos-data repository through the GitHub API.
+   The format functions match the desktop app's exactly, so both sides read each other's edits. */
+const NOTE_HEAD = `# Notes Registry\n\nSource of truth for MattOS notes. Newest first.\n`;
+const serializeNotes = notes => NOTE_HEAD + notes.map(n => `\n---\n\n<!-- note: ${n.id} -->\n## ${n.title || ""}\n_Edited ${n.edited}_\n\n${n.body}\n`).join("");
+function parseNotes(md) {
+  const parts = md.split(/^<!-- note: (.+?) -->[ \t]*\r?$/m), out = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const lines = parts[i + 1].replace(/^\r?\n/, "").split(/\r?\n/);
+    const tm = (lines[0] || "").match(/^##\s?(.*)$/);
+    let k = tm ? 1 : 0;
+    const em = (lines[k] || "").match(/^_Edited (.*)_$/);
+    if (em) k++;
+    if (lines[k] === "") k++;
+    out.push({ id: parts[i].trim(), title: tm ? tm[1].trim() : "", edited: em ? em[1] : "", body: lines.slice(k).join("\n").replace(/\s*(\n---\s*)?$/, "") });
+  }
+  return out;
+}
+const stamp = () => { const d = new Date(), h = d.getHours(), m = d.getMinutes(); return `${d.toLocaleString("en-US", { month: "short" })} ${d.getDate()}, ${d.getFullYear()}, ${h % 12 || 12}${m ? ":" + String(m).padStart(2, "0") : ""}${h < 12 ? "am" : "pm"}`; };
+
+/* settings live in this browser only */
+const store = {
+  get: k => { try { return localStorage.getItem("mattos-" + k) || ""; } catch (e) { return ""; } },
+  set: (k, v) => { try { localStorage.setItem("mattos-" + k, v); } catch (e) { /* private mode: lasts until the tab closes */ } }
+};
+const cfg = () => ({ owner: store.get("owner") || "matthewscannella", repo: store.get("repo") || "mattos-data", token: store.get("token") });
+const FILE = "03🗒️-notes/notesRegistry.md";
+
+/* GitHub contents API */
+const b64decode = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, "")), c => c.charCodeAt(0)));
+const b64encode = text => { const bytes = new TextEncoder().encode(text); let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(bin); };
+const apiUrl = () => { const c = cfg(); return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${FILE.split("/").map(encodeURIComponent).join("/")}`; };
+const headers = () => ({ Authorization: `Bearer ${cfg().token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" });
+async function fetchFile() {
+  const r = await fetch(apiUrl() + "?ref=main&t=" + Date.now(), { headers: headers(), cache: "no-store" });
+  if (r.status === 401) throw new Error("The token was rejected. Open ⚙️ and paste a new one.");
+  if (r.status === 404) throw new Error("Notes file not found. Check the repository name in ⚙️, and that the laptop has synced once.");
+  if (!r.ok) throw new Error(`GitHub returned ${r.status}.`);
+  const j = await r.json();
+  return { text: b64decode(j.content), sha: j.sha };
+}
+async function putFile(text, sha, message) {
+  const r = await fetch(apiUrl(), { method: "PUT", headers: { ...headers(), "Content-Type": "application/json" }, body: JSON.stringify({ message, content: b64encode(text), sha, branch: "main" }) });
+  if (r.status === 409 || r.status === 422) return null; /* someone else saved first: caller retries on the newer file */
+  if (!r.ok) throw new Error(r.status === 403 ? "The token can't write to this repository. Give it Contents: Read and write." : `Save failed: GitHub returned ${r.status}.`);
+  return (await r.json()).content.sha;
+}
+
+/* state */
+let notes = [], sha = null, openId = null, base = null, saveTimer = null, saving = Promise.resolve(), undoNote = null, toastTimer = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+function status(msg, kind = "") { $("status").textContent = msg; $("status").className = "status" + (kind ? " " + kind : ""); }
+
+/* every save starts from the newest file on GitHub and changes only the one note, so laptop edits to other notes are kept.
+   If the same note changed on the laptop since it was opened here, the phone's version is saved as a separate copy */
+function commit(change, message) {
+  saving = saving.then(async () => {
+    status("Saving…");
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const latest = await fetchFile();
+      const list = parseNotes(latest.text);
+      const note = change(list);
+      const text = serializeNotes(list);
+      if (text === latest.text) { notes = list; sha = latest.sha; status("Saved", "ok"); return note; }
+      const newSha = await putFile(text, latest.sha, message);
+      if (newSha) { notes = list; sha = newSha; status("Saved " + stamp().split(", ").pop(), "ok"); return note; }
+    }
+    throw new Error("Could not save after several tries. Check your connection, then tap Refresh.");
+  }).catch(e => { status(e.message, "err"); });
+  return saving;
+}
+function upsertOpenNote() {
+  if (!openId) return;
+  const title = $("ntitle").value, body = $("nbody").value, id = openId, start = base;
+  commit(list => {
+    const i = list.findIndex(n => n.id === id), cur = list[i];
+    const mine = { id, title, body, edited: stamp() };
+    if (cur && start && (cur.title !== start.title || cur.body !== start.body) && (cur.title !== title || cur.body !== body)) {
+      const copy = { ...mine, id: "n" + Date.now().toString(36), title: (title || "Untitled") + " (phone copy)" };
+      list.unshift(copy);
+      if (openId === id) { openId = copy.id; base = { title: copy.title, body }; }
+      setTimeout(() => { if ($("ntitle")) $("ntitle").value = copy.title; status("This note changed on the laptop too, so your version was saved as a copy.", "err"); }, 0);
+      return copy;
+    }
+    if (cur) Object.assign(cur, mine); else list.unshift(mine);
+    if (openId === id) base = { title, body };
+    return mine;
+  }, `Phone: edit "${title || "Untitled"}"`);
+}
+
+/* screens */
+function showList() {
+  openId = null; base = null;
+  $("title").textContent = "Notes"; $("back").hidden = true; $("refresh").hidden = false; $("new").hidden = false;
+  $("main").innerHTML = notes.length
+    ? `<div class="list">${notes.map(n => `<button class="note" type="button" data-id="${esc(n.id)}"><b>${esc(n.title) || "Untitled"}</b><span class="meta">${esc(n.edited)}</span><span class="meta">${esc(n.body.split("\n").find(l => l.trim())) || "Empty note"}</span></button>`).join("")}</div>`
+    : `<div class="empty">No notes yet. Tap New Note to start one.</div>`;
+}
+function showNote(id) {
+  const n = notes.find(x => x.id === id);
+  if (!n) return showList();
+  openId = id; base = { title: n.title, body: n.body };
+  $("title").textContent = ""; $("back").hidden = false; $("refresh").hidden = true; $("new").hidden = true;
+  $("main").innerHTML = `<div class="editor">
+    <input id="ntitle" placeholder="Untitled" value="${esc(n.title)}" autocomplete="off" aria-label="Title">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="meta">Edited ${esc(n.edited)}</span><button class="btn danger" type="button" id="del">🗑️ Delete</button></div>
+    <textarea id="nbody" placeholder="Start writing…" aria-label="Note">${esc(n.body)}</textarea></div>`;
+}
+function showSetup(msg) {
+  const c = cfg();
+  $("title").textContent = "Settings"; $("back").hidden = !c.token; $("refresh").hidden = true; $("new").hidden = true;
+  $("main").innerHTML = `<form class="setup" id="setup">
+    ${msg ? `<p style="color:var(--flag)">${esc(msg)}</p>` : ""}
+    <p>Paste the GitHub token for the mattos-data repository. It is stored only in this browser.</p>
+    <label>Token<input id="s-token" type="password" value="${esc(c.token)}" autocomplete="off" required></label>
+    <label>GitHub username<input id="s-owner" value="${esc(c.owner)}" autocomplete="off" autocapitalize="off"></label>
+    <label>Repository<input id="s-repo" value="${esc(c.repo)}" autocomplete="off" autocapitalize="off"></label>
+    <button class="btn primary" type="submit">Save and Connect</button></form>`;
+}
+async function load() {
+  if (!cfg().token) return showSetup();
+  status("Loading…");
+  try { const f = await fetchFile(); notes = parseNotes(f.text); sha = f.sha; status("Synced " + stamp().split(", ").pop(), "ok"); showList(); }
+  catch (e) { status(e.message, "err"); if (/token|repository/i.test(e.message)) showSetup(e.message); }
+}
+
+/* events */
+document.addEventListener("click", async e => {
+  const n = e.target.closest(".note");
+  if (n) { showNote(n.dataset.id); return; }
+  if (e.target.closest("#back")) { if (openId) { clearTimeout(saveTimer); if (dirty()) upsertOpenNote(); } showList(); return; }
+  if (e.target.closest("#refresh")) { load(); return; }
+  if (e.target.closest("#settings")) { if (openId && dirty()) upsertOpenNote(); showSetup(); return; }
+  if (e.target.closest("#new")) {
+    const note = { id: "n" + Date.now().toString(36), title: "", edited: stamp(), body: "" };
+    notes.unshift(note); showNote(note.id); $("ntitle").focus();
+    commit(list => { list.unshift({ ...note }); return note; }, "Phone: new note");
+    return;
+  }
+  if (e.target.closest("#del")) {
+    const id = openId, gone = notes.find(x => x.id === id);
+    undoNote = gone ? { ...gone, title: $("ntitle").value, body: $("nbody").value } : null;
+    clearTimeout(saveTimer); openId = null;
+    notes = notes.filter(x => x.id !== id); showList();
+    toast("Note deleted");
+    commit(list => { const i = list.findIndex(x => x.id === id); if (i >= 0) list.splice(i, 1); }, `Phone: delete "${gone ? gone.title || "Untitled" : id}"`);
+    return;
+  }
+  if (e.target.closest("#undo") && undoNote) {
+    const back = undoNote; undoNote = null; $("toast").hidden = true;
+    notes.unshift(back); showList();
+    commit(list => { if (!list.some(x => x.id === back.id)) list.unshift(back); }, `Phone: restore "${back.title || "Untitled"}"`);
+  }
+});
+const dirty = () => openId && base && $("ntitle") && ($("ntitle").value !== base.title || $("nbody").value !== base.body);
+document.addEventListener("input", e => {
+  if (e.target.id !== "ntitle" && e.target.id !== "nbody") return;
+  status("Unsaved changes…");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { if (dirty()) upsertOpenNote(); }, 1500);
+});
+document.addEventListener("submit", e => {
+  if (e.target.id !== "setup") return;
+  e.preventDefault();
+  store.set("token", $("s-token").value.trim()); store.set("owner", $("s-owner").value.trim()); store.set("repo", $("s-repo").value.trim());
+  load();
+});
+/* save before the phone puts the page away; reload when it comes back */
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { if (dirty()) { clearTimeout(saveTimer); upsertOpenNote(); } }
+  else if (!openId && cfg().token) load();
+});
+function toast(msg) {
+  $("toastmsg").textContent = msg; $("toast").hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; }, 8000);
+}
+load();
+</script>
+</body>
+</html>
