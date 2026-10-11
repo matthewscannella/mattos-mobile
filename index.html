@@ -113,7 +113,7 @@ function status(msg, kind = "") { $("status").textContent = msg; $("status").cla
 
 /* every save starts from the newest file on GitHub and changes only the one note, so laptop edits to other notes are kept.
    If the same note changed on the laptop since it was opened here, the phone's version is saved as a separate copy */
-function commit(change, message) {
+function commit(change, message, onSaved) {
   saving = saving.then(async () => {
     status("Saving…");
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -121,31 +121,39 @@ function commit(change, message) {
       const list = parseNotes(latest.text);
       const note = change(list);
       const text = serializeNotes(list);
-      if (text === latest.text) { notes = list; sha = latest.sha; status("Saved", "ok"); return note; }
+      if (text === latest.text) { notes = list; sha = latest.sha; if (onSaved) onSaved(note); status("Saved", "ok"); return note; }
       const newSha = await putFile(text, latest.sha, message);
-      if (newSha) { notes = list; sha = newSha; status("Saved " + stamp().split(", ").pop(), "ok"); return note; }
+      if (newSha) { notes = list; sha = newSha; if (onSaved) onSaved(note); status("Saved " + stamp().split(", ").pop(), "ok"); return note; }
     }
     throw new Error("Could not save after several tries. Check your connection, then tap Refresh.");
   }).catch(e => { status(e.message, "err"); });
   return saving;
 }
+const seen = {};
 function upsertOpenNote() {
   if (!openId) return;
-  const title = $("ntitle").value, body = $("nbody").value, id = openId, start = base;
+  const title = $("ntitle").value, body = $("nbody").value, id = openId;
+  let clash = false;
   commit(list => {
-    const i = list.findIndex(n => n.id === id), cur = list[i];
+    const i = list.findIndex(n => n.id === id), cur = list[i], start = seen[id];
     const mine = { id, title, body, edited: stamp() };
-    if (cur && start && (cur.title !== start.title || cur.body !== start.body) && (cur.title !== title || cur.body !== body)) {
+    clash = !!(cur && start && (cur.title !== start.title || cur.body !== start.body) && (cur.title !== title || cur.body !== body));
+    if (clash) {
       const copy = { ...mine, id: "n" + Date.now().toString(36), title: (title || "Untitled") + " (phone copy)" };
       list.unshift(copy);
-      if (openId === id) { openId = copy.id; base = { title: copy.title, body }; }
-      setTimeout(() => { if ($("ntitle")) $("ntitle").value = copy.title; status("This note changed on the laptop too, so your version was saved as a copy.", "err"); }, 0);
       return copy;
     }
     if (cur) Object.assign(cur, mine); else list.unshift(mine);
-    if (openId === id) base = { title, body };
     return mine;
-  }, `Phone: edit "${title || "Untitled"}"`);
+  }, `Phone: edit "${title || "Untitled"}"`, saved => {
+    seen[saved.id] = { title: saved.title, body: saved.body };
+    if (openId === id) base = { title, body };
+    if (clash && openId === id) {
+      openId = saved.id; base = { title: saved.title, body };
+      if ($("ntitle")) $("ntitle").value = saved.title;
+      setTimeout(() => status("This note changed on the laptop too, so your version was saved as a copy.", "err"), 0);
+    }
+  });
 }
 
 /* screens */
@@ -159,7 +167,7 @@ function showList() {
 function showNote(id) {
   const n = notes.find(x => x.id === id);
   if (!n) return showList();
-  openId = id; base = { title: n.title, body: n.body };
+  openId = id; base = { title: n.title, body: n.body }; seen[id] = { title: n.title, body: n.body };
   $("title").textContent = ""; $("back").hidden = false; $("refresh").hidden = true; $("new").hidden = true;
   $("main").innerHTML = `<div class="editor">
     <input id="ntitle" placeholder="Untitled" value="${esc(n.title)}" autocomplete="off" aria-label="Title">
@@ -194,7 +202,7 @@ document.addEventListener("click", async e => {
   if (e.target.closest("#new")) {
     const note = { id: "n" + Date.now().toString(36), title: "", edited: stamp(), body: "" };
     notes.unshift(note); showNote(note.id); $("ntitle").focus();
-    commit(list => { list.unshift({ ...note }); return note; }, "Phone: new note");
+    commit(list => { list.unshift({ ...note }); return note; }, "Phone: new note", () => { seen[note.id] = { title: "", body: "" }; });
     return;
   }
   if (e.target.closest("#del")) {
