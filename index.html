@@ -135,6 +135,10 @@ function commit(change, message, onSaved) {
   return saving;
 }
 const seen = {};
+/* the file drops spaces and blank lines at the end of a title or body, so notes are compared the way the file stores them.
+   Otherwise a save that lands just after a typed space looks like a laptop edit on the next save */
+const filed = n => ({ title: (n.title || "").trim(), body: (n.body || "").replace(/\s*(\n---\s*)?$/, "") });
+const differs = (a, b) => { a = filed(a); b = filed(b); return a.title !== b.title || a.body !== b.body; };
 function upsertOpenNote() {
   if (!openId) return;
   const title = $("ntitle").value, body = $("nbody").value, id = openId;
@@ -142,7 +146,7 @@ function upsertOpenNote() {
   commit(list => {
     const i = list.findIndex(n => n.id === id), cur = list[i], start = seen[id];
     const mine = { id, title, body, edited: stamp() };
-    clash = !!(cur && start && (cur.title !== start.title || cur.body !== start.body) && (cur.title !== title || cur.body !== body));
+    clash = !!(cur && start && differs(cur, start) && differs(cur, mine));
     if (clash) {
       const copy = { ...mine, id: "n" + Date.now().toString(36), title: (title || "Untitled") + " (phone copy)" };
       list.unshift(copy);
