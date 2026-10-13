@@ -277,6 +277,57 @@
   .sv.saved { background: rgba(63, 207, 142, .18); color: var(--done); }
   .sv.off { opacity: .45; }
 
+  /* ---------- Yoni: a ring per daily goal, then each part of the day as a card that folds away ---------- */
+  .rings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 4px 10px; }
+  .rg { display: grid; justify-items: center; gap: 3px; min-width: 0; }
+  .rg .ro { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--rule); display: grid; place-items: center; font-size: 22px; position: relative; }
+  .rg b { font-size: 13.5px; line-height: 17px; font-weight: 600; }
+  .rg i { font-style: normal; font-size: 11.5px; line-height: 14px; color: var(--mut); max-width: 100%; text-align: center; }
+  .rg.on .ro { border-color: rgba(63, 207, 142, .45); background: rgba(63, 207, 142, .12); }
+  .rg.on .ro::after { content: ""; position: absolute; right: -4px; bottom: -3px; width: 16px; height: 16px; border-radius: 50%; background: var(--done) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0c11' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7'/%3E%3C/svg%3E") center / 10px no-repeat; box-shadow: 0 0 0 2px var(--card); }
+  .rg.on b { color: var(--done); }
+  .ac { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; margin-top: 8px; overflow: hidden; }
+  .ach { display: grid; grid-template-columns: 16px 1fr auto; column-gap: 8px; row-gap: 8px; align-items: center; width: 100%; padding: 13px 12px; font-size: 15.5px; font-weight: 600; }
+  .ach .ic { color: var(--mut); transition: transform .15s; }
+  .ac.open .ach .ic { transform: rotate(90deg); }
+  .ach .nmr { display: flex; align-items: center; gap: 8px; }
+  .ach .ct { font-size: 13px; font-weight: 400; color: var(--mut); }
+  .ybar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--raised); overflow: hidden; }
+  .ybar i { display: block; height: 100%; border-radius: 3px; background: var(--done); }
+  .ynow { height: 20px; padding: 0 8px; border-radius: 10px; font-size: 11.5px; font-weight: 600; display: grid; place-items: center; background: rgba(59, 110, 245, .2); color: var(--acc); }
+  .acb { padding: 0 12px 2px; border-top: 1px solid var(--line); }
+  .sub { font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mut); padding: 10px 0 4px; border-top: 1px solid var(--line); }
+  .acb .sub:first-child { border-top: 0; }
+  .rw { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px; padding: 6px 0; font-size: 15px; line-height: 20px; }
+  .rw + .rw, .sub + .rw { border-top: 1px solid var(--line); }
+  .rw .wh { flex: none; width: 66px; font-size: 13px; font-weight: 600; color: var(--acc); }
+  .rw.done .tx, .rw.done .wh { color: var(--mut); }
+  .rw.done .tx { text-decoration: line-through; }
+  .box { flex: none; width: 20px; height: 20px; border: 1.5px solid var(--mut); border-radius: 6px; display: grid; place-items: center; color: var(--body); }
+  .box.rd { border-radius: 50%; }
+  .box.on { background: var(--done); border-color: var(--done); }
+  .ynote { font-size: 12px; line-height: 16px; color: var(--mut); margin: 12px 2px 0; }
+
+  /* ---------- Home: the Calendar screen's top and the Yoni card, then a rail section per tab. A section's name folds it, and its rows open the tab ---------- */
+  [data-go], [data-tk] { cursor: pointer; }
+  .ycard { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--rule); }
+  .ycard .ye { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--raised); display: grid; place-items: center; font-size: 20px; }
+  .ycard b { display: block; font-size: 16px; line-height: 21px; font-weight: 600; color: #fff; }
+  .ycard .ic { color: var(--mut); }
+  .rail { margin: 14px -16px 0; }
+  .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
+  .sh { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 18px 7px 16px; font-size: 14px; font-weight: 600; color: var(--tx); }
+  .sh .cnt { font-weight: 400; color: var(--mut); }
+  .sh .chev { color: var(--mut); margin-left: auto; transition: transform .15s; }
+  .hsq { width: 26px; height: 26px; border-radius: 8px; background: rgba(59, 110, 245, .18); color: var(--acc); display: grid; place-items: center; --cut: #131b33; }
+  .rb { margin: 0 16px 0 28px; padding: 2px 0 2px 14px; border-left: 2px solid var(--rule); border-radius: 0 0 2px 2px; --cut: var(--body); }
+  .sec.shut .chev { transform: rotate(-90deg); }
+  .sec.shut .rb { display: none; }
+  .rb .dh { padding: 2px 0 6px; }
+  .rb .tc:last-child { margin-bottom: 2px; }
+  .row { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--mut); }
+  .row .meta { font-size: 13px; white-space: nowrap; }
+
   /* ---------- Settings ---------- */
   .setup { display: grid; gap: 14px; }
   .setup label { display: grid; gap: 5px; font-size: 13px; color: var(--mut); }
@@ -312,7 +363,7 @@ const TAB = {
   Tasks: `<rect ${F} x="4" y="4" width="16" height="18" rx="3"/><rect fill="currentColor" stroke="var(--cut)" stroke-width="1.8" x="8.5" y="1.8" width="7" height="5" rx="1.8"/><path ${C} d="m8.5 14.3 2.4 2.4 4.6-5"/>`,
   Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`
 };
-const UI = { plus: `<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
+const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
   water: `<path ${F} d="M12 2.5c3.5 4.2 6.5 7.6 6.5 11.5a6.5 6.5 0 0 1-13 0c0-3.9 3-7.3 6.5-11.5z"/>`,
@@ -671,7 +722,7 @@ function addIdeaLines(lines, d) {
 }
 const tk = { lines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks", cat: "All", menu: false, wide: null, sheet: "" };
 let tkBusy = 0, tkFail = false;
-function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); }
+function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); }
 function drawTasks() {
   const cats = ["All", ...Object.keys(TK_CATS)], inCat = x => tk.cat === "All" || x.cat === tk.cat, open = r => r.st !== "Done";
   const show = s => esc(s.replace(/<br\s*\/?>/gi, " ")), tick = n => svg(UI.check, n, 4);
@@ -680,7 +731,7 @@ function drawTasks() {
   const bar = `<div class="segw tkbar"><div class="pts">${["Tasks", "Ideas", "Yoni"].map(v => `<button type="button" class="pt${tk.view === v ? " on" : ""}" data-tk="view" data-a="${v}"${tk.view === v ? ' aria-current="true"' : ""}>${v}</button>`).join("<i></i>")}</div><span class="grow"></span>${tk.view === "Yoni" ? "" : `<button type="button" class="sq${tk.cat !== "All" || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by category${tk.cat === "All" ? "" : ": " + tk.cat}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>`}${menu}</div>`;
   const none = what => `<div class="empty">${tk.cat === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${tk.cat} ${what}.`}</div>`;
   let body;
-  if (tk.view === "Yoni") body = `<div class="empty">Yoni is not built yet.</div>`;
+  if (tk.view === "Yoni") body = yoniBody();
   else if (tk.view === "Ideas") body = tk.ideas.filter(inCat).map(d => {
     const n = d.steps.length;
     return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}${d.steps.map(s => `<div class="stp"><span class="cb${s.sent ? " on" : ""}"${s.sent ? ' role="img" aria-label="In Tasks"' : ""}>${s.sent ? tick(11) : ""}</span><span class="grow">${esc(s.text)}</span></div>`).join("")}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
@@ -697,22 +748,24 @@ function drawTasks() {
   $("fab").hidden = offline || tk.view === "Yoni";
 }
 async function loadTasks(quiet) {
-  const [t, i] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE)]);
+  const [t, i, y] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE)]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
-  tk.lines = t.text.split("\n"); tk.ilines = i.text.split("\n"); tkParse();
+  tk.lines = t.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
   drawTasks();
 }
 /* the change shows at once and is then saved on top of the newest file. If a save fails, the list is read again once nothing else is waiting */
 function tkSave(path, change, message) {
-  try { change(path === TASK_FILE ? tk.lines : tk.ilines); } catch (e) { /* the save below reports it */ }
-  tkParse(); drawTasks();
+  try { change(path === TASK_FILE ? tk.lines : path === IDEA_FILE ? tk.ilines : yo.lines); } catch (e) { /* the save below reports it */ }
+  tkParse();
+  if (tab === "Home") drawHome(); else drawTasks(); /* a task added from Home's add button */
   tkBusy++;
   commitFile(path, text => text.split("\n"), lines => lines.join("\n"), change, message).then(item => {
     if (!item) tkFail = true;
     if (--tkBusy || !tkFail) return;
     tkFail = false;
     if (tab === "Tasks") loadTasks(true).catch(() => {});
+    else if (tab === "Home") loadHome().catch(() => {});
   });
 }
 function tickTask(n) {
@@ -752,7 +805,8 @@ function saveSheet() {
     const t = tkRead(lines);
     if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
     const same = t.rows.filter(r => r.time === time), at = same.length ? same[same.length - 1].i : t.end;
-    const cells = { Status: "Open", Category: `${TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note };
+    /* Family is written with the emoji the registry already uses; the phone shows 👪, which an iPhone draws as one figure */
+    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note };
     lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
     return cells;
   }, `Phone: new task "${title}"`);
@@ -771,6 +825,8 @@ function tkAct(act, a, el) {
   else if (act === "cat") { tk.cat = a; tk.menu = false; drawTasks(); }
   else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
   else if (act === "tick") tickTask(+a);
+  else if (act === "yo") yoTick(+a);
+  else if (act === "fold") { yo.open[a] = !yo.open[a]; drawTasks(); }
   else if (act === "opt") el.parentNode.querySelectorAll(".o").forEach(b => { b.classList.toggle("on", b === el); b.setAttribute("aria-pressed", b === el); });
   else if (act === "cancel") closeSheet();
 }
@@ -994,10 +1050,115 @@ function hbAct(act, k, a) {
 }
 function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("hbs"); }
 
+/* ---------- Yoni, the third word of the Tasks tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
+   A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
+   Goals, steps and tasks are added on the laptop only ---------- */
+const FATHER_FILE = "08👶🏻-father/fatherRegistry.md";
+const YO_PARTS = ["Morning", "Afternoon", "Night", "Weekly"];
+const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
+const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
+const yoNow = () => { const h = +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Night"; };
+/* every row has its line i, its text as written and the heading h it sits under; all is the goals, steps and tasks in file order */
+function yoRead(lines) {
+  const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), all: [] };
+  let h = "", head = null;
+  lines.forEach((line, i) => {
+    const raw = line.replace(/\r$/, "").trim();
+    if (raw.startsWith("#")) { h = raw.replace(/^#+ /, "").trim(); head = null; return; }
+    if (!raw.startsWith("|")) return;
+    const c = raw.split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { head = c; return; }
+    if (/^:?-+:?$/.test(c[0])) return;
+    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+) (Routine|Tasks)$/), part = m && out.parts[m[1]];
+    if (h !== "Daily Goals" && !part) return;
+    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(part ? (m[2] === "Routine" ? "Step" : "Task") : "Goal"), when: cell("When"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit") };
+    if (!it.text) return;
+    (part ? part[m[2] === "Routine" ? "steps" : "tasks"] : out.goals).push(it); out.all.push(it);
+  });
+  return out;
+}
+/* open is the parts unfolded; on is the Eastern date it was last set to the part of the day it is now */
+const yo = { lines: [], data: yoRead([]), open: {}, on: "" };
+const yoCount = list => [list.filter(x => x.on).length, list.length];
+function yoniBody() {
+  const d = yo.data, now = yoNow(), g = yoCount(d.goals);
+  if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; }
+  if (!d.all.length) return `<div class="empty">Nothing is set up for Yoni yet. Goals and routines are added on the laptop.</div>`;
+  const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
+  const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when) || "After"}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
+  return `<div class="hgl" style="margin-top:12px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div>
+    <div class="rings">${d.goals.map(x => `<button type="button" class="rg${x.on ? " on" : ""}" data-tk="yo" data-a="${x.i}" aria-pressed="${x.on}"><span class="ro">${esc(x.em)}</span><b class="num">${esc(x.target)} ${esc(x.unit)}</b><i class="ell">${esc(x.text)}</i></button>`).join("")}</div>
+    <div class="hgl" style="margin-top:18px">Routines<span>Tap a part to open it</span></div>
+    ${YO_PARTS.map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), o = !!yo.open[p]; return `<div class="ac${o ? " open" : ""}"><button type="button" class="ach" data-tk="fold" data-a="${p}" aria-expanded="${o}">${svg(UI.right, 16, 2.6)}<span class="nmr">${p}${p === now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></button>
+      ${o ? `<div class="acb"><div class="sub">Routine</div>${rows(P.steps, true)}<div class="sub">Tasks</div>${rows(P.tasks, false)}</div>` : ""}</div>`; }).join("")}
+    <p class="ynote">Goals, routines, and tasks clear at midnight Eastern. Weekly items clear on Monday.</p>`;
+}
+/* only the row's own Done cell is rewritten. A row is found again by its heading and its exact text, as the same task can sit under two parts of the day */
+function yoTick(i) {
+  const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "";
+  if (!it) return;
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  tkSave(FATHER_FILE, lines => {
+    const all = yoRead(lines).all, hit = all.find(x => x.i === it.i && x.raw === it.raw) || all.find(x => x.h === it.h && x.raw === it.raw);
+    if (!hit) throw new Error(`"${it.text}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+    const cells = lines[hit.i].split("|");
+    cells[cells.length - 2] = to ? ` ${to} ` : " ";
+    lines[hit.i] = cells.join("|");
+    return hit;
+  }, `Phone: ${to ? "check" : "uncheck"} "${it.text}"`);
+}
+
+/* ---------- Home: the Calendar screen's date, today's card and hours, the Yoni card, then a rail section each for Habits, Tasks, Calendar and Notes.
+   Nothing is changed here: a section's name folds it, anything else opens its tab, and the add button adds a task ---------- */
+const home = { shut: {} };
+/* the open week's totals, counted as drawHabits counts them: saved days and drafts, against the targets of the latest archived week */
+function hbNow() {
+  const w = hbOpen(), now = today(), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null), set = hbTargets((latest || {}).targets);
+  const live = [0, 1, 2, 3, 4, 5, 6].map(i => addDays(w, i)).filter(d => d <= now && (hb.drafts[d] || hbFiled(d).st)).map(d => hwScore(hb.drafts[d] || hbFiled(d).f));
+  const cats = HB_CATS.map(c => { const tot = hbRound(live.reduce((a, s) => a + s[c.k], 0)), target = set[c.k] || c.target; return { c, tot, target, part: Math.max(0, Math.min(1, tot / target)) }; });
+  return { cats, logged: live.length, overall: Math.round(cats.reduce((a, x) => a + x.part, 0) / cats.length * 100) };
+}
+function drawHome() {
+  const td = today(), ev = cal.events.filter(e => e.d === td), ahead = cal.events.filter(e => e.d > td), side = $("wk") ? $("wk").scrollLeft : 0;
+  const wx = W ? calWeather() : { head: "", strip: "" }, show = s => esc(s.replace(/<br\s*\/?>/gi, " "));
+  const sec = (kind, cnt, body, to = kind) => `<div class="sec${home.shut[kind] ? " shut" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${svg(TAB[kind], 15)}</span>${kind}${cnt ? `<span class="cnt num">${cnt}</span>` : ""}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
+  const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${ev.map(e => `<div class="ev"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="s">Nothing scheduled today</div>`}${wx.head}</div></div>${wx.strip}`;
+  /* Yoni: today's goals and the part of the day it is now */
+  const now = yoNow(), P = yo.data.parts[now], g = yoCount(yo.data.goals), c = yoCount([...P.steps, ...P.tasks]);
+  const yoni = `<div class="ycard" data-go="Yoni"><span class="ye">👶</span><div class="grow"><b>Yoni</b><span class="s num">${g[0]} of ${g[1]} goals today, ${now.toLowerCase()} ${c[0]} of ${c[1]}</span></div>${svg(UI.right, 16, 2.6)}</div>`;
+  const H = hbNow(), bars = H.cats.map(x => `<div class="hbr">${svg(CI[x.c.k], 16)}<span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="gd" style="background:${hbGrade(x.tot / x.target)}"></span></div>`).join("");
+  /* today's open tasks, or the first group that has any */
+  const open = tk.rows.filter(r => r.st !== "Done"), day = TK_TIMES[(new Date().getDay() + 6) % 7], grp = [day, ...TK_TIMES].find(t => open.some(r => r.time === t)), mine = open.filter(r => r.time === grp);
+  const tasks = grp ? `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + mine.slice(0, 3).map(r => `<div class="tc"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="grow"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join("") : `<div class="row">No open tasks</div>`;
+  const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
+  const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
+  $("main").innerHTML = `${top}${yoni}<div class="rail">${sec("Habits", `${H.overall}%`, bars)}${sec("Tasks", `${open.length} open`, tasks)}${sec("Calendar", "Next up", next, "Next Up")}${sec("Notes", "", list)}</div>`;
+  if ($("wk")) $("wk").scrollLeft = side;
+  $("fab").hidden = offline;
+}
+async function loadHome() {
+  const [c, t, f, h, n, y] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(HABIT_FILE), readFile(HISTORY_FILE), readFile(NOTES_FILE), readFile(FATHER_FILE), loadWeather()]);
+  if (tab !== "Home") return;
+  cal = parseCalendar(c.text); notes = parseNotes(n.text);
+  hb.cur = hwRead(f.text.split("\n")); hb.hist = hbRead(h.text.split("\n")).rows;
+  try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
+  if (!tkBusy) { tk.lines = t.text.split("\n"); yo.lines = y.text.split("\n"); tkParse(); } /* a task still being saved is not drawn over */
+  status(c.at ? `Offline. Showing what was loaded ${c.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), c.at ? "err" : "ok");
+  drawHome();
+}
+/* a row on Home opens its tab: Yoni is a view of Tasks, and Today and Next Up are the two views of Calendar */
+function homeGo(to) {
+  if (to === "Yoni" || to === "Tasks") { tk.view = to; to = "Tasks"; }
+  else if (to === "Today" || to === "Next Up") { calView = to; to = "Calendar"; }
+  go(to);
+}
+/* the add button on Home adds a task, whichever of Tasks, Ideas and Yoni was last open */
+function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view = v; }
+
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
-const soon = name => ({ load: async () => { status(""); $("main").innerHTML = `<div class="big">${name}</div><div class="empty">${name} is not built yet.</div>`; } });
-const SCREENS = { Home: soon("Home"), Calendar: { load: loadCalendar }, Habits: { load: loadHabits, leave: leaveHabits }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
-const START = "Notes"; /* becomes Home once that screen is built */
+const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar }, Habits: { load: loadHabits, leave: leaveHabits }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const START = "Home";
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
 async function go(name) {
@@ -1033,6 +1194,10 @@ document.addEventListener("click", e => {
   if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
   if (e.target.closest("#settings")) { showSetup(); return; }
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
+  const fold = e.target.closest("[data-fold]");
+  if (fold) { home.shut[fold.dataset.fold] = !home.shut[fold.dataset.fold]; drawHome(); return; }
+  const to = e.target.closest("[data-go]");
+  if (to) { homeGo(to.dataset.go); return; }
   const k = e.target.closest("[data-tk]");
   if (k) { tkAct(k.dataset.tk, k.dataset.a, k); return; }
   const h = e.target.closest("[data-hb]");
