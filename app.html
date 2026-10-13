@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f1218">
@@ -20,7 +20,8 @@
   :root { --side: #0f1218; --body: #0a0c11; --tx: #e7e9ee; --hi: #fff; --mut: #8b93a3; --line: #1c202a; --rule: #232733; --card: #13161d; --raised: #1b202b; --acc: #8dabf9; --blue: #3b6ef5; --done: #3fcf8e; --flag: #f97066; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  html, body { height: 100%; }
+  /* the frame never zooms out, pans sideways or zooms on a double tap: only the screen area scrolls */
+  html, body { height: 100%; overflow: hidden; touch-action: manipulation; }
   body { margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--body); color: var(--tx); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 22px; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; --cut: var(--body); }
   button { all: unset; box-sizing: border-box; cursor: pointer; }
   input, textarea { font: inherit; color: inherit; }
@@ -38,7 +39,7 @@
   .av { width: 32px; height: 32px; border-radius: 8px; background: #e8b88f; color: #4a2a12; display: grid; place-items: center; font-size: 12px; font-weight: 700; position: relative; }
   .av::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--done); border: 2px solid var(--side); }
   .av.off::after { background: var(--mut); }
-  .scr { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
+  .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
   .scr::-webkit-scrollbar { display: none; }
   .tabs { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px calc(env(safe-area-inset-bottom) + 8px); border-top: 1px solid var(--line); background: var(--side); }
   .tab { display: grid; justify-items: center; }
@@ -333,7 +334,7 @@ const fmtDay = (s, o) => atNoon(s).toLocaleDateString("en-US", o);
 const wkDay = s => fmtDay(s, { weekday: "short" }), monDay = s => fmtDay(s, { month: "short", day: "numeric" }), fullDay = s => fmtDay(s, { weekday: "long", month: "short", day: "numeric" });
 /* "Oct 12, 2026, 9:52pm", "Tue Oct 13, 3:35 AM" or a bare "9:52pm" (today) as 10/12 9:52pm */
 const shortAt = s => {
-  const d = s.match(/([A-Z][a-z]{2}) (d{1,2}),/), t = s.match(/(d{1,2})(?::(d{2}))?s*([ap]m)/i), n = new Date();
+  const d = s.match(/([A-Z][a-z]{2}) (\d{1,2}),/), t = s.match(/(\d{1,2})(?::(\d{2}))?\s*([ap]m)/i), n = new Date();
   return t ? `${d ? MONTHS.indexOf(d[1]) + 1 : n.getMonth() + 1}/${d ? d[2] : n.getDate()} ${t[1]}${t[2] ? ":" + t[2] : ""}${t[3].toLowerCase()}` : s;
 };
 const relDay = s => { const n = Math.round((atNoon(s) - atNoon(today())) / 864e5); return n === 0 ? "Today" : n === 1 ? "Tomorrow" : `In ${n} days`; };
