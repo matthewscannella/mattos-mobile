@@ -34,7 +34,7 @@
   /* ---------- header and bottom bar, the same on every tab: no search field, and the add button floats over the screen ---------- */
   .hd { flex: none; background: var(--side); color: #fff; padding: calc(env(safe-area-inset-top) + 10px) 16px 12px; border-bottom: 1px solid var(--line); }
   .ws { display: flex; align-items: center; gap: 10px; }
-  .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: grid; place-items: center; font-size: 17px; }
+  .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: block; }
   .ws b { font-size: 19px; font-weight: 600; flex: 1; letter-spacing: -.01em; }
   .av { width: 32px; height: 32px; border-radius: 8px; background: #e8b88f; color: #4a2a12; display: grid; place-items: center; font-size: 12px; font-weight: 700; position: relative; }
   .av::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--done); border: 2px solid var(--side); }
@@ -228,6 +228,10 @@
   .strip em.miss { box-shadow: inset 0 0 0 1.5px var(--flag); }
   .hgl { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 600; margin: 16px 2px 7px; }
   .hgl span { font-weight: 400; font-size: 13px; color: var(--mut); }
+  /* Close Week: a line on what closing does, then the button, or Cancel and Close Week once it is tapped */
+  .hcl { display: grid; gap: 10px; padding: 12px; margin-top: 12px; }
+  .hcl span { font-size: 13.5px; line-height: 19px; color: var(--mut); }
+  .hcl .two { display: flex; gap: 8px; }
   .hfr { display: flex; align-items: center; gap: 10px; min-height: 50px; }
   .hfr + .hfr { border-top: 1px solid var(--line); }
   .hfr .lb { width: 104px; flex: none; font-size: 15px; }
@@ -285,7 +289,7 @@
 </style>
 </head>
 <body>
-<header class="hd"><div class="ws"><span class="logo" aria-hidden="true">✳</span><b>MattOS</b><button class="av" type="button" id="settings" aria-label="Settings">MS</button></div></header>
+<header class="hd"><div class="ws"><img class="logo" src="icon.svg" alt=""><b>MattOS</b><button class="av" type="button" id="settings" aria-label="Settings">MS</button></div></header>
 <main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
 <div class="savebar" id="savebar" hidden></div>
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
@@ -353,8 +357,10 @@ async function putFile(path, text, sha, message) {
   return (await r.json()).content.sha;
 }
 /* for showing a screen: the newest file, or the copy kept from the last load when there is no connection. Nothing is edited from a kept copy */
-let offline = false;
+let offline = false, quick = false;
 async function readFile(path) {
+  /* quick: go() first draws a screen from the copy kept on this phone, so a tab opens at once, then loads the newest file */
+  if (quick) { const kept = JSON.parse(store.get("file-" + path)); return { text: kept.text, sha: null }; }
   try { const f = await fetchFile(path); setOffline(false); return f; }
   catch (e) {
     if (!(e instanceof TypeError)) throw e;
@@ -456,6 +462,7 @@ function showNote(id) {
 }
 async function loadNotes() {
   const f = await readFile(NOTES_FILE);
+  if (tab !== "Notes" || openId) return; /* a note opened while the list was loading stays open */
   notes = parseNotes(f.text);
   status(f.at ? `Offline. Showing notes loaded ${f.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
   showNoteList();
@@ -511,6 +518,7 @@ let W = null, wxLive = false, wxRead = "";
 async function loadWeather() {
   const covers = j => j && j.current && j.hourly && j.daily && j.daily.time.includes(today());
   try {
+    if (quick) throw new Error("kept forecast only");
     const j = await (await fetch(WX_URL, { cache: "no-store" })).json();
     if (!covers(j)) throw new Error("no forecast");
     W = j; wxLive = true; wxRead = stamp().split(", ").pop();
@@ -593,7 +601,7 @@ function drawCalendar() {
   $("main").innerHTML = seg + (calView === "Today" ? `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
     <div class="card">${ev.map(row).join("") || `<div class="s">Nothing scheduled today</div>`}${wx.head}</div>
     ${wx.strip}${wx.score}${src}`
-    : `<div class="big">${wkDay(td)} ${monDay(td)} to ${wkDay(end)} ${monDay(end)}</div>
+    : `<div class="big">${monDay(td)} to ${monDay(end)}</div>
     ${wx.week}<section><div class="h2">Calendar</div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}</section>${src}`);
   if ($("wk")) $("wk").scrollLeft = side;
 }
@@ -607,7 +615,7 @@ async function loadCalendar() {
 
 /* ---------- Tasks: add and check off only. Row order is priority, so the phone never reorders, edits or deletes ---------- */
 const TASK_FILE = "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
-const TK_CATS = { Habits: "🥕", Family: "🧑🏻‍👩🏻‍🧒🏻", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
+const TK_CATS = { Habits: "🥕", Family: "👪", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
 const TK_TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
 const TK_STATUS = ["Open", "WIP", "Blocked", "Done"];
 /* as taskCat, taskTiming and wkLine in mattOs.html: an unknown category is Family, an unknown timing is Backlog, and Weekday reads as Monday */
@@ -678,19 +686,19 @@ function drawTasks() {
     return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}${d.steps.map(s => `<div class="stp"><span class="cb${s.sent ? " on" : ""}"${s.sent ? ' role="img" aria-label="In Tasks"' : ""}>${s.sent ? tick(11) : ""}</span><span class="grow">${esc(s.text)}</span></div>`).join("")}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
   }).join("") || none("ideas");
   else {
-    /* one tap on the circle checks a task off or reopens it; a tap on the card shows its full text */
+    /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text */
     const card = r => `<div class="tc${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="grow"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`;
     body = TK_TIMES.map(tm => {
-      const all = tk.rows.filter(r => r.time === tm && inCat(r));
-      return all.length ? `<div class="dh"><b>${tm}</b><span class="num">${all.filter(open).length} open</span></div>` + [...all.filter(open), ...all.filter(r => !open(r))].map(card).join("") : "";
-    }).join("") || none("tasks");
+      const all = tk.rows.filter(r => r.time === tm && inCat(r) && open(r));
+      return all.length ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span></div>` + all.map(card).join("") : "";
+    }).join("") || none("open tasks");
   }
   $("main").innerHTML = bar + body;
   $("fab").hidden = offline || tk.view === "Yoni";
 }
 async function loadTasks(quiet) {
   const [t, i] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE)]);
-  if (tab !== "Tasks") return;
+  if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
   tk.lines = t.text.split("\n"); tk.ilines = i.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
   drawTasks();
@@ -769,7 +777,8 @@ function tkAct(act, a, el) {
 function leaveTasks() { closeSheet(); tk.menu = false; }
 
 /* ---------- Habits: one day's form at a time. The week in progress is a row per day in habitsRegistry.md, the file the desktop's
-   This Week tab writes, so both show the same week. Earlier weeks are read from habitHistoryRegistry.md as HabitFlow codes and are not changed here ---------- */
+   This Week tab writes, so both show the same week. It stays open past its Sunday until Close Week adds it to habitHistoryRegistry.md as HabitFlow codes
+   and starts a clean one. Earlier weeks are read from that file and are never changed ---------- */
 const HABIT_FILE = "07🥕-habits/habitsRegistry.md", HISTORY_FILE = "07🥕-habits/habitHistoryRegistry.md";
 /* codes, scoring and fallback targets as HH_CATS and hhWeeks in mattOs.html, so both sides grade a week alike; top is a full day, for shading the grid */
 const hbCodes = (list, pts) => Object.fromEntries(list.split(" ").map((c, i) => [c, pts[i % pts.length]]));
@@ -831,11 +840,15 @@ function hwRead(lines) {
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
-const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, busy: false };
+const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, busy: false, closing: false };
 const hbMonday = s => addDays(s, -((atNoon(s).getDay() + 6) % 7));
 const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
-/* the week of today and the week in the file can be logged. Today's week replaces an older one in the file on its first save, as on the desktop */
-const hbLive = w => w === hbMonday(today()) || !!(hb.cur && hb.cur.week === w);
+/* only the open week can be logged: the week in the file, until it is closed, or the week of today when the file holds none */
+const hbOpen = () => hb.cur ? hb.cur.week : hbMonday(today());
+const hbLive = w => w === hbOpen();
+/* today as a day of a week, or the nearest day of it */
+const hbDayIn = w => [w, today(), addDays(w, 6)].sort()[1];
+const hbList = a => a.length < 3 ? a.join(" and ") : `${a.slice(0, -1).join(", ")}, and ${a[a.length - 1]}`;
 const hbFiled = s => hb.cur && hb.cur.week === hbMonday(s) ? hb.cur.rows[hbIndex(s)] : { st: "", f: hwBlank() };
 const hbKeep = () => store.set("habit-drafts", JSON.stringify(hb.drafts));
 const hbGrade = p => p >= .9 ? "#3fcf8e" : p >= .8 ? "#f5c84b" : p >= .7 ? "#f79a3e" : p >= .6 ? "#f97066" : "#a78bfa";
@@ -855,7 +868,7 @@ function drawHabits() {
   const overall = Math.round(HB_CATS.reduce((a, c) => a + part(c), 0) / HB_CATS.length * 100), r = 48, len = 2 * Math.PI * r;
   const ring = `<div class="ring"><svg width="56" height="56" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
   const sub = !canLog ? "Archived week" : d.st === "draft" && !mine ? "Draft from the laptop" : { saved: "Saved to the week", miss: "Skipped, fill it in any time", "": "Not started" }[d.st] || "";
-  const last = hb.week >= hbMonday(now);
+  const last = hb.week >= hbOpen();
   const head = `<div class="hcard top"><div class="hsum">${ring}<div class="tx grow"><b>${fullDay(d.date)}</b>${sub ? `<span>${sub}</span>` : ""}</div><span class="hpill ${d.st}">${{ draft: "Draft", saved: "Saved", miss: "Skipped", "": "New" }[d.st]}</span></div>
     <div class="strip"><button type="button" class="nv" data-hb="week" data-a="-1" aria-label="Week before">${svg(UI.left, 16, 2.6)}</button>${days.map(x => `<button type="button" class="dy num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}"${x.date === d.date ? ' aria-current="true"' : ""}>${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b>${x.st && x.st !== "off" ? `<em class="${x.st}"></em>` : ""}</button>`).join("")}<button type="button" class="nv${last ? " off" : ""}" data-hb="week" data-a="1" aria-label="Week after"${last ? ' aria-disabled="true"' : ""}>${svg(UI.right, 16, 2.6)}</button></div></div>`;
   /* the form, in the order of the picked design: Water, Food, Fitness, Mental, then Habits */
@@ -875,7 +888,12 @@ function drawHabits() {
     return `<span class="c num${sel}" style="${v > 0 ? `background:rgba(63,207,142,${a});color:#d9f7e9` : v < 0 ? `background:rgba(249,112,102,${a});color:#ffd9d5` : "color:var(--mut)"}">${v}</span>`;
   };
   const grid = `<div class="hwg"><span></span>${days.map(x => `<button type="button" class="wd num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b></button>`).join("")}${HB_CATS.map(c => `<span class="rn">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
-  $("main").innerHTML = `<div class="hb">${head}${form}<div class="hgl">${last ? "This week" : "Week"}<span>${monDay(hb.week)} - ${monDay(addDays(hb.week, 6))}</span></div><div class="hcard">${bars}</div><div class="hgl">By day<span>Tap a day to open it</span></div>${grid}</div>`;
+  /* the open week can be closed from its Sunday. Once it has ended the card moves to the top, as nothing new is logged until it is closed */
+  const sun = addDays(hb.week, 6), none = days.filter(x => x.st !== "draft" && x.st !== "saved").map(x => wkDay(x.date)), ended = canLog && now > sun;
+  const close = !canLog || !hb.cur ? "" : `<div class="hcard hcl">${now < sun ? `<span>Close Week opens on Sunday, ${monDay(sun)}.</span>`
+    : hb.closing ? `<span>${none.length === 7 ? "Nothing is logged, so no week is added to the history." : `${7 - none.length} of 7 days are logged.${none.length ? ` ${hbList(none)} ${none.length > 1 ? "have" : "has"} nothing logged.` : ""}`} A closed week cannot be reopened. A clean week starts for ${monDay([addDays(hb.week, 7), hbMonday(now)].sort()[1])}.</span><div class="two"><button type="button" class="sv ghost" data-hb="closeno">Cancel</button><button type="button" class="sv" data-hb="closeyes">Close Week</button></div>`
+    : `<span>${ended ? "This week has ended. Close it to start the next one." : "Finished logging? Closing saves this week to the history and starts a clean one."}</span><button type="button" class="sv${hb.busy ? " off" : ""}" data-hb="close">${hb.busy ? "Working…" : "Close Week"}</button>`}</div>`;
+  $("main").innerHTML = `<div class="hb">${head}${ended ? close : ""}${form}<div class="hgl">${last ? "This week" : "Week"}<span>${monDay(hb.week)} - ${monDay(sun)}</span></div><div class="hcard">${bars}</div><div class="hgl">By day<span>Tap a day to open it</span></div>${grid}${ended ? "" : close}</div>`;
   $("savebar").innerHTML = !canLog ? `<button type="button" class="sv off" data-hb="save">Archived week</button>` : (mine && !hb.busy ? `<button type="button" class="sv ghost" data-hb="discard">Discard</button>` : "") + `<button type="button" class="sv${d.st === "draft" ? "" : d.st === "saved" ? " saved" : " off"}" data-hb="save">${hb.busy ? "Saving…" : d.st === "saved" ? `${name} saved` : `Save ${name}`}</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
 }
@@ -886,21 +904,19 @@ async function loadHabits() {
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
   /* a draft for a week that can no longer be logged is dropped */
   hb.drafts = Object.fromEntries(Object.entries(hb.drafts).filter(([date]) => hbLive(hbMonday(date))).map(([date, d]) => [date, hwForm(d)]));
-  if (hb.on !== now) { hb.on = now; hb.week = hbMonday(now); hb.day = now; }
+  if (hb.on !== now) { hb.on = now; hb.week = hbOpen(); hb.day = hbDayIn(hb.week); }
   status(f.at ? `Offline. Showing habits loaded ${f.at}; a draft is kept on this phone and can be saved once you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
   drawHabits();
 }
 /* only the day's own row is rewritten, with Status Saved, so every other line stays as the laptop wrote it. A draft left by the laptop is saved as it stands */
 function hbSave() {
   const date = hb.day, week = hbMonday(date), di = hbIndex(date), filed = hbFiled(date), f = hb.drafts[date] || (filed.st === "draft" ? filed.f : null);
-  if (!f || hb.busy || !hbLive(week)) return;
+  if (!f || hb.busy || !hbLive(week) || date > today()) return;
   hb.busy = true; drawHabits();
   commitFile(HABIT_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
     let t = hwRead(lines);
-    if (!t || t.week !== week) {
-      if (week !== hbMonday(today()) || (t && t.week > week)) throw new Error("A new week has been started, so this day was not saved. Discard it to carry on.");
-      lines.splice(0, lines.length, ...hwText(week).split("\n")); t = hwRead(lines);
-    }
+    if (t && t.week !== week) throw new Error("That week has been closed, so this day was not saved. Discard it to carry on.");
+    if (!t) { lines.splice(0, lines.length, ...hwText(week).split("\n")); t = hwRead(lines); }
     const at = t.rows[di].i;
     lines[at] = hwLine(HW_DAYS[di], f, "Saved") + (lines[at].endsWith("\r") ? "\r" : "");
     return f;
@@ -911,14 +927,59 @@ function hbSave() {
     drawHabits();
   });
 }
+/* a day's form as the codes an archived week holds; a count is the fewest codes that add up to it. As hwCodes in mattOs.html */
+function hbEncode(f) {
+  const out = [], many = (n, list) => { for (list = list.split(" "); n > 0; n -= list.length) out.push(list[Math.min(n, list.length) - 1]); };
+  HB_MEALS.forEach((m, i) => { if (f.food[i] != null) out.push(m.codes[1 - f.food[i]]); });
+  HB_RULES.forEach((r, i) => { if (f.rules[i] != null) out.push(r.codes[1 - f.rules[i]]); });
+  many(f.water, "Bi Bj Bk Bl"); many(f.sets, "Au Av Aw Ax Ay Az"); many(Math.round(f.med / 5), "Da Db Dc Dd De Df");
+  return out.join(" ");
+}
+/* Close Week: the week in the file becomes a row at the top of the archive, each logged day as codes and then the targets it was graded against,
+   and the file is reset to a clean week. A draft the laptop left is archived as it stands, and a week with nothing logged leaves no row.
+   The archive is written first and a row for the same week is replaced, so a close that stops half way can be run again. As hwClose in mattOs.html */
+async function hbClose() {
+  const week = hbOpen(), now = today(), next = [addDays(week, 7), hbMonday(now)].sort()[1], split = text => text.split("\n"), join = lines => lines.join("\n");
+  if (hb.busy || !hb.cur || now < addDays(week, 6)) return;
+  hb.busy = true; hb.closing = false; drawHabits();
+  let ok = false;
+  try {
+    await saving;
+    const t = hwRead(split((await fetchFile(HABIT_FILE)).text));
+    if (!t || t.week !== week) throw new Error("That week has already been closed.");
+    const cells = t.rows.map(r => r.st ? hbEncode(r.f) : "");
+    ok = !cells.some(Boolean) || await commitFile(HISTORY_FILE, split, join, lines => {
+      const h = hbRead(lines), had = h.rows.find(r => r.week === week), latest = h.rows.filter(r => r !== had).reduce((a, r) => !a || r.week > a.week ? r : a, null);
+      if (h.head < 0) throw new Error("The Weeks table is missing from the habit history, so the week was not closed.");
+      const row = `| ${[week, ...cells, latest && latest.targets || HB_CATS.map(c => `${c.name} ${c.target}`).join(", ")].join(" | ")} |` + (lines[h.head].endsWith("\r") ? "\r" : "");
+      if (had) lines[had.i] = row; else lines.splice(h.head + 2, 0, row);
+      return true;
+    }, `Phone: habits week of ${monDay(week)} closed`);
+    /* the file is left alone when it has already moved on to another week */
+    if (ok) ok = await commitFile(HABIT_FILE, split, join, lines => { const c = hwRead(lines); if (!c || c.week === week) lines.splice(0, lines.length, ...split(hwText(next))); return true; }, `Phone: habits week of ${monDay(next)} started`);
+  } catch (e) { status(e instanceof TypeError ? "No connection. The week was not closed." : e.message, "err"); }
+  hb.busy = false;
+  if (tab !== "Habits") return;
+  if (ok) hb.on = ""; /* open on the new week */
+  $("scr").scrollTop = 0;
+  loadHabits().catch(() => drawHabits());
+}
 function hbAct(act, k, a) {
   const now = today();
   if (act === "save") { hbSave(); return; }
   if (hb.busy) return;
   if (act === "day") { if (a > now) return; hb.day = a; }
-  else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbMonday(now)) return; hb.week = w; hb.day = w === hbMonday(now) ? now : addDays(w, 6); }
+  else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbOpen()) return; hb.week = w; hb.day = w === hbOpen() ? hbDayIn(w) : addDays(w, 6); hb.closing = false; }
   else if (act === "discard") { delete hb.drafts[hb.day]; hbKeep(); }
-  else if (!hbLive(hb.week)) { status("An archived week cannot be changed on the phone.", "err"); return; }
+  else if (act === "close") {
+    const left = Object.keys(hb.drafts).filter(x => hbMonday(x) === hbOpen()).sort()[0];
+    if (left) { status(`Save or discard the draft for ${fullDay(left)} before closing the week.`, "err"); $("scr").scrollTop = 0; return; }
+    hb.closing = true;
+  }
+  else if (act === "closeno") hb.closing = false;
+  else if (act === "closeyes") { hbClose(); return; }
+  else if (!hbLive(hb.week)) { status("An archived week cannot be changed.", "err"); return; }
+  else if (hb.day > now) { status("That day has not started yet.", "err"); return; }
   else {
     /* any change makes the day a draft; changing it back to what is in the file drops the draft */
     const was = hbFiled(hb.day).f, f = hb.drafts[hb.day] || hwForm(was);
@@ -947,6 +1008,10 @@ async function go(name) {
   $("fab").hidden = true; $("scr").scrollTop = 0;
   if (!cfg().token) return showSetup();
   status("Loading…");
+  /* drawn at once from the copies kept on this phone, then again from the newest files */
+  quick = true;
+  try { await SCREENS[tab].load(); status("Updating…"); } catch (e) { /* nothing kept yet: the load below draws it */ }
+  quick = false;
   try { await SCREENS[tab].load(); }
   catch (e) { status(e.message, "err"); if (/token|repository/i.test(e.message)) showSetup(e.message); }
 }
