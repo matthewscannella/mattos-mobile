@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1218">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MattOS">
+<link rel="manifest" href="manifest.webmanifest?v=3">
+<link rel="apple-touch-icon" href="icon-180-v4.png">
+<link rel="icon" type="image/png" href="icon-192-v4.png">
+<title>MattOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  /* Nova dark palette, as in mattOs.html */
+  :root { --side: #0f1218; --body: #0a0c11; --tx: #e7e9ee; --hi: #fff; --mut: #8b93a3; --line: #1c202a; --rule: #232733; --card: #13161d; --raised: #1b202b; --acc: #8dabf9; --blue: #3b6ef5; --done: #3fcf8e; --flag: #f97066; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--body); color: var(--tx); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 22px; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; --cut: var(--body); }
+  button { all: unset; box-sizing: border-box; cursor: pointer; }
+  input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 4px; }
+  .ic { flex: none; display: block; }
+  .ell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .num { font-variant-numeric: tabular-nums; }
+  .grow { flex: 1; min-width: 0; }
+
+  /* ---------- header and bottom bar, the same on every tab: no search field, and the add button floats over the screen ---------- */
+  .hd { flex: none; background: var(--side); color: #fff; padding: calc(env(safe-area-inset-top) + 10px) 16px 12px; border-bottom: 1px solid var(--line); }
+  .ws { display: flex; align-items: center; gap: 10px; }
+  .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: grid; place-items: center; font-size: 17px; }
+  .ws b { font-size: 19px; font-weight: 600; flex: 1; letter-spacing: -.01em; }
+  .av { width: 32px; height: 32px; border-radius: 8px; background: #e8b88f; color: #4a2a12; display: grid; place-items: center; font-size: 12px; font-weight: 700; position: relative; }
+  .av::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--done); border: 2px solid var(--side); }
+  .av.off::after { background: var(--mut); }
+  .scr { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
+  .scr::-webkit-scrollbar { display: none; }
+  .tabs { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px calc(env(safe-area-inset-bottom) + 8px); border-top: 1px solid var(--line); background: var(--side); }
+  .tab { display: grid; justify-items: center; }
+  .tab .w { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: var(--mut); --cut: var(--side); }
+  .tab.on .w { background: var(--blue); color: #fff; --cut: var(--blue); }
+  .fab { position: fixed; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 78px); width: 54px; height: 54px; border-radius: 16px; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0, 0, 0, .5); z-index: 3; }
+  .fab:active { filter: brightness(.9); }
+
+  /* ---------- shared text, cards and buttons ---------- */
+  .status { font-size: 12.5px; line-height: 16px; color: var(--mut); padding: 8px 2px 0; }
+  .status:empty { display: none; }
+  .status.err { color: var(--flag); }
+  .status.ok { color: var(--done); }
+  .big { padding: 14px 2px 10px; font-size: 22px; line-height: 28px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
+  .s { font-size: 13px; line-height: 18px; color: var(--mut); }
+  .card { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 14px; --cut: var(--card); }
+  .btn { border: 1px solid var(--rule); border-radius: 10px; padding: 7px 12px; font-size: 14px; color: var(--mut); white-space: nowrap; }
+  .btn:active { background: var(--raised); }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; text-align: center; padding: 11px 12px; }
+  .btn.danger { color: var(--flag); }
+  .empty { text-align: center; color: var(--mut); padding: 56px 16px; }
+
+  /* ---------- Notes ---------- */
+  .note { display: grid; gap: 1px; width: 100%; margin-bottom: 6px; padding: 10px 12px; border-radius: 12px; background: var(--card); }
+  .note:active { background: var(--raised); }
+  .note b { font-size: 15px; line-height: 21px; font-weight: 600; color: var(--tx); }
+  .editor { display: grid; gap: 10px; padding-top: 10px; }
+  .editor .top { display: flex; justify-content: space-between; align-items: center; }
+  .editor input { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; padding: 4px 0 10px; font-size: 22px; line-height: 28px; font-weight: 700; color: #fff; outline: none; }
+  .editor input:focus { border-bottom-color: var(--blue); }
+  .editor textarea { width: 100%; min-height: 50vh; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 12px; resize: vertical; outline: none; }
+  .editor textarea:focus { border-color: var(--blue); }
+
+  /* ---------- Settings ---------- */
+  .setup { display: grid; gap: 14px; }
+  .setup label { display: grid; gap: 5px; font-size: 13px; color: var(--mut); }
+  .setup input { width: 100%; background: var(--body); border: 1px solid var(--rule); border-radius: 10px; padding: 10px; font-size: 16px; color: var(--tx); outline: none; }
+  .setup input:focus { border-color: var(--blue); }
+  .setup p { margin: 0; font-size: 14px; color: var(--mut); }
+
+  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 78px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
+  .toast span { flex: 1; }
+</style>
+</head>
+<body>
+<header class="hd"><div class="ws"><span class="logo" aria-hidden="true">✳</span><b>MattOS</b><button class="av" type="button" id="settings" aria-label="Settings">MS</button></div></header>
+<main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
+<button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
+<nav class="tabs" id="tabs"></nav>
+<div class="toast" id="toast" hidden><span id="toastmsg"></span><button class="btn" type="button" id="undo">Undo</button></div>
+<script>
+/* MattOS for the phone. Reads and writes the registry files in the private mattos-data repository through the GitHub API.
+   The format functions match the desktop app's exactly, so both sides read each other's edits. */
+
+/* solid style only: filled shapes, details cut out in the background colour, or heavy strokes */
+const F = 'fill="currentColor" stroke="none"', C = 'fill="none" stroke="var(--cut)" stroke-width="2"';
+const FS = 'fill="currentColor" stroke="currentColor" stroke-width="1.5"', CF = 'fill="var(--cut)" stroke="none"';
+const K = w => `fill="none" stroke="currentColor" stroke-width="${w}"`;
+const svg = (inner, s = 24, w = 2, cls = "") => `<svg class="ic${cls ? " " + cls : ""}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+const TAB = {
+  Home: `<path ${FS} d="M12 3 2.5 11h2.5v9.5h14V11h2.5z"/><rect ${CF} x="10" y="14" width="4" height="7.5" rx="1"/>`,
+  Calendar: `<rect ${F} x="2.5" y="3.5" width="19" height="18" rx="3"/><path ${C} d="M2.5 9.5h19"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17.5h.01M12 17.5h.01"/>`,
+  Habits: `<path ${F} d="M3.2 20.8C4.5 15.5 8 10.5 12.3 8.3a3.3 3.3 0 0 1 4.4 4.4C14.5 17 9.5 20.5 4.2 21.8a.8.8 0 0 1-1-1z"/><path ${K(2.6)} d="M15.5 9.5 16.5 3.5M15.5 9.5l5-5M15.5 9.5l6-1"/>`,
+  Tasks: `<rect ${F} x="4" y="4" width="16" height="18" rx="3"/><rect fill="currentColor" stroke="var(--cut)" stroke-width="1.8" x="8.5" y="1.8" width="7" height="5" rx="1.8"/><path ${C} d="m8.5 14.3 2.4 2.4 4.6-5"/>`,
+  Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`
+};
+const UI = { plus: `<path d="M12 5v14M5 12h14"/>` };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+const stamp = () => { const d = new Date(), h = d.getHours(), m = d.getMinutes(); return `${d.toLocaleString("en-US", { month: "short" })} ${d.getDate()}, ${d.getFullYear()}, ${h % 12 || 12}${m ? ":" + String(m).padStart(2, "0") : ""}${h < 12 ? "am" : "pm"}`; };
+function status(msg, kind = "") { $("status").textContent = msg; $("status").className = "status" + (kind ? " " + kind : ""); }
+
+/* settings live in this browser only */
+const store = {
+  get: k => { try { return localStorage.getItem("mattos-" + k) || ""; } catch (e) { return ""; } },
+  set: (k, v) => { try { localStorage.setItem("mattos-" + k, v); } catch (e) { /* private mode: lasts until the tab closes */ } }
+};
+const cfg = () => ({ owner: store.get("owner") || "matthewscannella", repo: store.get("repo") || "mattos-data", token: store.get("token") });
+
+/* GitHub contents API. Every function takes the file's path in the repository */
+const b64decode = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, "")), c => c.charCodeAt(0)));
+const b64encode = text => { const bytes = new TextEncoder().encode(text); let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(bin); };
+const apiUrl = path => { const c = cfg(); return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`; };
+const headers = () => ({ Authorization: `Bearer ${cfg().token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" });
+const keep = (path, text) => store.set("file-" + path, JSON.stringify({ text, at: stamp() }));
+async function fetchFile(path) {
+  const r = await fetch(apiUrl(path) + "?ref=main&t=" + Date.now(), { headers: headers(), cache: "no-store" });
+  if (r.status === 401) throw new Error("The token was rejected. Open Settings and paste a new one.");
+  if (r.status === 404) throw new Error(`${path.split("/").pop()} was not found. Check the repository name in Settings, and that the laptop has synced once.`);
+  if (!r.ok) throw new Error(`GitHub returned ${r.status}.`);
+  const j = await r.json(), text = b64decode(j.content);
+  keep(path, text);
+  return { text, sha: j.sha };
+}
+async function putFile(path, text, sha, message) {
+  const r = await fetch(apiUrl(path), { method: "PUT", headers: { ...headers(), "Content-Type": "application/json" }, body: JSON.stringify({ message, content: b64encode(text), sha, branch: "main" }) });
+  if (r.status === 409 || r.status === 422) return null; /* someone else saved first: caller retries on the newer file */
+  if (!r.ok) throw new Error(r.status === 403 ? "The token can't write to this repository. Give it Contents: Read and write." : `Save failed: GitHub returned ${r.status}.`);
+  keep(path, text);
+  return (await r.json()).content.sha;
+}
+/* for showing a screen: the newest file, or the copy kept from the last load when there is no connection. Nothing is edited from a kept copy */
+let offline = false;
+async function readFile(path) {
+  try { const f = await fetchFile(path); setOffline(false); return f; }
+  catch (e) {
+    if (!(e instanceof TypeError)) throw e;
+    let kept = null; try { kept = JSON.parse(store.get("file-" + path)); } catch (x) { /* nothing kept */ }
+    if (!kept) throw new Error("No connection, and nothing has been loaded on this phone yet.");
+    setOffline(true);
+    return { text: kept.text, sha: null, at: kept.at };
+  }
+}
+function setOffline(v) { offline = v; $("settings").classList.toggle("off", v); }
+/* every save starts from the newest file on GitHub and changes only its own part, so laptop edits to the rest are kept.
+   change(list) edits the parsed list in place and returns the item it touched */
+let saving = Promise.resolve();
+function commitFile(path, parse, serialize, change, message, onSaved) {
+  saving = saving.then(async () => {
+    status("Saving…");
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const latest = await fetchFile(path);
+      const list = parse(latest.text);
+      const item = change(list);
+      const text = serialize(list);
+      if (text === latest.text) { if (onSaved) onSaved(item, list); status("Saved", "ok"); return item; }
+      const newSha = await putFile(path, text, latest.sha, message);
+      if (newSha) { if (onSaved) onSaved(item, list); status("Saved " + stamp().split(", ").pop(), "ok"); return item; }
+    }
+    throw new Error("Could not save after several tries. Check your connection, then tap the tab again.");
+  }).catch(e => { status(e instanceof TypeError ? "No connection. This change was not saved." : e.message, "err"); });
+  return saving;
+}
+
+/* ---------- Notes ---------- */
+const NOTES_FILE = "03🗒️-notes/notesRegistry.md";
+const NOTE_HEAD = `# Notes Registry\n\nSource of truth for MattOS notes. Newest first.\n`;
+const serializeNotes = notes => NOTE_HEAD + notes.map(n => `\n---\n\n<!-- note: ${n.id} -->\n## ${n.title || ""}\n_Edited ${n.edited}_\n\n${n.body}\n`).join("");
+function parseNotes(md) {
+  const parts = md.split(/^<!-- note: (.+?) -->[ \t]*\r?$/m), out = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const lines = parts[i + 1].replace(/^\r?\n/, "").split(/\r?\n/);
+    const tm = (lines[0] || "").match(/^##\s?(.*)$/);
+    let k = tm ? 1 : 0;
+    const em = (lines[k] || "").match(/^_Edited (.*)_$/);
+    if (em) k++;
+    if (lines[k] === "") k++;
+    out.push({ id: parts[i].trim(), title: tm ? tm[1].trim() : "", edited: em ? em[1] : "", body: lines.slice(k).join("\n").replace(/\s*(\n---\s*)?$/, "") });
+  }
+  return out;
+}
+let notes = [], openId = null, base = null, saveTimer = null, undoNote = null, toastTimer = null;
+const commitNotes = (change, message, onSaved) => commitFile(NOTES_FILE, parseNotes, serializeNotes, change, message, (item, list) => { notes = list; if (onSaved) onSaved(item); });
+const seen = {};
+/* the file drops spaces and blank lines at the end of a title or body, so notes are compared the way the file stores them.
+   Otherwise a save that lands just after a typed space looks like a laptop edit on the next save */
+const filed = n => ({ title: (n.title || "").trim(), body: (n.body || "").replace(/\s*(\n---\s*)?$/, "") });
+const differs = (a, b) => { a = filed(a); b = filed(b); return a.title !== b.title || a.body !== b.body; };
+const dirty = () => openId && base && $("ntitle") && ($("ntitle").value !== base.title || $("nbody").value !== base.body);
+/* If the same note changed on the laptop since it was opened here, the phone's version is saved as a separate copy */
+function upsertOpenNote() {
+  if (!openId) return;
+  const title = $("ntitle").value, body = $("nbody").value, id = openId;
+  let clash = false;
+  commitNotes(list => {
+    const i = list.findIndex(n => n.id === id), cur = list[i], start = seen[id];
+    const mine = { id, title, body, edited: stamp() };
+    clash = !!(cur && start && differs(cur, start) && differs(cur, mine));
+    if (clash) {
+      const copy = { ...mine, id: "n" + Date.now().toString(36), title: (title || "Untitled") + " (phone copy)" };
+      list.unshift(copy);
+      return copy;
+    }
+    if (cur) Object.assign(cur, mine); else list.unshift(mine);
+    return mine;
+  }, `Phone: edit "${title || "Untitled"}"`, saved => {
+    seen[saved.id] = { title: saved.title, body: saved.body };
+    if (openId === id) base = { title, body };
+    if (clash && openId === id) {
+      openId = saved.id; base = { title: saved.title, body };
+      if ($("ntitle")) $("ntitle").value = saved.title;
+      setTimeout(() => status("This note changed on the laptop too, so your version was saved as a copy.", "err"), 0);
+    }
+  });
+}
+function showNoteList() {
+  openId = null; base = null; $("fab").hidden = offline;
+  $("main").innerHTML = `<div class="big">Notes</div>` + (notes.length
+    ? notes.map(n => `<button class="note" type="button" data-id="${esc(n.id)}"><b class="ell">${esc(n.title) || "Untitled"}</b><span class="s ell num">${esc(n.edited)}</span><span class="s ell">${esc(n.body.split("\n").find(l => l.trim())) || "Empty note"}</span></button>`).join("")
+    : `<div class="empty">No notes yet. Tap the add button to start one.</div>`);
+}
+function showNote(id) {
+  const n = notes.find(x => x.id === id);
+  if (!n) return showNoteList();
+  openId = id; base = { title: n.title, body: n.body }; seen[id] = { title: n.title, body: n.body };
+  $("fab").hidden = true;
+  const ro = offline ? " readonly" : "";
+  $("main").innerHTML = `<div class="editor">
+    <div class="top"><button class="btn" type="button" id="back">‹ Notes</button>${offline ? "" : `<button class="btn danger" type="button" id="del">Delete</button>`}</div>
+    <input id="ntitle" placeholder="Untitled" value="${esc(n.title)}" autocomplete="off" aria-label="Title"${ro}>
+    <span class="s num">Edited ${esc(n.edited)}</span>
+    <textarea id="nbody" placeholder="Start writing…" aria-label="Note"${ro}>${esc(n.body)}</textarea></div>`;
+}
+async function loadNotes() {
+  const f = await readFile(NOTES_FILE);
+  notes = parseNotes(f.text);
+  status(f.at ? `Offline. Showing notes loaded ${f.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
+  showNoteList();
+}
+function newNote() {
+  const note = { id: "n" + Date.now().toString(36), title: "", edited: stamp(), body: "" };
+  notes.unshift(note); showNote(note.id); $("ntitle").focus();
+  commitNotes(list => { list.unshift({ ...note }); return note; }, "Phone: new note", () => { seen[note.id] = { title: "", body: "" }; });
+}
+/* called before the screen changes: an open note with unsaved typing is saved first */
+function leaveNotes() { clearTimeout(saveTimer); if (dirty()) upsertOpenNote(); openId = null; base = null; }
+
+/* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
+const soon = name => ({ load: async () => { status(""); $("main").innerHTML = `<div class="big">${name}</div><div class="empty">${name} is not built yet.</div>`; } });
+const SCREENS = { Home: soon("Home"), Calendar: soon("Calendar"), Habits: soon("Habits"), Tasks: soon("Tasks"), Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const START = "Notes"; /* becomes Home once that screen is built */
+let tab = null;
+function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
+async function go(name) {
+  leave();
+  tab = SCREENS[name] ? name : START;
+  history.replaceState(null, "", "#" + tab.toLowerCase());
+  $("tabs").innerHTML = Object.keys(TAB).map(n => `<button class="tab${n === tab ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === tab ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
+  $("fab").hidden = true; $("scr").scrollTop = 0;
+  if (!cfg().token) return showSetup();
+  status("Loading…");
+  try { await SCREENS[tab].load(); }
+  catch (e) { status(e.message, "err"); if (/token|repository/i.test(e.message)) showSetup(e.message); }
+}
+function showSetup(msg) {
+  const c = cfg();
+  leave(); status(""); $("fab").hidden = true;
+  $("main").innerHTML = `<div class="big">Settings</div><form class="card setup" id="setup">
+    ${msg ? `<p style="color:var(--flag)">${esc(msg)}</p>` : ""}
+    <p>Paste the GitHub token for the mattos-data repository. It is stored only in this browser.</p>
+    <label>Token<input id="s-token" type="password" value="${esc(c.token)}" autocomplete="off" required></label>
+    <label>GitHub username<input id="s-owner" value="${esc(c.owner)}" autocomplete="off" autocapitalize="off"></label>
+    <label>Repository<input id="s-repo" value="${esc(c.repo)}" autocomplete="off" autocapitalize="off"></label>
+    <button class="btn primary" type="submit">Save and Connect</button></form>`;
+}
+
+/* events */
+document.addEventListener("click", e => {
+  const t = e.target.closest(".tab");
+  if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
+  if (e.target.closest("#settings")) { showSetup(); return; }
+  if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
+  const n = e.target.closest(".note");
+  if (n) { showNote(n.dataset.id); return; }
+  if (e.target.closest("#back")) { leaveNotes(); showNoteList(); return; }
+  if (e.target.closest("#del")) {
+    const id = openId, gone = notes.find(x => x.id === id);
+    undoNote = gone ? { ...gone, title: $("ntitle").value, body: $("nbody").value } : null;
+    clearTimeout(saveTimer); openId = null;
+    notes = notes.filter(x => x.id !== id); showNoteList();
+    toast("Note deleted");
+    commitNotes(list => { const i = list.findIndex(x => x.id === id); if (i >= 0) list.splice(i, 1); }, `Phone: delete "${gone ? gone.title || "Untitled" : id}"`);
+    return;
+  }
+  if (e.target.closest("#undo") && undoNote) {
+    const back = undoNote; undoNote = null; $("toast").hidden = true;
+    notes.unshift(back); if (tab === "Notes" && !openId) showNoteList();
+    commitNotes(list => { if (!list.some(x => x.id === back.id)) list.unshift(back); }, `Phone: restore "${back.title || "Untitled"}"`);
+  }
+});
+document.addEventListener("input", e => {
+  if (e.target.id !== "ntitle" && e.target.id !== "nbody") return;
+  status("Unsaved changes…");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { if (dirty()) upsertOpenNote(); }, 1500);
+});
+document.addEventListener("submit", e => {
+  if (e.target.id !== "setup") return;
+  e.preventDefault();
+  store.set("token", $("s-token").value.trim()); store.set("owner", $("s-owner").value.trim()); store.set("repo", $("s-repo").value.trim());
+  go(tab);
+});
+/* save before the phone puts the page away; reload when it comes back */
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { if (dirty()) { clearTimeout(saveTimer); upsertOpenNote(); } }
+  else if (!openId && !$("setup") && cfg().token) go(tab);
+});
+function toast(msg) {
+  $("toastmsg").textContent = msg; $("toast").hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; }, 8000);
+}
+$("fab").innerHTML = svg(UI.plus, 24, 2.6);
+go(Object.keys(TAB).find(n => n.toLowerCase() === location.hash.slice(1)) || START);
+</script>
+</body>
+</html>
