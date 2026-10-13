@@ -72,6 +72,67 @@
   .editor textarea { width: 100%; min-height: 50vh; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 12px; resize: vertical; outline: none; }
   .editor textarea:focus { border-color: var(--blue); }
 
+  /* ---------- Calendar ---------- */
+  .tag { display: inline-block; height: 18px; line-height: 18px; padding: 0 7px; border-radius: 9px; font-size: 11px; font-weight: 600; vertical-align: 1px; white-space: nowrap; }
+  .tag.live { background: rgba(63, 207, 142, .16); color: var(--done); }
+  .tag.old { background: rgba(249, 112, 102, .16); color: var(--flag); }
+  .h2 { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 20px 2px 8px; font-size: 13.5px; font-weight: 600; color: var(--tx); }
+  .h2 span { font-weight: 400; font-size: 12.5px; color: var(--mut); }
+  .ev { display: flex; gap: 11px; align-items: stretch; }
+  .ev > i { flex: none; width: 4px; border-radius: 2px; background: var(--blue); }
+  .ev b { display: block; font-size: 18px; line-height: 24px; font-weight: 600; color: #fff; }
+  .ev span { display: block; font-size: 13.5px; line-height: 18px; color: var(--mut); }
+  .ev + .ev { margin-top: 9px; }
+  .wxl { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .wxl:first-child { margin-top: 0; }
+  .wxl .v { font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
+  .wxl .t1 { font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; }
+  .srcl { display: flex; align-items: center; gap: 7px; padding: 12px 2px 0; font-size: 12px; line-height: 16px; color: var(--mut); }
+  /* the next 24 hours, scrolling sideways to the screen's edges; a blue dot marks an outdoor score above 85 */
+  .wk { display: grid; grid-auto-flow: column; grid-auto-columns: 46px; gap: 4px; margin: 0 -16px; padding: 12px 16px 0; overflow-x: auto; scrollbar-width: none; }
+  .wk::-webkit-scrollbar { display: none; }
+  .wc { display: grid; justify-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 13px; font-size: 11.5px; line-height: 14px; color: var(--mut); --cut: var(--body); }
+  .wc b { font-size: 16px; line-height: 20px; color: var(--tx); font-weight: 700; }
+  .wc svg { color: var(--tx); margin-top: 2px; }
+  .dot { display: block; width: 5px; height: 5px; margin-top: 2px; border-radius: 50%; background: var(--blue); }
+  .dot.no { background: transparent; }
+  .wc.on { background: var(--blue); color: rgba(255, 255, 255, .85); --cut: var(--blue); }
+  .wc.on b, .wc.on svg { color: #fff; }
+  .wc.on .dot { background: #fff; }
+  .wc.on .dot.no { background: transparent; }
+  .key { display: flex; align-items: center; gap: 6px; padding: 6px 2px 0; }
+  .key .dot { margin: 0; }
+  .bks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .bk { display: grid; gap: 3px; align-content: start; padding: 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--rule); --cut: var(--card); min-height: 126px; }
+  .bk > b { font-size: 14px; color: #fff; font-weight: 600; }
+  .bk .bl { font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
+  .bk .sc { margin-top: 4px; font-size: 22px; line-height: 26px; font-weight: 700; color: var(--tx); }
+  .bk .sc small { display: block; font-size: 11px; line-height: 13px; font-weight: 500; color: var(--mut); }
+  .bk.good { border-color: rgba(63, 207, 142, .5); background: #12241f; --cut: #12241f; }
+  .bk.good .sc { color: var(--done); }
+  .up { display: flex; align-items: center; gap: 12px; padding: 7px 2px; }
+  .up .dt { flex: none; width: 50px; display: grid; font-size: 12px; line-height: 15px; color: var(--mut); }
+  .up .dt b { font-size: 14px; line-height: 18px; color: var(--tx); font-weight: 600; }
+  .up .t { font-weight: 600; color: var(--tx); }
+  .up .meta { font-size: 13px; color: var(--mut); white-space: nowrap; }
+  /* next 7 days: one pill per day, with morning, afternoon and evening filled by the outdoor score */
+  .hps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .hp { display: grid; gap: 3px; justify-items: center; min-width: 0; font-size: 12.5px; line-height: 16px; color: var(--mut); }
+  .hp > b { font-weight: 600; color: var(--tx); }
+  .hp.td > b { color: var(--acc); }
+  .hp svg { color: var(--tx); }
+  .hpp { width: 100%; display: grid; gap: 2px; border-radius: 8px; }
+  .hpp i { height: 24px; background: color-mix(in srgb, var(--done) var(--a, 0%), var(--raised)); }
+  .hpp i:first-child { border-radius: 8px 8px 0 0; }
+  .hpp i:last-child { border-radius: 0 0 8px 8px; }
+  .hpp i.gone { background: none; border: 1px dashed var(--rule); }
+  .hp.on .hpp { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .pdet { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); }
+  .pdet b { color: var(--tx); font-weight: 600; }
+  .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .pill { height: 22px; line-height: 22px; padding: 0 8px; border-radius: 11px; background: var(--raised); font-size: 11.5px; font-weight: 600; color: var(--tx); white-space: nowrap; }
+  .pill.good { background: rgba(63, 207, 142, .16); color: var(--done); }
+
   /* ---------- Settings ---------- */
   .setup { display: grid; gap: 14px; }
   .setup label { display: grid; gap: 5px; font-size: 13px; color: var(--mut); }
@@ -257,9 +318,142 @@ function newNote() {
 /* called before the screen changes: an open note with unsaved typing is saved first */
 function leaveNotes() { clearTimeout(saveTimer); if (dirty()) upsertOpenNote(); openId = null; base = null; }
 
+/* ---------- dates ---------- */
+const p2 = n => String(n).padStart(2, "0");
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const isoDay = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+const atNoon = s => new Date(s + "T12:00");
+const today = () => isoDay(new Date());
+const addDays = (s, n) => { const d = atNoon(s); d.setDate(d.getDate() + n); return isoDay(d); };
+const fmtDay = (s, o) => atNoon(s).toLocaleDateString("en-US", o);
+const wkDay = s => fmtDay(s, { weekday: "short" }), monDay = s => fmtDay(s, { month: "short", day: "numeric" }), fullDay = s => fmtDay(s, { weekday: "long", month: "short", day: "numeric" });
+const relDay = s => { const n = Math.round((atNoon(s) - atNoon(today())) / 864e5); return n === 0 ? "Today" : n === 1 ? "Tomorrow" : `In ${n} days`; };
+const hr12 = h => `${h % 12 || 12} ${h < 12 ? "AM" : "PM"}`;
+
+/* ---------- weather: the desktop app's Open-Meteo call for Hoboken, its outdoor score and its day blocks (PCAL_BLOCKS, wxScore, pcalWxFill) ---------- */
+const WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=40.744&longitude=-74.0324&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=16";
+const WX_LABEL = { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Cloudy", 45: "Fog", 48: "Fog", 51: "Light drizzle", 53: "Drizzle", 55: "Heavy drizzle", 61: "Light rain", 63: "Rain", 65: "Heavy rain", 66: "Freezing rain", 67: "Freezing rain", 71: "Light snow", 73: "Snow", 75: "Heavy snow", 77: "Snow grains", 80: "Showers", 81: "Showers", 82: "Heavy showers", 85: "Snow showers", 86: "Snow showers", 95: "Thunderstorm", 96: "Thunderstorm, hail", 99: "Thunderstorm, hail" };
+const cloudD = "M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.3 11.5 3.8 3.8 0 0 0 7 19z";
+const WXI = {
+  sun: `<circle ${F} cx="12" cy="12" r="5"/><path ${K(2.6)} d="M12 2v1.5M12 20.5V22M4.9 4.9 6 6M18 18l1.1 1.1M2 12h1.5M20.5 12H22M4.9 19.1 6 18M18 6l1.1-1.1"/>`,
+  part: `<circle ${F} cx="8.5" cy="7.5" r="4.8"/><path fill="currentColor" stroke="var(--cut)" stroke-width="2" d="M17.5 21.5a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.5 14 3.8 3.8 0 0 0 7 21.5z"/>`,
+  cloud: `<path ${F} d="${cloudD}"/>`,
+  rain: `<path ${F} transform="translate(0 -3.5)" d="${cloudD}"/><path ${K(2.4)} d="M8 19.5v2M12 19.5v2M16 19.5v2"/>`,
+  snow: `<path ${F} transform="translate(0 -3.5)" d="${cloudD}"/><path ${K(2.8)} d="M8 20.5h.01M12 20.5h.01M16 20.5h.01"/>`,
+  moon: `<path ${F} d="M20.5 14.2A8.6 8.6 0 1 1 9.8 3.5a7 7 0 0 0 10.7 10.7z"/>`
+};
+const wxIco = (n, s) => svg(WXI[n], s);
+const wxIcon = c => c === 0 ? "sun" : c <= 2 ? "part" : c <= 48 ? "cloud" : (c >= 71 && c <= 77) || c === 85 || c === 86 ? "snow" : "rain";
+const wxLabel = c => WX_LABEL[c] || "Weather";
+const WX_BLOCKS = [{ label: "Morning", from: 8, to: 12 }, { label: "Afternoon", from: 12, to: 16 }, { label: "Evening", from: 16, to: 20 }];
+const wxScore = (feel, p, code) => Math.round(100
+  * (feel >= 66 && feel <= 76 ? 1 : feel < 66 ? Math.max(0, (feel - 40) / 26) : Math.max(0, (95 - feel) / 19))
+  * (p <= 50 ? 1 - p / 100 : Math.max(0, .5 * (80 - p) / 30))
+  * (code <= 2 ? 1 : code === 3 ? .8 : code <= 48 ? .6 : code <= 55 ? .3 : 0));
+const wxFill = s => s < 65 ? 0 : .22 + .78 * Math.pow((s - 65) / 35, 1.4);
+/* W is the newest forecast, or the one kept from the last load when there is no connection. It is dropped once it no longer covers today */
+let W = null, wxLive = false, wxRead = "";
+async function loadWeather() {
+  const covers = j => j && j.current && j.hourly && j.daily && j.daily.time.includes(today());
+  try {
+    const j = await (await fetch(WX_URL, { cache: "no-store" })).json();
+    if (!covers(j)) throw new Error("no forecast");
+    W = j; wxLive = true; wxRead = stamp().split(", ").pop();
+    store.set("weather", JSON.stringify({ j, at: stamp() }));
+  } catch (e) {
+    let kept = null; try { kept = JSON.parse(store.get("weather")); } catch (x) { /* nothing kept */ }
+    wxLive = false; W = kept && covers(kept.j) ? kept.j : null; wxRead = kept ? kept.at : "";
+  }
+}
+const wxNowKey = () => `${today()}T${p2(new Date().getHours())}`;
+const wxDay = s => { const d = W.daily, i = d.time.indexOf(s); return i < 0 || d.temperature_2m_max[i] == null ? null : { code: d.weather_code[i], hi: Math.round(d.temperature_2m_max[i]), lo: Math.round(d.temperature_2m_min[i]), p: d.precipitation_probability_max[i] ?? 0 }; };
+function wxHoursAt(i0, n) {
+  const h = W.hourly, out = [];
+  if (i0 < 0) return out;
+  for (let i = i0; i < i0 + n && i < h.time.length; i++) {
+    if (h.temperature_2m[i] == null || h.weather_code[i] == null) continue;
+    const p = h.precipitation_probability[i] ?? 0, feel = h.apparent_temperature[i] ?? h.temperature_2m[i];
+    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(feel, p, h.weather_code[i]) });
+  }
+  return out;
+}
+const wxHours = (s, from, to) => wxHoursAt(W.hourly.time.indexOf(`${s}T${p2(from)}:00`), to - from);
+const wxFromNow = n => wxHoursAt(W.hourly.time.indexOf(wxNowKey() + ":00"), n);
+/* the commonest sky over the daylight hours given, or over all of them when none are in daylight */
+function wxCommon(hs) { const lit = hs.filter(x => x.day), count = {}; (lit.length ? lit : hs).forEach(x => { count[x.code] = (count[x.code] || 0) + 1; }); return +Object.keys(count).sort((a, b) => count[b] - count[a])[0]; }
+/* one block of one day: null when the forecast does not reach it or the block is over */
+function wxBlock(s, b) {
+  const hs = wxHours(s, b.from, b.to).filter(x => !x.past);
+  if (!hs.length) return null;
+  return { score: Math.round(hs.reduce((a, x) => a + x.score, 0) / hs.length), lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
+}
+const wxHourIcon = x => !x.day && x.code <= 2 ? "moon" : wxIcon(x.code);
+const wxGood = s => s >= 65 ? " good" : "";
+const wxTag = () => wxLive ? '<span class="tag live">Live</span>' : '<span class="tag old">Kept</span>';
+
+/* ---------- Calendar: read only. The registry is rewritten by the laptop and by a GitHub job every 30 minutes ---------- */
+const CAL_FILE = "10📅-calendar/calendarRegistry.md";
+/* rows are | Mon Oct 12 | 11:30 AM | 11:45 AM | Title | Location | Attendees |, with no start for an all-day event.
+   The rows carry no year: it is taken from the Synced line, and a month earlier than that line's falls in the next year */
+function parseCalendar(md) {
+  const synced = ((md.match(/^\*\*Synced:\*\*\s*(.+?)\s*$/m) || [])[1] || "");
+  const sm = synced.match(/([A-Z][a-z]{2}) \d{1,2}, (\d{4})/), now = new Date();
+  const m0 = sm ? MONTHS.indexOf(sm[1]) : now.getMonth(), y0 = sm ? +sm[2] : now.getFullYear();
+  const events = [];
+  (md.split(/^## Events\s*$/m)[1] || "").split(/\r?\n/).forEach(line => {
+    const c = line.split("|").slice(1, -1).map(x => x.trim()), dm = (c[0] || "").match(/^[A-Z][a-z]{2} ([A-Z][a-z]{2}) (\d{1,2})$/);
+    if (!dm || !c[3]) return;
+    const m = MONTHS.indexOf(dm[1]);
+    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3] });
+  });
+  return { synced: synced.replace(/, \d{4}/, ""), events };
+}
+let cal = { synced: "", events: [] }, calPick = null;
+const calWhen = e => e.start ? (e.end ? `${e.start} to ${e.end}` : e.start) : "All day";
+function calWeather() {
+  const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
+  const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
+  const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${x.score}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 18)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>
+    <div class="s key"><i class="dot"></i>Outdoor score above 85</div>`;
+  const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
+  const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
+  if (calPick && !days.includes(calPick)) calPick = null;
+  const pills = days.map(x => {
+    const hs = wxHours(x, 8, 20).filter(h => !h.past), code = hs.length ? wxCommon(hs) : wxDay(x).code;
+    const segs = WX_BLOCKS.map(b => { const B = wxBlock(x, b); return B ? `<i style="--a:${Math.round(wxFill(B.score) * 95)}%"></i>` : '<i class="gone"></i>'; }).join("");
+    return `<button type="button" class="hp${x === td ? " td" : ""}${calPick === x ? " on" : ""}" data-p="${x}" aria-label="${fullDay(x)}"><span class="hpp">${segs}</span><b>${wkDay(x)}</b><span class="num">${wxDay(x).hi}°</span>${wxIco(wxIcon(code), 18)}</button>`;
+  }).join("");
+  /* a tapped day lists its three scores beneath */
+  const w = calPick && wxDay(calPick);
+  const picked = w ? `<div class="pdet"><div class="s num"><b>${fullDay(calPick)}</b> ${wxLabel(w.code)}, H ${w.hi}° L ${w.lo}°, rain ${w.p}%</div><div class="pills">${WX_BLOCKS.map(b => { const B = wxBlock(calPick, b); return `<span class="pill num${B ? wxGood(B.score) : ""}">${b.label} ${B ? B.score : "past"}</span>`; }).join("")}</div></div>`
+    : `<div class="s" style="padding:10px 2px 0">Tap a day for its morning, afternoon, and evening scores.</div>`;
+  return { head, strip, score: `<div class="h2">Outdoor Score Today<span>65 or higher is green</span></div><div class="bks">${tiles}</div>`,
+    week: `<div class="h2">Next 7 Days<span>Morning, afternoon, evening</span></div><div class="hps">${pills}</div>${picked}`,
+    source: `<div class="srcl">${wxTag()}<span>Open-Meteo, Hoboken, read ${esc(wxRead)}</span></div>` };
+}
+function drawCalendar() {
+  const td = today(), ev = cal.events.filter(e => e.d === td), ahead = cal.events.filter(e => e.d > td), side = $("wk") ? $("wk").scrollLeft : 0;
+  const wx = W ? calWeather() : { head: "", strip: "", score: "", week: "", source: `<div class="srcl"><span>Weather is unavailable. Tap the Calendar tab to try again.</span></div>` };
+  const row = e => `<div class="ev"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`;
+  const next = ahead.slice(0, 5).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("");
+  $("main").innerHTML = `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
+    <div class="card">${ev.map(row).join("") || `<div class="s">Nothing scheduled today</div>`}${wx.head}</div>
+    ${wx.strip}${wx.score}
+    <div class="h2">Next Up<span class="num">${ahead.length} ahead</span></div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}
+    ${wx.week}${wx.source}<div class="srcl"><span>Google Calendar, synced ${esc(cal.synced)}</span></div>`;
+  if ($("wk")) $("wk").scrollLeft = side;
+}
+async function loadCalendar() {
+  const [f] = await Promise.all([readFile(CAL_FILE), loadWeather()]);
+  if (tab !== "Calendar") return;
+  cal = parseCalendar(f.text); calPick = null;
+  status(f.at ? `Offline. Showing the calendar loaded ${f.at}.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
+  drawCalendar();
+}
+
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
 const soon = name => ({ load: async () => { status(""); $("main").innerHTML = `<div class="big">${name}</div><div class="empty">${name} is not built yet.</div>`; } });
-const SCREENS = { Home: soon("Home"), Calendar: soon("Calendar"), Habits: soon("Habits"), Tasks: soon("Tasks"), Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Home: soon("Home"), Calendar: { load: loadCalendar }, Habits: soon("Habits"), Tasks: soon("Tasks"), Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Notes"; /* becomes Home once that screen is built */
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
@@ -292,6 +486,8 @@ document.addEventListener("click", e => {
   if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
   if (e.target.closest("#settings")) { showSetup(); return; }
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
+  const dp = e.target.closest("[data-p]");
+  if (dp) { calPick = calPick === dp.dataset.p ? null : dp.dataset.p; drawCalendar(); return; }
   const n = e.target.closest(".note");
   if (n) { showNote(n.dataset.id); return; }
   if (e.target.closest("#back")) { leaveNotes(); showNoteList(); return; }
