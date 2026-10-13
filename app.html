@@ -73,6 +73,10 @@
   .editor textarea:focus { border-color: var(--blue); }
 
   /* ---------- Calendar ---------- */
+  /* Today and Next Up are two screens, switched at the top */
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; margin-top: 12px; padding: 4px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); }
+  .seg button { text-align: center; padding: 7px 0; border-radius: 9px; font-size: 14px; font-weight: 600; color: var(--mut); }
+  .seg button.on { background: var(--blue); color: #fff; }
   .tag { display: inline-block; height: 18px; line-height: 18px; padding: 0 7px; border-radius: 9px; font-size: 11px; font-weight: 600; vertical-align: 1px; white-space: nowrap; }
   .tag.live { background: rgba(63, 207, 142, .16); color: var(--done); }
   .tag.old { background: rgba(249, 112, 102, .16); color: var(--flag); }
@@ -88,11 +92,11 @@
   .wxl .v { font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
   .wxl .t1 { font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; }
   .srcl { display: flex; align-items: center; gap: 7px; padding: 12px 2px 0; font-size: 12px; line-height: 16px; color: var(--mut); }
-  /* the next 24 hours, scrolling sideways to the screen's edges; a blue dot marks an outdoor score above 85 */
-  .wk { display: grid; grid-auto-flow: column; grid-auto-columns: 46px; gap: 4px; margin: 0 -16px; padding: 12px 16px 0; overflow-x: auto; scrollbar-width: none; }
+  /* the next 24 hours, six to a screen, scrolling sideways to the screen's edges; a blue dot marks an outdoor score above 85 */
+  .wk { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 6); gap: 4px; margin: 0 -16px; padding: 12px 16px 0; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; scroll-padding: 0 16px; }
   .wk::-webkit-scrollbar { display: none; }
-  .wc { display: grid; justify-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 13px; font-size: 11.5px; line-height: 14px; color: var(--mut); --cut: var(--body); }
-  .wc b { font-size: 16px; line-height: 20px; color: var(--tx); font-weight: 700; }
+  .wc { display: grid; justify-items: center; gap: 5px; padding: 11px 0 9px; border-radius: 14px; font-size: 13px; line-height: 16px; color: var(--mut); --cut: var(--body); scroll-snap-align: start; }
+  .wc b { font-size: 20px; line-height: 24px; color: var(--tx); font-weight: 700; }
   .wc svg { color: var(--tx); margin-top: 2px; }
   .dot { display: block; width: 5px; height: 5px; margin-top: 2px; border-radius: 50%; background: var(--blue); }
   .dot.no { background: transparent; }
@@ -408,12 +412,12 @@ function parseCalendar(md) {
   });
   return { synced: synced.replace(/, \d{4}/, ""), events };
 }
-let cal = { synced: "", events: [] }, calPick = null;
+let cal = { synced: "", events: [] }, calPick = null, calView = "Today";
 const calWhen = e => e.start ? (e.end ? `${e.start} to ${e.end}` : e.start) : "All day";
 function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
   const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
-  const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${x.score}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 18)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>
+  const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${x.score}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>
     <div class="s key"><i class="dot"></i>Outdoor score above 85</div>`;
   const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
   const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
@@ -436,11 +440,13 @@ function drawCalendar() {
   const wx = W ? calWeather() : { head: "", strip: "", score: "", week: "", source: `<div class="srcl"><span>Weather is unavailable. Tap the Calendar tab to try again.</span></div>` };
   const row = e => `<div class="ev"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`;
   const next = ahead.slice(0, 5).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("");
-  $("main").innerHTML = `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
+  const seg = `<div class="seg">${["Today", "Next Up"].map(v => `<button type="button" data-v="${v}" class="${v === calView ? "on" : ""}"${v === calView ? ' aria-current="true"' : ""}>${v}</button>`).join("")}</div>`;
+  const src = `${wx.source}<div class="srcl"><span>Google Calendar, synced ${esc(cal.synced)}</span></div>`;
+  $("main").innerHTML = seg + (calView === "Today" ? `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
     <div class="card">${ev.map(row).join("") || `<div class="s">Nothing scheduled today</div>`}${wx.head}</div>
-    ${wx.strip}${wx.score}
-    <div class="h2">Next Up<span class="num">${ahead.length} ahead</span></div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}
-    ${wx.week}${wx.source}<div class="srcl"><span>Google Calendar, synced ${esc(cal.synced)}</span></div>`;
+    ${wx.strip}${wx.score}${src}`
+    : `<div class="h2">Next Up<span class="num">${ahead.length} ahead</span></div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}
+    ${wx.week}${src}`);
   if ($("wk")) $("wk").scrollLeft = side;
 }
 async function loadCalendar() {
@@ -486,6 +492,8 @@ document.addEventListener("click", e => {
   if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
   if (e.target.closest("#settings")) { showSetup(); return; }
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
+  const dv = e.target.closest("[data-v]");
+  if (dv) { calView = dv.dataset.v; $("scr").scrollTop = 0; drawCalendar(); return; }
   const dp = e.target.closest("[data-p]");
   if (dp) { calPick = calPick === dp.dataset.p ? null : dp.dataset.p; drawCalendar(); return; }
   const n = e.target.closest(".note");
