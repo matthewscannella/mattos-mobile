@@ -331,6 +331,8 @@ function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; }, 8000);
 }
+/* sw.js keeps a copy of the app so that it opens with no signal */
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 $("fab").innerHTML = svg(UI.plus, 24, 2.6);
 go(Object.keys(TAB).find(n => n.toLowerCase() === location.hash.slice(1)) || START);
 </script>
