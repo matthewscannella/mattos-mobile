@@ -197,6 +197,82 @@
   .fb { display: flex; gap: 8px; }
   .fb .btn { padding: 11px 16px; font-weight: 600; }
 
+  /* ---------- Habits ---------- */
+  /* one day's form, then the week as bars and as a grid by day. A day is a draft on this phone until Save is pressed */
+  .scr.hbs { padding-bottom: 20px; }
+  .hb { padding-top: 12px; }
+  .hcard { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 4px 12px; --cut: var(--card); }
+  .hcard.top { padding: 12px; }
+  .hsum { display: flex; align-items: center; gap: 12px; }
+  .hsum .tx { display: grid; gap: 1px; }
+  .hsum .tx b { font-size: 16px; line-height: 21px; font-weight: 600; color: #fff; }
+  .hsum .tx span { font-size: 13px; line-height: 17px; color: var(--mut); }
+  .ring { flex: none; display: grid; place-items: center; position: relative; }
+  .ring b { position: absolute; font-size: 14px; font-weight: 700; color: #fff; }
+  .hpill { flex: none; height: 22px; padding: 0 9px; border-radius: 11px; font-size: 12px; font-weight: 600; display: grid; place-items: center; background: var(--raised); color: var(--mut); }
+  .hpill.saved { background: rgba(63, 207, 142, .16); color: var(--done); }
+  .hpill.draft { background: rgba(245, 200, 75, .16); color: #f5c84b; }
+  .hpill.miss { background: rgba(249, 112, 102, .16); color: var(--flag); }
+  /* the week's days, with the weeks before and after at either end; the dot is saved, draft or skipped */
+  .strip { display: grid; grid-template-columns: 22px repeat(7, 1fr) 22px; gap: 4px; align-items: center; margin-top: 12px; }
+  .strip .nv { height: 50px; display: grid; place-items: center; color: var(--mut); }
+  .strip .nv.off { opacity: .25; }
+  .strip .dy { height: 50px; border-radius: 10px; background: var(--raised); display: grid; align-content: center; justify-items: center; font-size: 10.5px; line-height: 12px; font-weight: 600; letter-spacing: .04em; color: var(--mut); text-transform: uppercase; position: relative; }
+  .strip .dy b { font-size: 14px; line-height: 17px; color: var(--tx); letter-spacing: 0; }
+  .strip .dy.sel { background: var(--blue); color: #fff; }
+  .strip .dy.sel b { color: #fff; }
+  .strip .dy.off { opacity: .4; }
+  .strip em { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; }
+  .strip em.saved { background: var(--done); }
+  .strip em.draft { background: #f5c84b; }
+  .strip em.miss { box-shadow: inset 0 0 0 1.5px var(--flag); }
+  .hgl { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 600; margin: 16px 2px 7px; }
+  .hgl span { font-weight: 400; font-size: 13px; color: var(--mut); }
+  .hfr { display: flex; align-items: center; gap: 10px; min-height: 50px; }
+  .hfr + .hfr { border-top: 1px solid var(--line); }
+  .hfr .lb { width: 104px; flex: none; font-size: 15px; }
+  .hseg { flex: 1; display: flex; background: var(--raised); border-radius: 9px; padding: 2px; }
+  .hseg button { flex: 1; height: 34px; border-radius: 7px; text-align: center; font-size: 13px; font-weight: 500; color: var(--mut); }
+  .hseg button.good { background: rgba(63, 207, 142, .22); color: var(--done); font-weight: 600; }
+  .hseg button.bad { background: rgba(249, 112, 102, .2); color: var(--flag); font-weight: 600; }
+  .pips { display: flex; gap: 8px; padding: 8px 0; }
+  .pips button { flex: 1; height: 60px; border-radius: 12px; background: var(--raised); color: #3a4152; display: grid; place-items: center; }
+  .pips button.on { background: rgba(59, 110, 245, .2); color: var(--acc); }
+  .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px 0; }
+  .chip { height: 46px; border-radius: 10px; background: var(--raised); color: var(--mut); display: grid; align-content: center; justify-items: center; font-size: 13.5px; line-height: 16px; font-weight: 600; }
+  .chip i { font-style: normal; font-weight: 400; font-size: 11.5px; line-height: 14px; opacity: .85; }
+  .chip.good { background: rgba(63, 207, 142, .2); color: var(--done); }
+  .chip.bad { background: rgba(249, 112, 102, .18); color: var(--flag); }
+  .chip.mid { background: #2a3040; color: var(--tx); }
+  .hstp { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .hstp button { width: 40px; height: 40px; border-radius: 10px; background: var(--raised); color: var(--tx); display: grid; place-items: center; }
+  .hstp b { min-width: 64px; text-align: center; font-size: 15px; font-weight: 600; }
+  .hstp b i { font-style: normal; font-weight: 400; font-size: 13px; color: var(--mut); }
+  /* the tick on each bar is the pace for the days logged so far */
+  .hbr { display: flex; align-items: center; gap: 10px; height: 40px; }
+  .hbr .ic { color: var(--mut); }
+  .hbr .nm { width: 62px; flex: none; font-size: 14.5px; }
+  .hbr .val { width: 60px; flex: none; text-align: right; font-size: 13px; color: var(--mut); }
+  .hbar { height: 6px; border-radius: 3px; background: var(--raised); position: relative; }
+  .hbar i { display: block; height: 100%; border-radius: 3px; background: var(--done); }
+  .hbar u { position: absolute; top: -3px; width: 2px; height: 12px; border-radius: 1px; background: var(--mut); opacity: .7; }
+  .gd { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .hwg { display: grid; grid-template-columns: 58px repeat(7, 1fr); gap: 3px; align-items: center; }
+  .hwg .wd { height: 42px; border-radius: 9px; display: grid; align-content: center; justify-items: center; font-size: 10.5px; line-height: 12px; font-weight: 600; letter-spacing: .04em; color: var(--mut); text-transform: uppercase; }
+  .hwg .wd b { font-size: 14px; line-height: 16px; color: var(--tx); letter-spacing: 0; }
+  .hwg .wd.sel { background: var(--blue); color: #fff; }
+  .hwg .wd.sel b { color: #fff; }
+  .hwg .wd.off b { color: #4b5263; }
+  .hwg .rn { font-size: 13.5px; }
+  .hwg .c { height: 32px; border-radius: 7px; background: var(--raised); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+  .hwg .c.sel { box-shadow: 0 0 0 1.5px var(--blue); }
+  .hwg .c.off { background: transparent; border: 1px dashed var(--rule); }
+  .savebar { flex: none; display: flex; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); background: var(--body); }
+  .sv { flex: 1; height: 46px; line-height: 46px; border-radius: 12px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 600; text-align: center; }
+  .sv.ghost { flex: none; width: 96px; background: var(--raised); color: var(--tx); }
+  .sv.saved { background: rgba(63, 207, 142, .18); color: var(--done); }
+  .sv.off { opacity: .45; }
+
   /* ---------- Settings ---------- */
   .setup { display: grid; gap: 14px; }
   .setup label { display: grid; gap: 5px; font-size: 13px; color: var(--mut); }
@@ -211,6 +287,7 @@
 <body>
 <header class="hd"><div class="ws"><span class="logo" aria-hidden="true">✳</span><b>MattOS</b><button class="av" type="button" id="settings" aria-label="Settings">MS</button></div></header>
 <main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
+<div class="savebar" id="savebar" hidden></div>
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
 <nav class="tabs" id="tabs"></nav>
 <div class="sheet" id="sheet" hidden></div>
@@ -231,7 +308,15 @@ const TAB = {
   Tasks: `<rect ${F} x="4" y="4" width="16" height="18" rx="3"/><rect fill="currentColor" stroke="var(--cut)" stroke-width="1.8" x="8.5" y="1.8" width="7" height="5" rx="1.8"/><path ${C} d="m8.5 14.3 2.4 2.4 4.6-5"/>`,
   Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`
 };
-const UI = { plus: `<path d="M12 5v14M5 12h14"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>` };
+const UI = { plus: `<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
+/* the five habit categories */
+const CI = {
+  water: `<path ${F} d="M12 2.5c3.5 4.2 6.5 7.6 6.5 11.5a6.5 6.5 0 0 1-13 0c0-3.9 3-7.3 6.5-11.5z"/>`,
+  habits: `<circle ${F} cx="12" cy="12" r="9.5"/><path ${C} d="m7.8 12.3 2.8 2.8 5.6-6"/>`,
+  food: `<path ${K(2.6)} d="M6 3v6a2.5 2.5 0 0 0 5 0V3M8.5 3v18M17 21V3c-2.2 1.5-3 4-3 8h3"/>`,
+  fitness: `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v4M21.5 10v4M6 12h12"/>`,
+  mental: `<circle ${F} cx="12" cy="12" r="9.5"/><circle fill="none" stroke="var(--cut)" stroke-width="2.2" cx="12" cy="12" r="4"/>`
+};
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -683,9 +768,155 @@ function tkAct(act, a, el) {
 }
 function leaveTasks() { closeSheet(); tk.menu = false; }
 
+/* ---------- Habits: one day's form at a time, written as HabitFlow codes into the day's cell of habitHistoryRegistry.md ---------- */
+const HABIT_FILE = "07🥕-habits/habitHistoryRegistry.md", HB_TARGETS = "Water 28, Habits 21, Food 15, Fitness 10, Mental 30";
+/* codes, scoring and fallback targets as HH_CATS and hhWeeks in mattOs.html, so both sides grade a week alike; top is a full day, for shading the grid */
+const hbCodes = (list, pts) => Object.fromEntries(list.split(" ").map((c, i) => [c, pts[i % pts.length]]));
+const HB_CATS = [
+  { k: "water", name: "Water", target: 28, top: 4, codes: hbCodes("Bh Bi Bj Bk Bl", [.33, 1, 2, 3, 4]) },
+  { k: "habits", name: "Habits", target: 28, top: 3, codes: hbCodes("Am An Ao Ap Aq Ar As At", [1, 0]) },
+  { k: "food", name: "Food", target: 23, top: 6, codes: hbCodes("Bm Bn Bo Bp Bq Br Bs Bt Bu Bv Bw Bx By Bz Ca Cb Cc Cd", [1, 0, -1]) },
+  { k: "fitness", name: "Fitness", target: 14, top: 3, codes: hbCodes("Au Av Aw Ax Ay Az", [1, 2, 3, 4, 5, 6]) },
+  { k: "mental", name: "Mental", target: 45, top: 15, codes: hbCodes("Da Db Dc Dd De Df", [5, 10, 15, 20, 25, 30]) }
+];
+/* the form's controls: a meal is healthy, neutral or unhealthy, and a habit is yes or no, each with its own code */
+const HB_MEALS = [["Breakfast", "Bm Bn Bo"], ["Lunch", "Bp Bq Br"], ["Snack", "Bs Bt Bu"], ["Dinner", "Bv Bw Bx"], ["Drink", "By Bz Ca"], ["Dessert", "Cb Cc Cd"]].map(m => ({ name: m[0], codes: m[1].split(" ") }));
+const HB_RULES = [["Pain bodies", "Aq Ar"], ["Posture", "Ao Ap"], ["Anxiety", "Am An"]].map(r => ({ name: r[0], codes: r[1].split(" ") }));
+const HB_WATER = ["Bi", "Bj", "Bk", "Bl"], HB_SETS = ["Au", "Av", "Aw", "Ax", "Ay", "Az"], HB_MED = ["Da", "Db", "Dc", "Dd", "De", "Df"];
+const HB_OWN = new Set(["Bh", ...HB_WATER, ...HB_SETS, ...HB_MED, ...HB_MEALS.flatMap(m => m.codes), ...HB_RULES.flatMap(r => r.codes)]);
+const hbTargets = text => Object.fromEntries([...(text || "").matchAll(/([A-Za-z]+)\s+(\d+(?:\.\d+)?)/g)].map(m => [m[1].toLowerCase(), +m[2]]));
+const hbRound = n => Math.round(n * 100) / 100;
+const hbScore = codes => Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(codes.reduce((a, x) => a + (c.codes[x] || 0), 0))]));
+/* a cell's codes as the form, and back. A code the form has no control for is carried in extra and written back untouched */
+function hbDecode(codes) {
+  const s = hbScore(codes), pick = list => { const hit = codes.filter(x => list.includes(x)).pop(); return hit ? 1 - list.indexOf(hit) : null; };
+  return { water: Math.min(4, Math.round(s.water)), food: HB_MEALS.map(m => pick(m.codes)), rules: HB_RULES.map(r => pick(r.codes)), sets: s.fitness, med: s.mental, extra: codes.filter(x => !HB_OWN.has(x)) };
+}
+function hbEncode(f) {
+  const out = [], many = (n, list) => { for (; n > 0; n -= 6) out.push(list[Math.min(n, 6) - 1]); };
+  f.food.forEach((v, i) => { if (v != null) out.push(HB_MEALS[i].codes[1 - v]); });
+  f.rules.forEach((v, i) => { if (v != null) out.push(HB_RULES[i].codes[1 - v]); });
+  if (f.water > 0) out.push(HB_WATER[f.water - 1]);
+  many(f.sets, HB_SETS); many(f.med / 5, HB_MED);
+  return [...out, ...f.extra];
+}
+/* the file is changed as lines: only a week's own row is rewritten or added. Rows are newest first, one per week, named by its Monday */
+function hbRead(lines) {
+  let head = -1, end = -1;
+  const rows = [];
+  lines.forEach((line, i) => {
+    const raw = line.replace(/\r$/, "").trim();
+    if (!raw.startsWith("|")) return;
+    const c = raw.split("|").slice(1, -1).map(x => x.trim());
+    if (head < 0) { if (c[0] === "Week of") head = end = i; return; }
+    if (i !== end + 1) return;
+    end = i;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(c[0])) rows.push({ i, week: c[0], days: [1, 2, 3, 4, 5, 6, 7].map(n => (c[n] || "").split(/[\s,]+/).filter(Boolean)), targets: c[8] || "" });
+  });
+  return { head, end, rows };
+}
+/* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
+   drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
+const hb = { lines: [], rows: [], week: "", day: "", on: "", drafts: {}, busy: false };
+const hbMonday = s => addDays(s, -((atNoon(s).getDay() + 6) % 7));
+const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
+const hbSaved = s => { const row = hb.rows.find(r => r.week === hbMonday(s)); return row ? row.days[hbIndex(s)] : []; };
+const hbKeep = () => store.set("habit-drafts", JSON.stringify(hb.drafts));
+const hbGrade = p => p >= .9 ? "#3fcf8e" : p >= .8 ? "#f5c84b" : p >= .7 ? "#f79a3e" : p >= .6 ? "#f97066" : "#a78bfa";
+function drawHabits() {
+  const now = today(), row = hb.rows.find(r => r.week === hb.week), set = hbTargets(row ? row.targets : HB_TARGETS);
+  /* a day is saved, a draft, skipped (miss), not started ("") or still to come (off); a draft counts towards the week here */
+  const days = [0, 1, 2, 3, 4, 5, 6].map(i => {
+    const date = addDays(hb.week, i), draft = hb.drafts[date], saved = row ? row.days[i] : [];
+    return { date, codes: draft ? hbEncode(draft) : saved, st: date > now ? "off" : draft ? "draft" : saved.length ? "saved" : date < now ? "miss" : "" };
+  });
+  const d = days.find(x => x.date === hb.day) || days[0], f = hb.drafts[d.date] || hbDecode(d.codes), name = fmtDay(d.date, { weekday: "long" });
+  const live = days.filter(x => x.st === "draft" || x.st === "saved"), tot = hbScore(live.flatMap(x => x.codes));
+  const target = c => set[c.k] || c.target, part = c => Math.max(0, Math.min(1, tot[c.k] / target(c)));
+  const overall = Math.round(HB_CATS.reduce((a, c) => a + part(c), 0) / HB_CATS.length * 100), r = 48, len = 2 * Math.PI * r;
+  const ring = `<div class="ring"><svg width="56" height="56" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
+  const sub = { saved: "Saved to the week", miss: "Skipped, fill it in any time", "": "Not started" }[d.st] || "";
+  const last = hb.week >= hbMonday(now);
+  const head = `<div class="hcard top"><div class="hsum">${ring}<div class="tx grow"><b>${fullDay(d.date)}</b>${sub ? `<span>${sub}</span>` : ""}</div><span class="hpill ${d.st}">${{ draft: "Draft", saved: "Saved", miss: "Skipped", "": "New" }[d.st]}</span></div>
+    <div class="strip"><button type="button" class="nv" data-hb="week" data-a="-1" aria-label="Week before">${svg(UI.left, 16, 2.6)}</button>${days.map(x => `<button type="button" class="dy num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}"${x.date === d.date ? ' aria-current="true"' : ""}>${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b>${x.st && x.st !== "off" ? `<em class="${x.st}"></em>` : ""}</button>`).join("")}<button type="button" class="nv${last ? " off" : ""}" data-hb="week" data-a="1" aria-label="Week after"${last ? ' aria-disabled="true"' : ""}>${svg(UI.right, 16, 2.6)}</button></div></div>`;
+  /* the form, in the order of the picked design: Water, Food, Fitness, Mental, then Habits */
+  const tone = v => v > 0 ? "good" : v < 0 ? "bad" : "mid", food = f.food.reduce((a, v) => a + (v || 0), 0);
+  const grp = (t, meta, body) => `<div class="hgl">${t}<span class="num">${meta}</span></div><div class="hcard">${body}</div>`;
+  const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
+    + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-k="${i}">${m.name}<i>${v == null ? "Tap" : v > 0 ? "Healthy" : v < 0 ? "Unhealthy" : "Neutral"}</i></button>`; }).join("")}</div>`)
+    + grp("Fitness", "", step("Resistance", "sets", "sets", 1)) + grp("Mental", "", step("Meditation", "med", "min", 5))
+    + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of 3`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
+  const bars = HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
+  /* one day's total for one category; a day with nothing logged is a dashed blank */
+  const cell = (c, x) => {
+    const sel = x.date === d.date ? " sel" : "";
+    if (x.st !== "draft" && x.st !== "saved") return `<span class="c off${sel}"></span>`;
+    const v = hbScore(x.codes)[c.k], a = Math.min(Math.abs(v) / c.top, 1) * .55 + .08;
+    return `<span class="c num${sel}" style="${v > 0 ? `background:rgba(63,207,142,${a});color:#d9f7e9` : v < 0 ? `background:rgba(249,112,102,${a});color:#ffd9d5` : "color:var(--mut)"}">${v}</span>`;
+  };
+  const grid = `<div class="hwg"><span></span>${days.map(x => `<button type="button" class="wd num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b></button>`).join("")}${HB_CATS.map(c => `<span class="rn">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
+  $("main").innerHTML = `<div class="hb">${head}${form}<div class="hgl">${last ? "This week" : "Week"}<span>${monDay(hb.week)} - ${monDay(addDays(hb.week, 6))}</span></div><div class="hcard">${bars}</div><div class="hgl">By day<span>Tap a day to open it</span></div>${grid}</div>`;
+  $("savebar").innerHTML = (d.st === "draft" && !hb.busy ? `<button type="button" class="sv ghost" data-hb="discard">Discard</button>` : "") + `<button type="button" class="sv${d.st === "draft" ? "" : d.st === "saved" ? " saved" : " off"}" data-hb="save">${hb.busy ? "Saving…" : d.st === "saved" ? `${name} saved` : `Save ${name}`}</button>`;
+  $("savebar").hidden = false; $("scr").classList.add("hbs");
+}
+async function loadHabits() {
+  const f = await readFile(HABIT_FILE), now = today();
+  if (tab !== "Habits") return;
+  hb.lines = f.text.split("\n"); hb.rows = hbRead(hb.lines).rows;
+  try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
+  if (hb.on !== now) { hb.on = now; hb.week = hbMonday(now); hb.day = now; }
+  status(f.at ? `Offline. Showing habits loaded ${f.at}; a draft is kept on this phone and can be saved once you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
+  drawHabits();
+}
+/* the day's codes replace its cell. A week not yet in the file gets a row above the first older week; a row left with no codes is removed, as the file leaves out empty weeks */
+function hbSave() {
+  const date = hb.day, f = hb.drafts[date], week = hbMonday(date), di = hbIndex(date);
+  if (!f || hb.busy) return;
+  const codes = hbEncode(f).join(" ");
+  hb.busy = true; drawHabits();
+  commitFile(HABIT_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
+    const t = hbRead(lines);
+    if (t.head < 0) throw new Error("The weeks table was not found, so the day was not saved.");
+    const cr = lines[t.head].endsWith("\r") ? "\r" : "";
+    let at = (t.rows.find(r => r.week === week) || {}).i;
+    if (at == null) { const older = t.rows.find(r => r.week < week); at = older ? older.i : t.end + 1; lines.splice(at, 0, tkLine([week, "", "", "", "", "", "", "", HB_TARGETS]) + cr); }
+    const cells = lines[at].replace(/\r$/, "").trim().split("|").slice(1, -1).map(x => x.trim());
+    while (cells.length < 9) cells.push("");
+    cells[di + 1] = codes;
+    if (cells.slice(1, 8).some(Boolean)) lines[at] = tkLine(cells) + cr; else lines.splice(at, 1);
+    return cells;
+  }, `Phone: habits for ${fullDay(date)}`, (item, lines) => { hb.lines = lines; hb.rows = hbRead(lines).rows; delete hb.drafts[date]; hbKeep(); }).then(item => {
+    hb.busy = false;
+    if (tab !== "Habits") return;
+    if (!item) $("scr").scrollTop = 0; /* the reason is in the status line at the top; the draft is still here */
+    drawHabits();
+  });
+}
+function hbAct(act, k, a) {
+  const now = today();
+  if (act === "save") { hbSave(); return; }
+  if (hb.busy) return;
+  if (act === "day") { if (a > now) return; hb.day = a; }
+  else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbMonday(now)) return; hb.week = w; hb.day = w === hbMonday(now) ? now : addDays(w, 6); }
+  else if (act === "discard") { delete hb.drafts[hb.day]; hbKeep(); }
+  else {
+    /* any change makes the day a draft; changing it back to what is saved drops the draft */
+    const was = hbDecode(hbSaved(hb.day)), f = hb.drafts[hb.day] || hbDecode(hbSaved(hb.day));
+    if (act === "water") f.water = f.water === +a ? +a - 1 : +a;
+    else if (act === "cycle") { const o = [null, 1, 0, -1]; f.food[k] = o[(o.indexOf(f.food[k]) + 1) % o.length]; }
+    else if (act === "set") f.rules[k] = f.rules[k] === +a ? null : +a;
+    else if (act === "inc") f[k] = Math.max(0, Math.min(k === "sets" ? 18 : 90, f[k] + +a));
+    if (hbEncode(f).join(" ") === hbEncode(was).join(" ")) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
+    hbKeep();
+  }
+  drawHabits();
+}
+function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("hbs"); }
+
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
 const soon = name => ({ load: async () => { status(""); $("main").innerHTML = `<div class="big">${name}</div><div class="empty">${name} is not built yet.</div>`; } });
-const SCREENS = { Home: soon("Home"), Calendar: { load: loadCalendar }, Habits: soon("Habits"), Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Home: soon("Home"), Calendar: { load: loadCalendar }, Habits: { load: loadHabits, leave: leaveHabits }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Notes"; /* becomes Home once that screen is built */
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
@@ -720,6 +951,8 @@ document.addEventListener("click", e => {
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
   const k = e.target.closest("[data-tk]");
   if (k) { tkAct(k.dataset.tk, k.dataset.a, k); return; }
+  const h = e.target.closest("[data-hb]");
+  if (h) { hbAct(h.dataset.hb, h.dataset.k, h.dataset.a); return; }
   const dv = e.target.closest("[data-v]");
   if (dv) { calView = dv.dataset.v; $("scr").scrollTop = 0; drawCalendar(); return; }
   const dp = e.target.closest("[data-p]");
@@ -758,6 +991,7 @@ document.addEventListener("submit", e => {
 /* save before the phone puts the page away; reload when it comes back */
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) { if (dirty()) { clearTimeout(saveTimer); upsertOpenNote(); } }
+  else if (tab === "Habits" && !$("setup") && cfg().token) loadHabits().catch(() => {}); /* in place, so a half-filled form keeps its position */
   else if (!openId && !$("setup") && !tk.sheet && cfg().token) go(tab);
 });
 function toast(msg) {
