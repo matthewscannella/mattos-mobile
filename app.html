@@ -768,8 +768,9 @@ function tkAct(act, a, el) {
 }
 function leaveTasks() { closeSheet(); tk.menu = false; }
 
-/* ---------- Habits: one day's form at a time, written as HabitFlow codes into the day's cell of habitHistoryRegistry.md ---------- */
-const HABIT_FILE = "07🥕-habits/habitHistoryRegistry.md", HB_TARGETS = "Water 28, Habits 21, Food 15, Fitness 10, Mental 30";
+/* ---------- Habits: one day's form at a time. The week in progress is a row per day in habitsRegistry.md, the file the desktop's
+   This Week tab writes, so both show the same week. Earlier weeks are read from habitHistoryRegistry.md as HabitFlow codes and are not changed here ---------- */
+const HABIT_FILE = "07🥕-habits/habitsRegistry.md", HISTORY_FILE = "07🥕-habits/habitHistoryRegistry.md";
 /* codes, scoring and fallback targets as HH_CATS and hhWeeks in mattOs.html, so both sides grade a week alike; top is a full day, for shading the grid */
 const hbCodes = (list, pts) => Object.fromEntries(list.split(" ").map((c, i) => [c, pts[i % pts.length]]));
 const HB_CATS = [
@@ -779,28 +780,18 @@ const HB_CATS = [
   { k: "fitness", name: "Fitness", target: 14, top: 3, codes: hbCodes("Au Av Aw Ax Ay Az", [1, 2, 3, 4, 5, 6]) },
   { k: "mental", name: "Mental", target: 45, top: 15, codes: hbCodes("Da Db Dc Dd De Df", [5, 10, 15, 20, 25, 30]) }
 ];
-/* the form's controls: a meal is healthy, neutral or unhealthy, and a habit is yes or no, each with its own code */
+/* the form's controls: a meal is healthy, neutral or unhealthy, and a habit is yes or no. The codes are how an archived week records each */
 const HB_MEALS = [["Breakfast", "Bm Bn Bo"], ["Lunch", "Bp Bq Br"], ["Snack", "Bs Bt Bu"], ["Dinner", "Bv Bw Bx"], ["Drink", "By Bz Ca"], ["Dessert", "Cb Cc Cd"]].map(m => ({ name: m[0], codes: m[1].split(" ") }));
 const HB_RULES = [["Pain bodies", "Aq Ar"], ["Posture", "Ao Ap"], ["Anxiety", "Am An"]].map(r => ({ name: r[0], codes: r[1].split(" ") }));
-const HB_WATER = ["Bi", "Bj", "Bk", "Bl"], HB_SETS = ["Au", "Av", "Aw", "Ax", "Ay", "Az"], HB_MED = ["Da", "Db", "Dc", "Dd", "De", "Df"];
-const HB_OWN = new Set(["Bh", ...HB_WATER, ...HB_SETS, ...HB_MED, ...HB_MEALS.flatMap(m => m.codes), ...HB_RULES.flatMap(r => r.codes)]);
 const hbTargets = text => Object.fromEntries([...(text || "").matchAll(/([A-Za-z]+)\s+(\d+(?:\.\d+)?)/g)].map(m => [m[1].toLowerCase(), +m[2]]));
 const hbRound = n => Math.round(n * 100) / 100;
 const hbScore = codes => Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(codes.reduce((a, x) => a + (c.codes[x] || 0), 0))]));
-/* a cell's codes as the form, and back. A code the form has no control for is carried in extra and written back untouched */
+/* an archived day's codes as the form, for showing it */
 function hbDecode(codes) {
   const s = hbScore(codes), pick = list => { const hit = codes.filter(x => list.includes(x)).pop(); return hit ? 1 - list.indexOf(hit) : null; };
-  return { water: Math.min(4, Math.round(s.water)), food: HB_MEALS.map(m => pick(m.codes)), rules: HB_RULES.map(r => pick(r.codes)), sets: s.fitness, med: s.mental, extra: codes.filter(x => !HB_OWN.has(x)) };
+  return { water: Math.min(4, Math.round(s.water)), food: HB_MEALS.map(m => pick(m.codes)), rules: HB_RULES.map(r => pick(r.codes)), sets: s.fitness, med: s.mental };
 }
-function hbEncode(f) {
-  const out = [], many = (n, list) => { for (; n > 0; n -= 6) out.push(list[Math.min(n, 6) - 1]); };
-  f.food.forEach((v, i) => { if (v != null) out.push(HB_MEALS[i].codes[1 - v]); });
-  f.rules.forEach((v, i) => { if (v != null) out.push(HB_RULES[i].codes[1 - v]); });
-  if (f.water > 0) out.push(HB_WATER[f.water - 1]);
-  many(f.sets, HB_SETS); many(f.med / 5, HB_MED);
-  return [...out, ...f.extra];
-}
-/* the file is changed as lines: only a week's own row is rewritten or added. Rows are newest first, one per week, named by its Monday */
+/* the archive: rows are newest first, one per week, named by its Monday */
 function hbRead(lines) {
   let head = -1, end = -1;
   const rows = [];
@@ -815,27 +806,55 @@ function hbRead(lines) {
   });
   return { head, end, rows };
 }
+/* the week in progress, read and written as hwParse and hwSerialize in mattOs.html: its Monday, then a row per day.
+   Water is bottles, a meal 1, 0 or -1, a habit Yes or No, and a blank cell nothing entered; Status is Saved, Draft or blank */
+const HW_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const hwBlank = () => ({ water: 0, food: HB_MEALS.map(() => null), rules: HB_RULES.map(() => null), sets: 0, med: 0 });
+const hwForm = f => ({ water: f.water || 0, food: HB_MEALS.map((m, i) => (f.food || [])[i] ?? null), rules: HB_RULES.map((r, i) => (f.rules || [])[i] ?? null), sets: f.sets || 0, med: f.med || 0 });
+const hwSum = list => list.reduce((a, v) => a + (v || 0), 0);
+const hwScore = f => ({ water: f.water, habits: hwSum(f.rules), food: hwSum(f.food), fitness: f.sets, mental: f.med });
+const hwLine = (day, f, st) => `| ${[day, f.water, ...f.food.map(v => v ?? ""), f.sets, f.med, ...f.rules.map(v => v == null ? "" : v ? "Yes" : "No"), st].join(" | ")} |`;
+const hwText = week => `# Habits Registry\n\nThe HabitFlow week in progress for MattOS, written by the This Week tab of the app. One row per day: water in bottles, each meal as 1 (healthy), 0 (neutral), or -1 (unhealthy), resistance sets, meditation minutes, and each habit as Yes or No. A blank cell is nothing entered. Status is Saved, Draft, or blank.\n\n**Week of:** ${week}\n\n---\n\n## This Week\n\n| Day | Water | ${HB_MEALS.map(m => m.name).join(" | ")} | Sets | Minutes | Pain | Posture | Anxiety | Status |\n|${"---|".repeat(14)}\n${HW_DAYS.map(d => hwLine(d, hwBlank(), "")).join("\n")}\n`;
+/* a row's i is its line. A file in any other layout reads as no week, and is replaced on the first save, as on the desktop */
+function hwRead(lines) {
+  const num = x => x === "" || isNaN(+x) ? null : +x, yn = x => /^yes$/i.test(x) ? 1 : /^no$/i.test(x) ? 0 : null, rows = [];
+  let week = "";
+  lines.forEach((line, i) => {
+    const raw = line.replace(/\r$/, "").trim(), m = raw.match(/^\*\*Week of:\*\*\s*(\d{4}-\d{2}-\d{2})/);
+    if (m) week = m[1];
+    if (!raw.startsWith("|")) return;
+    const c = raw.split("|").slice(1, -1).map(x => x.trim());
+    if (rows.length > 6 || c[0] !== HW_DAYS[rows.length]) return;
+    rows.push({ i, st: /^(saved|draft)$/i.test(c[13] || "") ? c[13].toLowerCase() : "", f: { water: num(c[1] || "") || 0, food: HB_MEALS.map((m, n) => num(c[2 + n] || "")), rules: HB_RULES.map((r, n) => yn(c[10 + n] || "")), sets: num(c[8] || "") || 0, med: num(c[9] || "") || 0 } });
+  });
+  return week && rows.length === 7 ? { week, rows } : null;
+}
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
-   drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
-const hb = { lines: [], rows: [], week: "", day: "", on: "", drafts: {}, busy: false };
+   cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
+const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, busy: false };
 const hbMonday = s => addDays(s, -((atNoon(s).getDay() + 6) % 7));
 const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
-const hbSaved = s => { const row = hb.rows.find(r => r.week === hbMonday(s)); return row ? row.days[hbIndex(s)] : []; };
+/* the week of today and the week in the file can be logged. Today's week replaces an older one in the file on its first save, as on the desktop */
+const hbLive = w => w === hbMonday(today()) || !!(hb.cur && hb.cur.week === w);
+const hbFiled = s => hb.cur && hb.cur.week === hbMonday(s) ? hb.cur.rows[hbIndex(s)] : { st: "", f: hwBlank() };
 const hbKeep = () => store.set("habit-drafts", JSON.stringify(hb.drafts));
 const hbGrade = p => p >= .9 ? "#3fcf8e" : p >= .8 ? "#f5c84b" : p >= .7 ? "#f79a3e" : p >= .6 ? "#f97066" : "#a78bfa";
 function drawHabits() {
-  const now = today(), row = hb.rows.find(r => r.week === hb.week), set = hbTargets(row ? row.targets : HB_TARGETS);
-  /* a day is saved, a draft, skipped (miss), not started ("") or still to come (off); a draft counts towards the week here */
+  const now = today(), canLog = hbLive(hb.week), row = hb.hist.find(r => r.week === hb.week), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null);
+  /* as on the desktop, an archived week is graded against its own targets and the week in progress against those of the latest archived week */
+  const set = hbTargets(canLog ? (latest || {}).targets : (row || {}).targets);
+  /* a day is saved, a draft, skipped (miss), not started ("") or still to come (off); a draft counts towards the week, here and on the desktop */
   const days = [0, 1, 2, 3, 4, 5, 6].map(i => {
-    const date = addDays(hb.week, i), draft = hb.drafts[date], saved = row ? row.days[i] : [];
-    return { date, codes: draft ? hbEncode(draft) : saved, st: date > now ? "off" : draft ? "draft" : saved.length ? "saved" : date < now ? "miss" : "" };
+    const date = addDays(hb.week, i), codes = row ? row.days[i] : [], filed = hbFiled(date), draft = hb.drafts[date];
+    if (!canLog) return { date, f: hbDecode(codes), score: hbScore(codes), st: codes.length ? "saved" : "miss" };
+    return { date, f: draft || filed.f, score: hwScore(draft || filed.f), st: date > now ? "off" : draft ? "draft" : filed.st || (date < now ? "miss" : "") };
   });
-  const d = days.find(x => x.date === hb.day) || days[0], f = hb.drafts[d.date] || hbDecode(d.codes), name = fmtDay(d.date, { weekday: "long" });
-  const live = days.filter(x => x.st === "draft" || x.st === "saved"), tot = hbScore(live.flatMap(x => x.codes));
+  const d = days.find(x => x.date === hb.day) || days[0], f = d.f, mine = !!hb.drafts[d.date], name = fmtDay(d.date, { weekday: "long" });
+  const live = days.filter(x => x.st === "draft" || x.st === "saved"), tot = Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(live.reduce((a, x) => a + x.score[c.k], 0))]));
   const target = c => set[c.k] || c.target, part = c => Math.max(0, Math.min(1, tot[c.k] / target(c)));
   const overall = Math.round(HB_CATS.reduce((a, c) => a + part(c), 0) / HB_CATS.length * 100), r = 48, len = 2 * Math.PI * r;
   const ring = `<div class="ring"><svg width="56" height="56" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
-  const sub = { saved: "Saved to the week", miss: "Skipped, fill it in any time", "": "Not started" }[d.st] || "";
+  const sub = !canLog ? "Archived week" : d.st === "draft" && !mine ? "Draft from the laptop" : { saved: "Saved to the week", miss: "Skipped, fill it in any time", "": "Not started" }[d.st] || "";
   const last = hb.week >= hbMonday(now);
   const head = `<div class="hcard top"><div class="hsum">${ring}<div class="tx grow"><b>${fullDay(d.date)}</b>${sub ? `<span>${sub}</span>` : ""}</div><span class="hpill ${d.st}">${{ draft: "Draft", saved: "Saved", miss: "Skipped", "": "New" }[d.st]}</span></div>
     <div class="strip"><button type="button" class="nv" data-hb="week" data-a="-1" aria-label="Week before">${svg(UI.left, 16, 2.6)}</button>${days.map(x => `<button type="button" class="dy num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}"${x.date === d.date ? ' aria-current="true"' : ""}>${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b>${x.st && x.st !== "off" ? `<em class="${x.st}"></em>` : ""}</button>`).join("")}<button type="button" class="nv${last ? " off" : ""}" data-hb="week" data-a="1" aria-label="Week after"${last ? ' aria-disabled="true"' : ""}>${svg(UI.right, 16, 2.6)}</button></div></div>`;
@@ -852,41 +871,40 @@ function drawHabits() {
   const cell = (c, x) => {
     const sel = x.date === d.date ? " sel" : "";
     if (x.st !== "draft" && x.st !== "saved") return `<span class="c off${sel}"></span>`;
-    const v = hbScore(x.codes)[c.k], a = Math.min(Math.abs(v) / c.top, 1) * .55 + .08;
+    const v = x.score[c.k], a = Math.min(Math.abs(v) / c.top, 1) * .55 + .08;
     return `<span class="c num${sel}" style="${v > 0 ? `background:rgba(63,207,142,${a});color:#d9f7e9` : v < 0 ? `background:rgba(249,112,102,${a});color:#ffd9d5` : "color:var(--mut)"}">${v}</span>`;
   };
   const grid = `<div class="hwg"><span></span>${days.map(x => `<button type="button" class="wd num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b></button>`).join("")}${HB_CATS.map(c => `<span class="rn">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
   $("main").innerHTML = `<div class="hb">${head}${form}<div class="hgl">${last ? "This week" : "Week"}<span>${monDay(hb.week)} - ${monDay(addDays(hb.week, 6))}</span></div><div class="hcard">${bars}</div><div class="hgl">By day<span>Tap a day to open it</span></div>${grid}</div>`;
-  $("savebar").innerHTML = (d.st === "draft" && !hb.busy ? `<button type="button" class="sv ghost" data-hb="discard">Discard</button>` : "") + `<button type="button" class="sv${d.st === "draft" ? "" : d.st === "saved" ? " saved" : " off"}" data-hb="save">${hb.busy ? "Saving…" : d.st === "saved" ? `${name} saved` : `Save ${name}`}</button>`;
+  $("savebar").innerHTML = !canLog ? `<button type="button" class="sv off" data-hb="save">Archived week</button>` : (mine && !hb.busy ? `<button type="button" class="sv ghost" data-hb="discard">Discard</button>` : "") + `<button type="button" class="sv${d.st === "draft" ? "" : d.st === "saved" ? " saved" : " off"}" data-hb="save">${hb.busy ? "Saving…" : d.st === "saved" ? `${name} saved` : `Save ${name}`}</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
 }
 async function loadHabits() {
-  const f = await readFile(HABIT_FILE), now = today();
+  const [f, h] = await Promise.all([readFile(HABIT_FILE), readFile(HISTORY_FILE)]), now = today();
   if (tab !== "Habits") return;
-  hb.lines = f.text.split("\n"); hb.rows = hbRead(hb.lines).rows;
+  hb.cur = hwRead(f.text.split("\n")); hb.hist = hbRead(h.text.split("\n")).rows;
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
+  /* a draft for a week that can no longer be logged is dropped */
+  hb.drafts = Object.fromEntries(Object.entries(hb.drafts).filter(([date]) => hbLive(hbMonday(date))).map(([date, d]) => [date, hwForm(d)]));
   if (hb.on !== now) { hb.on = now; hb.week = hbMonday(now); hb.day = now; }
   status(f.at ? `Offline. Showing habits loaded ${f.at}; a draft is kept on this phone and can be saved once you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
   drawHabits();
 }
-/* the day's codes replace its cell. A week not yet in the file gets a row above the first older week; a row left with no codes is removed, as the file leaves out empty weeks */
+/* only the day's own row is rewritten, with Status Saved, so every other line stays as the laptop wrote it. A draft left by the laptop is saved as it stands */
 function hbSave() {
-  const date = hb.day, f = hb.drafts[date], week = hbMonday(date), di = hbIndex(date);
-  if (!f || hb.busy) return;
-  const codes = hbEncode(f).join(" ");
+  const date = hb.day, week = hbMonday(date), di = hbIndex(date), filed = hbFiled(date), f = hb.drafts[date] || (filed.st === "draft" ? filed.f : null);
+  if (!f || hb.busy || !hbLive(week)) return;
   hb.busy = true; drawHabits();
   commitFile(HABIT_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
-    const t = hbRead(lines);
-    if (t.head < 0) throw new Error("The weeks table was not found, so the day was not saved.");
-    const cr = lines[t.head].endsWith("\r") ? "\r" : "";
-    let at = (t.rows.find(r => r.week === week) || {}).i;
-    if (at == null) { const older = t.rows.find(r => r.week < week); at = older ? older.i : t.end + 1; lines.splice(at, 0, tkLine([week, "", "", "", "", "", "", "", HB_TARGETS]) + cr); }
-    const cells = lines[at].replace(/\r$/, "").trim().split("|").slice(1, -1).map(x => x.trim());
-    while (cells.length < 9) cells.push("");
-    cells[di + 1] = codes;
-    if (cells.slice(1, 8).some(Boolean)) lines[at] = tkLine(cells) + cr; else lines.splice(at, 1);
-    return cells;
-  }, `Phone: habits for ${fullDay(date)}`, (item, lines) => { hb.lines = lines; hb.rows = hbRead(lines).rows; delete hb.drafts[date]; hbKeep(); }).then(item => {
+    let t = hwRead(lines);
+    if (!t || t.week !== week) {
+      if (week !== hbMonday(today()) || (t && t.week > week)) throw new Error("A new week has been started, so this day was not saved. Discard it to carry on.");
+      lines.splice(0, lines.length, ...hwText(week).split("\n")); t = hwRead(lines);
+    }
+    const at = t.rows[di].i;
+    lines[at] = hwLine(HW_DAYS[di], f, "Saved") + (lines[at].endsWith("\r") ? "\r" : "");
+    return f;
+  }, `Phone: habits for ${fullDay(date)}`, (item, lines) => { hb.cur = hwRead(lines); delete hb.drafts[date]; hbKeep(); }).then(item => {
     hb.busy = false;
     if (tab !== "Habits") return;
     if (!item) $("scr").scrollTop = 0; /* the reason is in the status line at the top; the draft is still here */
@@ -900,14 +918,15 @@ function hbAct(act, k, a) {
   if (act === "day") { if (a > now) return; hb.day = a; }
   else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbMonday(now)) return; hb.week = w; hb.day = w === hbMonday(now) ? now : addDays(w, 6); }
   else if (act === "discard") { delete hb.drafts[hb.day]; hbKeep(); }
+  else if (!hbLive(hb.week)) { status("An archived week cannot be changed on the phone.", "err"); return; }
   else {
-    /* any change makes the day a draft; changing it back to what is saved drops the draft */
-    const was = hbDecode(hbSaved(hb.day)), f = hb.drafts[hb.day] || hbDecode(hbSaved(hb.day));
+    /* any change makes the day a draft; changing it back to what is in the file drops the draft */
+    const was = hbFiled(hb.day).f, f = hb.drafts[hb.day] || hwForm(was);
     if (act === "water") f.water = f.water === +a ? +a - 1 : +a;
     else if (act === "cycle") { const o = [null, 1, 0, -1]; f.food[k] = o[(o.indexOf(f.food[k]) + 1) % o.length]; }
     else if (act === "set") f.rules[k] = f.rules[k] === +a ? null : +a;
     else if (act === "inc") f[k] = Math.max(0, Math.min(k === "sets" ? 18 : 90, f[k] + +a));
-    if (hbEncode(f).join(" ") === hbEncode(was).join(" ")) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
+    if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
     hbKeep();
   }
   drawHabits();
