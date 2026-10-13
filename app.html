@@ -138,6 +138,65 @@
   .pill { height: 22px; line-height: 22px; padding: 0 8px; border-radius: 11px; background: var(--raised); font-size: 11.5px; font-weight: 600; color: var(--tx); white-space: nowrap; }
   .pill.good { background: rgba(63, 207, 142, .16); color: var(--done); }
 
+  /* ---------- Tasks ---------- */
+  /* Tasks, Ideas and Yoni are three screens, switched by the words at the top; the filter icon opens the category list */
+  .tkbar { display: flex; align-items: center; gap: 8px; }
+  .pts { display: flex; align-items: center; gap: 10px; }
+  .pts i { width: 1px; height: 20px; background: var(--rule); }
+  .pt { padding: 3px 0; font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: -.02em; color: var(--mut); opacity: .7; }
+  .pt.on { color: #fff; opacity: 1; }
+  .sq { flex: none; width: 36px; height: 36px; border-radius: 10px; background: rgba(255, 255, 255, .08); display: grid; place-items: center; color: rgba(255, 255, 255, .7); }
+  .sq.on { background: var(--blue); color: #fff; }
+  .veil { position: fixed; inset: 0; }
+  .pop { position: absolute; top: 100%; right: 16px; width: 228px; background: var(--raised); border: 1px solid #2c3342; border-radius: 14px; padding: 5px; box-shadow: 0 12px 28px rgba(0, 0, 0, .55); }
+  .mi { width: 100%; height: 42px; border-radius: 9px; display: flex; align-items: center; gap: 9px; padding: 0 11px 0 8px; font-size: 15px; font-weight: 600; }
+  .mi .em { flex: none; width: 24px; text-align: center; }
+  .mi .num { color: var(--mut); font-size: 13.5px; font-weight: 500; }
+  .mi.on { background: var(--blue); color: #fff; }
+  .mi.on .num { color: #fff; opacity: .8; }
+  .dh { display: flex; align-items: baseline; gap: 8px; padding: 12px 2px 7px 4px; }
+  .dh b { font-size: 17px; line-height: 22px; font-weight: 700; letter-spacing: -.01em; color: var(--done); }
+  .dh span { font-size: 13px; color: var(--mut); }
+  .tc { display: flex; align-items: center; gap: 6px; min-height: 48px; margin-bottom: 6px; padding: 6px 10px 6px 3px; border-radius: 12px; background: var(--card); }
+  .tc.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+  .tt { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
+  .tm { font-size: 13px; line-height: 16px; color: var(--mut); }
+  .tc.dn .tt { color: var(--mut); font-weight: 500; }
+  .tc.dn .cp { opacity: .45; }
+  .rcb { flex: none; align-self: stretch; width: 40px; display: grid; place-items: center; }
+  .rc { width: 20px; height: 20px; border-radius: 50%; border: 1.8px solid var(--mut); display: grid; place-items: center; color: var(--card); }
+  .rc.WIP { border-color: var(--acc); }
+  .rc.Blocked { border-color: var(--flag); }
+  .rc.Done { background: var(--mut); border-color: var(--mut); opacity: .7; }
+  .cp { flex: none; font-size: 18px; line-height: 20px; white-space: nowrap; }
+  .idea { display: grid; gap: 4px; margin-bottom: 8px; padding: 11px 12px; border-radius: 14px; background: var(--card); }
+  .tkbar + .idea { margin-top: 10px; }
+  .idea h4 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
+  .idea p { margin: 0; font-size: 13.5px; line-height: 18px; color: var(--mut); white-space: pre-line; }
+  .stp { display: flex; align-items: center; gap: 9px; min-height: 30px; font-size: 14px; }
+  .cb { flex: none; width: 18px; height: 18px; border-radius: 6px; border: 2px solid var(--mut); display: grid; place-items: center; color: var(--card); }
+  .cb.on { background: var(--done); border-color: var(--done); }
+  /* the add form: a sheet that rises from the bottom and stays above the keyboard (--kb and --vvh are set by fitSheet) */
+  .sheet { position: fixed; inset: 0; z-index: 5; }
+  .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); }
+  .bs { position: absolute; left: 0; right: 0; bottom: var(--kb, 0px); max-height: calc(var(--vvh, 100dvh) - 12px); overflow-y: auto; scrollbar-width: none; display: grid; gap: 12px; background: var(--side); border-top: 1px solid var(--rule); border-radius: 22px 22px 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom) + 16px); }
+  .bs::-webkit-scrollbar { display: none; }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--mut); opacity: .5; margin: 0 auto; }
+  .bs h3 { margin: 0; font-size: 17px; font-weight: 600; color: #fff; }
+  .fl { display: grid; gap: 5px; }
+  .fl > span { font-size: 12px; line-height: 14px; font-weight: 600; color: var(--mut); }
+  .in { width: 100%; height: 42px; border-radius: 10px; border: 1px solid var(--rule); background: var(--body); padding: 0 11px; font-size: 16px; outline: none; }
+  .in:focus { border-color: var(--blue); }
+  .in.bad { border-color: var(--flag); }
+  .in::placeholder { color: var(--mut); }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .o { height: 34px; padding: 0 11px; border-radius: 9px; background: var(--raised); color: var(--mut); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .o.on { background: var(--blue); color: #fff; }
+  .o .nm { display: none; }
+  .o.on .nm { display: inline; }
+  .fb { display: flex; gap: 8px; }
+  .fb .btn { padding: 11px 16px; font-weight: 600; }
+
   /* ---------- Settings ---------- */
   .setup { display: grid; gap: 14px; }
   .setup label { display: grid; gap: 5px; font-size: 13px; color: var(--mut); }
@@ -154,6 +213,7 @@
 <main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
 <nav class="tabs" id="tabs"></nav>
+<div class="sheet" id="sheet" hidden></div>
 <div class="toast" id="toast" hidden><span id="toastmsg"></span><button class="btn" type="button" id="undo">Undo</button></div>
 <script>
 /* MattOS for the phone. Reads and writes the registry files in the private mattos-data repository through the GitHub API.
@@ -171,7 +231,7 @@ const TAB = {
   Tasks: `<rect ${F} x="4" y="4" width="16" height="18" rx="3"/><rect fill="currentColor" stroke="var(--cut)" stroke-width="1.8" x="8.5" y="1.8" width="7" height="5" rx="1.8"/><path ${C} d="m8.5 14.3 2.4 2.4 4.6-5"/>`,
   Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`
 };
-const UI = { plus: `<path d="M12 5v14M5 12h14"/>` };
+const UI = { plus: `<path d="M12 5v14M5 12h14"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>` };
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -460,9 +520,172 @@ async function loadCalendar() {
   drawCalendar();
 }
 
+/* ---------- Tasks: add and check off only. Row order is priority, so the phone never reorders, edits or deletes ---------- */
+const TASK_FILE = "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
+const TK_CATS = { Habits: "🥕", Family: "🧑🏻‍👩🏻‍🧒🏻", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
+const TK_TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
+const TK_STATUS = ["Open", "WIP", "Blocked", "Done"];
+/* as taskCat, taskTiming and wkLine in mattOs.html: an unknown category is Family, an unknown timing is Backlog, and Weekday reads as Monday */
+const tkCatOf = c => Object.keys(TK_CATS).find(k => c === k || c.endsWith(" " + k)) || "Family";
+const tkTimeOf = s => { const k = s.toLowerCase(); return TK_TIMES.find(x => x.toLowerCase() === (k === "weekday" ? "monday" : k)) || "Backlog"; };
+const tkLine = c => `| ${c.join(" | ")} |`.replace(/ {2}\|/g, " |");
+const tkCell = s => s.replace(/\|/g, "/").replace(/\s+/g, " ").trim();
+/* both files are changed as lines: one line is rewritten or added, so every other line stays exactly as the laptop wrote it.
+   head is the table's column names, col the Status column, end the table's last line, and a row's i its line */
+function tkRead(lines) {
+  let head = null, end = -1;
+  const rows = [];
+  lines.forEach((line, i) => {
+    const raw = line.replace(/\r$/, "");
+    if (!raw.trim().startsWith("|")) return;
+    const c = raw.trim().split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { if (c.includes("Status") && c.includes("Task")) { head = c; end = i; } return; }
+    end = i;
+    const cell = n => c[head.indexOf(n)] || "";
+    if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note"))) return;
+    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell("Timing")), title: cell("Task"), note: cell("Note") });
+  });
+  return { head, col: head ? head.indexOf("Status") : -1, end, rows };
+}
+/* parseIdeas and ideaAge from mattOs.html */
+function parseIdeas(md) {
+  return md.replace(/\r/g, "").split(/^## /m).slice(1).map(block => {
+    const lines = block.split("\n"), d = { title: lines[0].trim(), cat: "Family", added: "", note: "", steps: [] }, note = [];
+    let inSteps = false;
+    lines.slice(1).forEach(l => {
+      const f = l.match(/^- \*\*(Category|Added):\*\*\s*(.*)$/), s = l.match(/^- \[( |x)\]\s+(.+)$/i);
+      if (/^### Steps/.test(l)) inSteps = true;
+      else if (f && f[1] === "Added") d.added = f[2].trim();
+      else if (f) d.cat = Object.keys(TK_CATS).find(c => f[2].includes(c)) || d.cat;
+      else if (inSteps && s) d.steps.push({ text: s[2].trim(), sent: s[1] !== " " });
+      else if (!inSteps && l.trim() !== "---") note.push(l);
+    });
+    d.note = note.join("\n").trim();
+    return d;
+  }).filter(d => d.title);
+}
+function ideaAge(iso) {
+  const d = Math.floor((Date.now() - new Date(iso + "T00:00:00")) / 864e5), n = (x, unit) => `${x} ${unit}${x === 1 ? "" : "s"} ago`;
+  return !iso || isNaN(d) ? "" : d < 1 ? "Today" : d < 7 ? n(d, "day") : d < 30 ? n(Math.floor(d / 7), "week") : n(Math.floor(d / 30), "month");
+}
+/* a new idea goes first, under the rule that ends the file's heading, written as serializeIdeas in mattOs.html writes it */
+function addIdeaLines(lines, d) {
+  const cr = lines[0].endsWith("\r") ? "\r" : "", block = ["", `## ${d.title}`, `- **Category:** ${d.cat}`, `- **Added:** ${d.added}`, ...(d.note ? ["", d.note] : [])];
+  let at = lines.findIndex(l => l.trim() === "---") + 1;
+  if (!at) { while (lines.length && !lines[lines.length - 1].trim()) lines.pop(); lines.push(cr, "---" + cr); at = lines.length; }
+  if (lines.slice(at).some(l => l.startsWith("## "))) lines.splice(at, 0, ...[...block, "", "---"].map(l => l + cr));
+  else lines.splice(at, lines.length - at, ...block.map(l => l + cr), "");
+}
+const tk = { lines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks", cat: "All", menu: false, wide: null, sheet: "" };
+let tkBusy = 0, tkFail = false;
+function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); }
+function drawTasks() {
+  const cats = ["All", ...Object.keys(TK_CATS)], inCat = x => tk.cat === "All" || x.cat === tk.cat, open = r => r.st !== "Done";
+  const show = s => esc(s.replace(/<br\s*\/?>/gi, " ")), tick = n => svg(UI.check, n, 4);
+  const count = v => (tk.view === "Ideas" ? tk.ideas : tk.rows.filter(open)).filter(x => v === "All" || x.cat === v).length;
+  const menu = tk.menu ? `<div class="veil" data-tk="menu"></div><div class="pop" role="menu">${cats.map(v => `<button type="button" class="mi${tk.cat === v ? " on" : ""}" role="menuitemradio" aria-checked="${tk.cat === v}" data-tk="cat" data-a="${v}"><span class="em">${TK_CATS[v] || ""}</span><span class="grow">${v === "All" ? "All Categories" : v}</span><span class="num">${count(v)}</span></button>`).join("")}</div>` : "";
+  const bar = `<div class="segw tkbar"><div class="pts">${["Tasks", "Ideas", "Yoni"].map(v => `<button type="button" class="pt${tk.view === v ? " on" : ""}" data-tk="view" data-a="${v}"${tk.view === v ? ' aria-current="true"' : ""}>${v}</button>`).join("<i></i>")}</div><span class="grow"></span>${tk.view === "Yoni" ? "" : `<button type="button" class="sq${tk.cat !== "All" || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by category${tk.cat === "All" ? "" : ": " + tk.cat}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>`}${menu}</div>`;
+  const none = what => `<div class="empty">${tk.cat === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${tk.cat} ${what}.`}</div>`;
+  let body;
+  if (tk.view === "Yoni") body = `<div class="empty">Yoni is not built yet.</div>`;
+  else if (tk.view === "Ideas") body = tk.ideas.filter(inCat).map(d => {
+    const n = d.steps.length;
+    return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}${d.steps.map(s => `<div class="stp"><span class="cb${s.sent ? " on" : ""}"${s.sent ? ' role="img" aria-label="In Tasks"' : ""}>${s.sent ? tick(11) : ""}</span><span class="grow">${esc(s.text)}</span></div>`).join("")}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
+  }).join("") || none("ideas");
+  else {
+    /* one tap on the circle checks a task off or reopens it; a tap on the card shows its full text */
+    const card = r => `<div class="tc${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="grow"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`;
+    body = TK_TIMES.map(tm => {
+      const all = tk.rows.filter(r => r.time === tm && inCat(r));
+      return all.length ? `<div class="dh"><b>${tm}</b><span class="num">${all.filter(open).length} open</span></div>` + [...all.filter(open), ...all.filter(r => !open(r))].map(card).join("") : "";
+    }).join("") || none("tasks");
+  }
+  $("main").innerHTML = bar + body;
+  $("fab").hidden = offline || tk.view === "Yoni";
+}
+async function loadTasks(quiet) {
+  const [t, i] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE)]);
+  if (tab !== "Tasks") return;
+  tk.lines = t.text.split("\n"); tk.ilines = i.text.split("\n"); tkParse();
+  if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
+  drawTasks();
+}
+/* the change shows at once and is then saved on top of the newest file. If a save fails, the list is read again once nothing else is waiting */
+function tkSave(path, change, message) {
+  try { change(path === TASK_FILE ? tk.lines : tk.ilines); } catch (e) { /* the save below reports it */ }
+  tkParse(); drawTasks();
+  tkBusy++;
+  commitFile(path, text => text.split("\n"), lines => lines.join("\n"), change, message).then(item => {
+    if (!item) tkFail = true;
+    if (--tkBusy || !tkFail) return;
+    tkFail = false;
+    if (tab === "Tasks") loadTasks(true).catch(() => {});
+  });
+}
+function tickTask(n) {
+  const r = tk.rows[n], to = r && r.st === "Done" ? "Open" : "Done";
+  if (!r) return;
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  tkSave(TASK_FILE, lines => {
+    const t = tkRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw);
+    if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+    const cells = lines[hit.i].split("|");
+    cells[t.col + 1] = ` ${to} `;
+    lines[hit.i] = cells.join("|");
+    return hit;
+  }, `Phone: ${to === "Done" ? "done" : "reopen"} "${r.title}"`);
+}
+/* the add button: a new task goes after the last task with the same timing, as on the laptop; a new idea goes first */
+function openSheet() {
+  const idea = tk.view === "Ideas", day = TK_TIMES[(new Date().getDay() + 6) % 7], cat = tk.cat === "All" ? "Family" : tk.cat;
+  const o = (k, v, label, on) => `<button type="button" class="o${on ? " on" : ""}" data-tk="opt" data-k="${k}" data-a="${v}" aria-pressed="${on}">${label}</button>`;
+  tk.sheet = idea ? "Idea" : "Task"; tk.menu = false;
+  $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tk.sheet}</h3>
+    <label class="fl"><span>${tk.sheet}</span><input class="in" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done"></label>
+    ${idea ? "" : `<div class="fl"><span>Timing</span><div class="opts">${TK_TIMES.map(t => o("t", t, t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3), t === day)).join("")}</div></div>`}
+    <div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>
+    <label class="fl"><span>Note</span><input class="in" id="tk-n" placeholder="Add a note…" autocomplete="off" enterkeyhint="done"></label>
+    <div class="fb"><button type="button" class="btn" data-tk="cancel">Cancel</button><button type="submit" class="btn primary grow">Add ${tk.sheet}</button></div></form>`;
+  $("sheet").hidden = false; fitSheet(); $("tk-x").focus();
+}
+function closeSheet() { tk.sheet = ""; $("sheet").hidden = true; $("sheet").innerHTML = ""; }
+function saveSheet() {
+  const pick = k => ($("sheet").querySelector(`.o.on[data-k="${k}"]`) || { dataset: {} }).dataset.a;
+  const title = tkCell($("tk-x").value), note = tkCell($("tk-n").value), cat = pick("c") || "Family", time = pick("t") || "Backlog", idea = tk.sheet === "Idea";
+  if (!title) { $("tk-x").classList.add("bad"); $("tk-x").focus(); return; }
+  closeSheet();
+  if (idea) tkSave(IDEA_FILE, lines => { const d = { title, cat, added: today(), note }; addIdeaLines(lines, d); return d; }, `Phone: new idea "${title}"`);
+  else tkSave(TASK_FILE, lines => {
+    const t = tkRead(lines);
+    if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
+    const same = t.rows.filter(r => r.time === time), at = same.length ? same[same.length - 1].i : t.end;
+    const cells = { Status: "Open", Category: `${TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note };
+    lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
+    return cells;
+  }, `Phone: new task "${title}"`);
+}
+/* on the iPhone the keyboard covers the bottom of the screen without resizing it, so the sheet is lifted by the covered height */
+function fitSheet() {
+  const v = window.visualViewport, s = $("sheet");
+  if (!v || s.hidden) return;
+  s.style.setProperty("--kb", Math.max(0, Math.round(innerHeight - v.height - v.offsetTop)) + "px");
+  s.style.setProperty("--vvh", Math.round(v.height) + "px");
+}
+if (window.visualViewport) ["resize", "scroll"].forEach(n => window.visualViewport.addEventListener(n, fitSheet));
+function tkAct(act, a, el) {
+  if (act === "view") { tk.view = a; tk.menu = false; tk.wide = null; $("scr").scrollTop = 0; drawTasks(); }
+  else if (act === "menu") { tk.menu = !tk.menu; drawTasks(); }
+  else if (act === "cat") { tk.cat = a; tk.menu = false; drawTasks(); }
+  else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
+  else if (act === "tick") tickTask(+a);
+  else if (act === "opt") el.parentNode.querySelectorAll(".o").forEach(b => { b.classList.toggle("on", b === el); b.setAttribute("aria-pressed", b === el); });
+  else if (act === "cancel") closeSheet();
+}
+function leaveTasks() { closeSheet(); tk.menu = false; }
+
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
 const soon = name => ({ load: async () => { status(""); $("main").innerHTML = `<div class="big">${name}</div><div class="empty">${name} is not built yet.</div>`; } });
-const SCREENS = { Home: soon("Home"), Calendar: { load: loadCalendar }, Habits: soon("Habits"), Tasks: soon("Tasks"), Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Home: soon("Home"), Calendar: { load: loadCalendar }, Habits: soon("Habits"), Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Notes"; /* becomes Home once that screen is built */
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
@@ -495,6 +718,8 @@ document.addEventListener("click", e => {
   if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
   if (e.target.closest("#settings")) { showSetup(); return; }
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
+  const k = e.target.closest("[data-tk]");
+  if (k) { tkAct(k.dataset.tk, k.dataset.a, k); return; }
   const dv = e.target.closest("[data-v]");
   if (dv) { calView = dv.dataset.v; $("scr").scrollTop = 0; drawCalendar(); return; }
   const dp = e.target.closest("[data-p]");
@@ -524,6 +749,7 @@ document.addEventListener("input", e => {
   saveTimer = setTimeout(() => { if (dirty()) upsertOpenNote(); }, 1500);
 });
 document.addEventListener("submit", e => {
+  if (e.target.id === "tkform") { e.preventDefault(); saveSheet(); return; }
   if (e.target.id !== "setup") return;
   e.preventDefault();
   store.set("token", $("s-token").value.trim()); store.set("owner", $("s-owner").value.trim()); store.set("repo", $("s-repo").value.trim());
@@ -532,7 +758,7 @@ document.addEventListener("submit", e => {
 /* save before the phone puts the page away; reload when it comes back */
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) { if (dirty()) { clearTimeout(saveTimer); upsertOpenNote(); } }
-  else if (!openId && !$("setup") && cfg().token) go(tab);
+  else if (!openId && !$("setup") && !tk.sheet && cfg().token) go(tab);
 });
 function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
