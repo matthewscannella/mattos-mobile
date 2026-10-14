@@ -156,14 +156,11 @@
   .pill.good { background: rgba(63, 207, 142, .16); color: var(--done); }
 
   /* ---------- Tasks ---------- */
-  /* Tasks, Ideas and Notes are three screens, switched by the words at the top, as are Yoni's Routines and Packing; the filter icon opens the category list */
+  /* Tasks, Ideas and Notes are three screens, switched at the top as Calendar's Today and Next Up are, and so are Yoni's Routines and Packing
+     and Habits' Today and This Week; on Tasks the filter icon beside the switch opens the category list */
   .tkbar { display: flex; align-items: center; gap: 8px; }
-  .pts { display: flex; align-items: center; gap: 10px; }
-  .pts i { width: 1px; height: 20px; background: var(--rule); }
-  .pt { padding: 3px 0; font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: -.02em; color: var(--mut); opacity: .7; }
-  .pt.on { color: #fff; opacity: 1; }
-  .sq { flex: none; width: 36px; height: 36px; border-radius: 10px; background: rgba(255, 255, 255, .08); display: grid; place-items: center; color: rgba(255, 255, 255, .7); }
-  .sq.on { background: var(--blue); color: #fff; }
+  .sq { flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); display: grid; place-items: center; color: var(--mut); }
+  .sq.on { background: var(--blue); border-color: var(--blue); color: #fff; }
   .veil { position: fixed; inset: 0; }
   .pop { position: absolute; top: 100%; right: 16px; width: 228px; background: var(--raised); border: 1px solid #2c3342; border-radius: 14px; padding: 5px; box-shadow: 0 12px 28px rgba(0, 0, 0, .55); }
   .mi { width: 100%; height: 42px; border-radius: 9px; display: flex; align-items: center; gap: 9px; padding: 0 11px 0 8px; font-size: 15px; font-weight: 600; }
@@ -395,7 +392,7 @@ const TAB = {
   Habits: `<path ${F} d="M3.2 20.8C4.5 15.5 8 10.5 12.3 8.3a3.3 3.3 0 0 1 4.4 4.4C14.5 17 9.5 20.5 4.2 21.8a.8.8 0 0 1-1-1z"/><path ${K(2.6)} d="M15.5 9.5 16.5 3.5M15.5 9.5l5-5M15.5 9.5l6-1"/>`,
   Tasks: `<rect ${F} x="4" y="4" width="16" height="18" rx="3"/><rect fill="currentColor" stroke="var(--cut)" stroke-width="1.8" x="8.5" y="1.8" width="7" height="5" rx="1.8"/><path ${C} d="m8.5 14.3 2.4 2.4 4.6-5"/>`,
   Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`,
-  Yoni: `<circle ${F} cx="12" cy="8" r="5"/><path ${F} d="M4 21.5c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5z"/>`
+  Yoni: `<circle ${F} cx="12" cy="13.5" r="8.3"/><circle ${F} cx="3.6" cy="13.8" r="1.9"/><circle ${F} cx="20.4" cy="13.8" r="1.9"/><path ${K(2.4)} d="M12 5.4c-.9-2.3 1.4-3.7 3.2-2.3"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M8.9 12.6h.01M15.1 12.6h.01"/><path ${C} d="M9.6 16.4c1.4 1.3 3.4 1.3 4.8 0"/>`
 };
 /* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home */
 const TAB_BAR = ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
@@ -789,8 +786,10 @@ function drawTasks() {
   $("main").innerHTML = bar + body;
   $("fab").hidden = offline;
 }
-/* the words at the top of Tasks, Ideas, and Notes; Notes is its own screen, so its word opens it */
-const tkBar = (on, end = "") => `<div class="segw tkbar"><div class="pts">${["Tasks", "Ideas", "Notes"].map(v => `<button type="button" class="pt${on === v ? " on" : ""}" data-tk="view" data-a="${v}"${on === v ? ' aria-current="true"' : ""}>${v}</button>`).join("<i></i>")}</div><span class="grow"></span>${end}</div>`;
+/* the switch at the top, as on Calendar; its buttons carry data-{kind}="{act}" with the view in data-a */
+const segBar = (views, on, kind, act, end = "") => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${on === v ? ' aria-current="true"' : ""}>${v}</button>`).join("")}</div>${end}</div>`;
+/* Tasks, Ideas, and Notes; Notes is its own screen, so its button opens it */
+const tkBar = (on, end = "") => segBar(["Tasks", "Ideas", "Notes"], on, "tk", "view", end);
 async function loadTasks(quiet) {
   const [t, i, y] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE)]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
@@ -967,7 +966,7 @@ function hwRead(lines) {
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
-const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, busy: false, closing: false };
+const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, busy: false, closing: false, view: "Today" };
 const hbMonday = s => addDays(s, -((atNoon(s).getDay() + 6) % 7));
 const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
 /* only the open week can be logged: the week in the file, until it is closed, or the week of today when the file holds none */
@@ -1022,7 +1021,9 @@ function drawHabits() {
   const close = !canLog || !hb.cur ? "" : `<div class="hcard hcl">${now < sun ? `<span>Close Week opens on Sunday, ${monDay(sun)}.</span>`
     : hb.closing ? `<span>${none.length === 7 ? "Nothing is logged, so no week is added to the history." : `${7 - none.length} of 7 days are logged.${none.length ? ` ${hbList(none)} ${none.length > 1 ? "have" : "has"} nothing logged.` : ""}`} A closed week cannot be reopened. A clean week starts for ${monDay([addDays(hb.week, 7), hbMonday(now)].sort()[1])}.</span><div class="two"><button type="button" class="sv ghost" data-hb="closeno">Cancel</button><button type="button" class="sv" data-hb="closeyes">Close Week</button></div>`
     : `<span>${ended ? "This week has ended. Close it to start the next one." : "Finished logging? Closing saves this week to the history and starts a clean one."}</span><button type="button" class="sv${hb.busy ? " off" : ""}" data-hb="close">${hb.busy ? "Working…" : "Close Week"}</button>`}</div>`;
-  $("main").innerHTML = `<div class="hb">${head}${ended ? close : ""}${form}<div class="hgl">${last ? "This week" : "Week"}<span>${monDay(hb.week)} - ${monDay(sun)}</span></div><div class="hcard">${bars}</div><div class="hgl">By day<span>Tap a day to open it</span></div>${grid}${ended ? "" : close}</div>`;
+  /* Today is the day's form and This Week the week's progress and grid, switched at the top as on Calendar */
+  $("main").innerHTML = segBar(["Today", "This Week"], hb.view, "hb", "view") + (hb.view === "Today" ? `<div class="hb">${head}${ended ? close : ""}${form}</div>`
+    : `<div class="hb"><div class="hgl" style="margin-top:4px">Progress<span>${monDay(hb.week)} - ${monDay(sun)}</span></div><div class="hcard">${bars}</div><div class="hgl">By Day<span>Tap a day to open it</span></div>${grid}${close}</div>`);
   $("savebar").innerHTML = !canLog ? `<button type="button" class="sv off" data-hb="save">Archived week</button>` : (mine && !hb.busy ? `<button type="button" class="sv ghost" data-hb="discard">Discard</button>` : "") + `<button type="button" class="sv${d.st === "draft" ? "" : d.st === "saved" ? " saved" : " off"}" data-hb="save">${hb.busy ? "Saving…" : d.st === "saved" ? `${name} saved` : `Save ${name}`}</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
 }
@@ -1096,8 +1097,9 @@ async function hbClose() {
 function hbAct(act, k, a) {
   const now = today();
   if (act === "save") { hbSave(); return; }
+  if (act === "view") { hb.view = a; $("scr").scrollTop = 0; drawHabits(); return; }
   if (hb.busy) return;
-  if (act === "day") { if (a > now) return; hb.day = a; }
+  if (act === "day") { if (a > now) return; hb.day = a; hb.view = "Today"; }
   else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbOpen()) return; hb.week = w; hb.day = w === hbOpen() ? hbDayIn(w) : addDays(w, 6); hb.closing = false; }
   else if (act === "discard") { delete hb.drafts[hb.day]; hbKeep(); }
   else if (act === "close") {
@@ -1159,7 +1161,7 @@ function yoniBody() {
   if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; }
   if (!d.all.length) return `<div class="empty">Nothing is set up for Yoni yet. Goals and routines are added on the laptop.</div>`;
   const pc = yoCount(d.packs);
-  const seg = `<div class="segw tkbar"><div class="pts">${["Routines", "Packing"].map(v => `<button type="button" class="pt${yo.view === v ? " on" : ""}" data-tk="yoview" data-a="${v}"${yo.view === v ? ' aria-current="true"' : ""}>${v}</button>`).join("<i></i>")}</div></div>`;
+  const seg = segBar(["Routines", "Packing"], yo.view, "tk", "yoview");
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
   const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when) || "After"}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
   if (yo.view === "Packing") {
@@ -1178,7 +1180,7 @@ function yoniBody() {
       ${o ? `<div class="acb"><div class="sub">Routine</div>${rows(P.steps, true)}<div class="sub">Tasks</div>${rows(P.tasks, false)}</div>` : ""}</div>`; }).join("")}
     <p class="ynote">Goals, routines, and tasks clear at midnight Eastern.</p>`;
 }
-/* Yoni, its own tab: Routines and Packing, switched by the words at the top */
+/* Yoni, its own tab: Routines and Packing, switched at the top */
 function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = true; }
 async function loadYoni(quiet) {
   const y = await readFile(FATHER_FILE);
