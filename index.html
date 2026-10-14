@@ -156,7 +156,7 @@
   .pill.good { background: rgba(63, 207, 142, .16); color: var(--done); }
 
   /* ---------- Tasks ---------- */
-  /* Tasks, Ideas and Yoni are three screens, switched by the words at the top; the filter icon opens the category list */
+  /* Tasks, Ideas and Notes are three screens, switched by the words at the top, as are Yoni's Routines and Packing; the filter icon opens the category list */
   .tkbar { display: flex; align-items: center; gap: 8px; }
   .pts { display: flex; align-items: center; gap: 10px; }
   .pts i { width: 1px; height: 20px; background: var(--rule); }
@@ -328,8 +328,6 @@
   .box.on { background: var(--done); border-color: var(--done); }
   .ynote { font-size: 12px; line-height: 16px; color: var(--mut); margin: 12px 2px 0; }
   /* Packing: only what is left to pack, with its group beside it; packed items fold away below */
-  .yseg { margin-top: 12px; }
-  .yseg .num { font-weight: 400; opacity: .8; }
   .pks { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--rule); }
   .pks .ring { flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: radial-gradient(var(--card) 58%, transparent 60%), conic-gradient(var(--done) var(--p), var(--raised) 0); }
   .pks b { display: block; font-size: 15px; line-height: 19px; font-weight: 600; color: #fff; }
@@ -396,8 +394,11 @@ const TAB = {
   Calendar: `<rect ${F} x="2.5" y="3.5" width="19" height="18" rx="3"/><path ${C} d="M2.5 9.5h19"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17.5h.01M12 17.5h.01"/>`,
   Habits: `<path ${F} d="M3.2 20.8C4.5 15.5 8 10.5 12.3 8.3a3.3 3.3 0 0 1 4.4 4.4C14.5 17 9.5 20.5 4.2 21.8a.8.8 0 0 1-1-1z"/><path ${K(2.6)} d="M15.5 9.5 16.5 3.5M15.5 9.5l5-5M15.5 9.5l6-1"/>`,
   Tasks: `<rect ${F} x="4" y="4" width="16" height="18" rx="3"/><rect fill="currentColor" stroke="var(--cut)" stroke-width="1.8" x="8.5" y="1.8" width="7" height="5" rx="1.8"/><path ${C} d="m8.5 14.3 2.4 2.4 4.6-5"/>`,
-  Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`
+  Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`,
+  Yoni: `<circle ${F} cx="12" cy="8" r="5"/><path ${F} d="M4 21.5c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5z"/>`
 };
+/* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home */
+const TAB_BAR = ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
 const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`,bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
@@ -530,7 +531,7 @@ function upsertOpenNote() {
 }
 function showNoteList() {
   leaveHabits(); openId = null; base = null; swOpen = null; $("fab").hidden = offline;
-  $("main").innerHTML = `<div class="big">Notes</div>` + (notes.length
+  $("main").innerHTML = tkBar("Notes") + (notes.length
     ? notes.map(n => `<div class="nsw">${offline ? "" : `<button class="ndel" type="button" data-del="${esc(n.id)}" aria-label="Delete ${esc(n.title) || "Untitled"}">${svg(UI.trash, 22)}</button>`}<button class="note" type="button" data-id="${esc(n.id)}"><b class="ell">${esc(n.title) || "Untitled"}</b><span class="s ell num">${esc(n.edited)}</span><span class="s ell">${esc(n.body.split("\n").find(l => l.trim())) || "Empty note"}</span></button></div>`).join("")
     : `<div class="empty">No notes yet. Tap the add button to start one.</div>`);
 }
@@ -770,11 +771,10 @@ function drawTasks() {
   const show = s => esc(s.replace(/<br\s*\/?>/gi, " ")), tick = n => svg(UI.check, n, 4);
   const count = v => (tk.view === "Ideas" ? tk.ideas : tk.rows.filter(open)).filter(x => v === "All" || x.cat === v).length;
   const menu = tk.menu ? `<div class="veil" data-tk="menu"></div><div class="pop" role="menu">${cats.map(v => `<button type="button" class="mi${tk.cat === v ? " on" : ""}" role="menuitemradio" aria-checked="${tk.cat === v}" data-tk="cat" data-a="${v}"><span class="em">${TK_CATS[v] || ""}</span><span class="grow">${v === "All" ? "All Categories" : v}</span><span class="num">${count(v)}</span></button>`).join("")}</div>` : "";
-  const bar = `<div class="segw tkbar"><div class="pts">${["Tasks", "Ideas", "Yoni"].map(v => `<button type="button" class="pt${tk.view === v ? " on" : ""}" data-tk="view" data-a="${v}"${tk.view === v ? ' aria-current="true"' : ""}>${v}</button>`).join("<i></i>")}</div><span class="grow"></span>${tk.view === "Yoni" ? "" : `<button type="button" class="sq${tk.cat !== "All" || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by category${tk.cat === "All" ? "" : ": " + tk.cat}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>`}${menu}</div>`;
+  const bar = tkBar(tk.view, `<button type="button" class="sq${tk.cat !== "All" || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by category${tk.cat === "All" ? "" : ": " + tk.cat}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>${menu}`);
   const none = what => `<div class="empty">${tk.cat === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${tk.cat} ${what}.`}</div>`;
   let body;
-  if (tk.view === "Yoni") body = yoniBody();
-  else if (tk.view === "Ideas") body = tk.ideas.filter(inCat).map(d => {
+  if (tk.view === "Ideas") body = tk.ideas.filter(inCat).map(d => {
     const n = d.steps.length;
     return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}${d.steps.map(s => `<div class="stp"><span class="cb${s.sent ? " on" : ""}"${s.sent ? ' role="img" aria-label="In Tasks"' : ""}>${s.sent ? tick(11) : ""}</span><span class="grow">${esc(s.text)}</span></div>`).join("")}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
   }).join("") || none("ideas");
@@ -787,8 +787,10 @@ function drawTasks() {
     }).join("") || none("open tasks");
   }
   $("main").innerHTML = bar + body;
-  $("fab").hidden = offline || tk.view === "Yoni";
+  $("fab").hidden = offline;
 }
+/* the words at the top of Tasks, Ideas, and Notes; Notes is its own screen, so its word opens it */
+const tkBar = (on, end = "") => `<div class="segw tkbar"><div class="pts">${["Tasks", "Ideas", "Notes"].map(v => `<button type="button" class="pt${on === v ? " on" : ""}" data-tk="view" data-a="${v}"${on === v ? ' aria-current="true"' : ""}>${v}</button>`).join("<i></i>")}</div><span class="grow"></span>${end}</div>`;
 async function loadTasks(quiet) {
   const [t, i, y] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE)]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
@@ -800,13 +802,14 @@ async function loadTasks(quiet) {
 function tkSave(path, change, message) {
   try { change(path === TASK_FILE ? tk.lines : path === IDEA_FILE ? tk.ilines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
-  if (tab === "Home") drawHome(); else drawTasks(); /* a task added from Home's add button */
+  if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else drawTasks(); /* a task added from Home's add button */
   tkBusy++;
   commitFile(path, text => text.split("\n"), lines => lines.join("\n"), change, message).then(item => {
     if (!item) tkFail = true;
     if (--tkBusy || !tkFail) return;
     tkFail = false;
     if (tab === "Tasks") loadTasks(true).catch(() => {});
+    else if (tab === "Yoni") loadYoni(true).catch(() => {});
     else if (tab === "Home") loadHome().catch(() => {});
   });
 }
@@ -880,15 +883,15 @@ function frameInfo() {
 /* iOS scrolls the whole page up to show a focused field and can leave it there when the keyboard closes */
 document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement || !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) window.scrollTo(0, 0); }, 50));
 function tkAct(act, a, el) {
-  if (act === "view") { tk.view = a; tk.menu = false; tk.wide = null; $("scr").scrollTop = 0; drawTasks(); }
+  if (act === "view") { tk.menu = false; tk.wide = null; if (a !== "Notes") tk.view = a; if (tab !== "Tasks" || a === "Notes") { go(a === "Notes" ? "Notes" : "Tasks"); return; } $("scr").scrollTop = 0; drawTasks(); }
   else if (act === "menu") { tk.menu = !tk.menu; drawTasks(); }
   else if (act === "cat") { tk.cat = a; tk.menu = false; drawTasks(); }
   else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
   else if (act === "tick") tickTask(+a);
   else if (act === "yo") yoTick(+a);
-  else if (act === "fold") { yo.open[a] = !yo.open[a]; drawTasks(); }
-  else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawTasks(); }
-  else if (act === "yopacked") { yo.packed = !yo.packed; drawTasks(); }
+  else if (act === "fold") { yo.open[a] = !yo.open[a]; drawYoni(); }
+  else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
+  else if (act === "yopacked") { yo.packed = !yo.packed; drawYoni(); }
   else if (act === "yoclear") yoClear();
   else if (act === "opt") el.parentNode.querySelectorAll(".o").forEach(b => { b.classList.toggle("on", b === el); b.setAttribute("aria-pressed", b === el); });
   else if (act === "cancel") closeSheet();
@@ -1120,7 +1123,7 @@ function hbAct(act, k, a) {
 }
 function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("hbs"); }
 
-/* ---------- Yoni, the third word of the Tasks tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
+/* ---------- Yoni, its own tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
    A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
    Goals, steps and tasks are added on the laptop only ---------- */
 const FATHER_FILE = "08👶🏻-father/fatherRegistry.md";
@@ -1156,24 +1159,33 @@ function yoniBody() {
   if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; }
   if (!d.all.length) return `<div class="empty">Nothing is set up for Yoni yet. Goals and routines are added on the laptop.</div>`;
   const pc = yoCount(d.packs);
-  const seg = `<div class="seg yseg">${["Routines", "Packing"].map(v => `<button type="button" class="${yo.view === v ? "on" : ""}" data-tk="yoview" data-a="${v}"${yo.view === v ? ' aria-current="true"' : ""}>${v}${v === "Packing" ? ` <span class="num">${pc[0]}/${pc[1]}</span>` : ""}</button>`).join("")}</div>`;
+  const seg = `<div class="segw tkbar"><div class="pts">${["Routines", "Packing"].map(v => `<button type="button" class="pt${yo.view === v ? " on" : ""}" data-tk="yoview" data-a="${v}"${yo.view === v ? ' aria-current="true"' : ""}>${v}</button>`).join("<i></i>")}</div></div>`;
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
   const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when) || "After"}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
   if (yo.view === "Packing") {
     const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = d.packs.filter(x => !x.on), done = d.packs.filter(x => x.on);
     const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span><span class="g">${esc(it.g)}</span></button>`;
-    return `${seg}<div class="pks"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${pc[0]} of ${pc[1]} packed</b><span class="s">${left.length ? `${new Set(left.map(x => x.g)).size} groups still open` : "All packed"}</span></div><button type="button" class="clr" data-tk="yoclear"${pc[0] ? "" : " disabled"}>Clear</button></div>
+    return `${seg}<div class="pks" style="margin-top:4px"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${pc[0]} of ${pc[1]} packed</b><span class="s">${left.length ? `${new Set(left.map(x => x.g)).size} groups still open` : "All packed"}</span></div><button type="button" class="clr" data-tk="yoclear"${pc[0] ? "" : " disabled"}>Clear</button></div>
       <div class="hgl">Still to pack<span class="num">${left.length}</span></div>
       ${left.length ? `<div class="pkl">${left.map(prow).join("")}</div>` : `<div class="s" style="padding:4px 2px">Everything is in the bag.</div>`}
       ${done.length ? `<button type="button" class="pkf${yo.packed ? " open" : ""}" data-tk="yopacked" aria-expanded="${yo.packed}"><span class="ic">${svg(UI.right, 16, 2.6)}</span><span class="grow">Packed</span><span class="num">${done.length}</span></button>${yo.packed ? `<div class="pkl">${done.map(prow).join("")}</div>` : ""}` : ""}
       <p class="ynote">Checks clear at midnight Eastern, or with Clear.</p>`;
   }
-  return `${seg}<div class="hgl" style="margin-top:12px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div>
+  return `${seg}<div class="hgl" style="margin-top:4px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div>
     <div class="rings">${d.goals.map(x => `<button type="button" class="rg${x.on ? " on" : ""}" data-tk="yo" data-a="${x.i}" aria-pressed="${x.on}"><span class="ro">${esc(x.em)}</span><b class="num">${esc(x.target)} ${esc(x.unit)}</b><i class="ell">${esc(x.text)}</i></button>`).join("")}</div>
     <div class="hgl" style="margin-top:18px">Routines<span>Tap a part to open it</span></div>
     ${YO_PARTS.map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), o = !!yo.open[p]; return `<div class="ac${o ? " open" : ""}"><button type="button" class="ach" data-tk="fold" data-a="${p}" aria-expanded="${o}">${svg(UI.right, 16, 2.6)}<span class="nmr">${p}${p === now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></button>
       ${o ? `<div class="acb"><div class="sub">Routine</div>${rows(P.steps, true)}<div class="sub">Tasks</div>${rows(P.tasks, false)}</div>` : ""}</div>`; }).join("")}
     <p class="ynote">Goals, routines, and tasks clear at midnight Eastern.</p>`;
+}
+/* Yoni, its own tab: Routines and Packing, switched by the words at the top */
+function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = true; }
+async function loadYoni(quiet) {
+  const y = await readFile(FATHER_FILE);
+  if (tab !== "Yoni" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
+  yo.lines = y.text.split("\n"); tkParse();
+  if (quiet !== true) status(y.at ? `Offline. Showing Yoni loaded ${y.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), y.at ? "err" : "ok");
+  drawYoni();
 }
 /* Clear empties the Done cell of every packing item, as Clear checks does on the desktop */
 function yoClear() {
@@ -1239,17 +1251,17 @@ async function loadHome() {
   status(c.at ? `Offline. Showing what was loaded ${c.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), c.at ? "err" : "ok");
   drawHome();
 }
-/* a row on Home opens its tab: Yoni is a view of Tasks, and Today and Next Up are the two views of Calendar */
+/* a row on Home opens its tab: Today and Next Up are the two views of Calendar */
 function homeGo(to) {
-  if (to === "Yoni" || to === "Tasks") { tk.view = to; to = "Tasks"; }
+  if (to === "Tasks") tk.view = to;
   else if (to === "Today" || to === "Next Up") { calView = to; to = "Calendar"; }
   go(to);
 }
-/* the add button on Home adds a task, whichever of Tasks, Ideas and Yoni was last open */
+/* the add button on Home adds a task, whichever of Tasks and Ideas was last open */
 function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view = v; }
 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
-const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar }, Habits: { load: loadHabits, leave: leaveHabits }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar }, Habits: { load: loadHabits, leave: leaveHabits }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Home";
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
@@ -1257,7 +1269,8 @@ async function go(name) {
   leave();
   tab = SCREENS[name] ? name : START;
   history.replaceState(null, "", "#" + tab.toLowerCase());
-  $("tabs").innerHTML = Object.keys(TAB).map(n => `<button class="tab${n === tab ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === tab ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
+  const lit = tab === "Notes" ? "Tasks" : tab;
+  $("tabs").innerHTML = TAB_BAR.map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
   $("fab").hidden = true; $("scr").scrollTop = 0;
   if (!cfg().token) return showSetup();
   status("Loading…");
