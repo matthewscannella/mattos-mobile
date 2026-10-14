@@ -42,10 +42,7 @@
   .ws { display: flex; align-items: center; gap: 10px; }
   .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: block; }
   .ws b { font-size: 19px; font-weight: 600; flex: 1; letter-spacing: -.01em; }
-  .av { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--mut); display: grid; place-items: center; position: relative; cursor: pointer; }
-  .av::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--done); border: 2px solid var(--side); }
-  .av.off::after { background: var(--mut); }
-  .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
+  .av { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--mut); display: grid; place-items: center; position: relative; cursor: pointer; }  .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
   .scr::-webkit-scrollbar { display: none; }
   /* the icons may sit partly over the home indicator's strip, as in native tab bars, so only part of the inset is added below them */
   :root { --tabpad: max(8px, calc(env(safe-area-inset-bottom) - 20px)); }
@@ -121,8 +118,8 @@
   .wc.on .dot { background: #fff; }
   .wc.on .dot.no { background: transparent; }
   .bks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  /* --n is how nice the block is, 0 to 1 (wxNice): the tile's green deepens with it */
-  .bk { display: grid; gap: 3px; align-content: start; padding: 10px; border-radius: 14px; --cut: color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 24%), var(--card)); background: var(--cut); border: 1px solid color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 60%), var(--rule)); min-height: 126px; }
+  /* --n is the score's step, 0 to 1 (wxStep): the tile's green deepens with it */
+  .bk { display: grid; gap: 3px; align-content: start; padding: 10px; border-radius: 14px; --cut: color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 40%), var(--card)); background: var(--cut); border: 1px solid color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 80%), var(--rule)); min-height: 126px; }
   .bk > b { font-size: 14px; color: #fff; font-weight: 600; }
   .bk .bl { font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
   .bk .sc { margin-top: 4px; font-size: 22px; line-height: 26px; font-weight: 700; color: var(--tx); }
@@ -604,9 +601,8 @@ const wxScore = (feel, p, code) => Math.round(100
   * (p <= 50 ? 1 - p / 100 : Math.max(0, .5 * (80 - p) / 30))
   * (code <= 2 ? 1 : code === 3 ? .8 : code <= 48 ? .6 : code <= 55 ? .3 : 0));
 const wxFill = s => s < 65 ? 0 : .22 + .78 * Math.pow((s - 65) / 35, 1.4);
-/* how nice an hour is, 0 to 1, for the shade of the Outdoor Score tiles: 1 at 72°, clear and dry, less for each degree off, each step of cloud or rain, and the rain chance */
-const wxNice = x => Math.max(0, 1 - Math.abs(x.temp - 72) / 20)
-  * (x.code === 0 ? 1 : x.code === 1 ? .9 : x.code === 2 ? .8 : x.code === 3 ? .65 : x.code <= 48 ? .5 : x.code <= 55 ? .35 : .2) * (1 - x.p / 100);
+/* the shade of an Outdoor Score tile, 0 to 1, in five steps of the score: none below 50, then the 50s, 60s, 70s, 80s, and 90 to 100 */
+const wxStep = s => s < 50 ? 0 : Math.min(5, Math.floor((s - 50) / 10) + 1) / 5;
 /* W is the newest forecast, or the one kept from the last load when there is no connection. It is dropped once it no longer covers today */
 let W = null, wxLive = false, wxRead = "";
 async function loadWeather() {
@@ -642,7 +638,7 @@ function wxCommon(hs) { const lit = hs.filter(x => x.day), count = {}; (lit.leng
 function wxBlock(s, b) {
   const hs = wxHours(s, b.from, b.to).filter(x => !x.past);
   if (!hs.length) return null;
-  return { score: Math.round(hs.reduce((a, x) => a + x.score, 0) / hs.length), nice: hs.reduce((a, x) => a + wxNice(x), 0) / hs.length, lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
+  return { score: Math.round(hs.reduce((a, x) => a + x.score, 0) / hs.length), lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
 }
 const wxHourIcon = x => !x.day && x.code <= 2 ? "moon" : wxIcon(x.code);
 const wxGood = s => s >= 65 ? " good" : "";
@@ -671,7 +667,7 @@ function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
   const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
   const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${x.score}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
-  const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}" style="--n:${B.nice.toFixed(2)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
+  const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}" style="--n:${wxStep(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
   const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
   /* calPick is "day|block": a tapped third of a pill picks that block; a tap on the rest of the pill picks the day's first block not yet past */
   let [pd, pk] = (calPick || "").split("|");
@@ -907,14 +903,17 @@ const HABIT_FILE = "07🥕-habits/habitsRegistry.md", HISTORY_FILE = "07🥕-hab
 const hbCodes = (list, pts) => Object.fromEntries(list.split(" ").map((c, i) => [c, pts[i % pts.length]]));
 const HB_CATS = [
   { k: "water", name: "Water", target: 28, top: 4, codes: hbCodes("Bh Bi Bj Bk Bl", [.33, 1, 2, 3, 4]) },
-  { k: "habits", name: "Habits", target: 28, top: 3, codes: hbCodes("Am An Ao Ap Aq Ar As At", [1, 0]) },
+  { k: "habits", name: "Habits", target: 28, top: 4, codes: hbCodes("Am An Ao Ap Aq Ar As At", [1, 0]) },
   { k: "food", name: "Food", target: 23, top: 6, codes: hbCodes("Bm Bn Bo Bp Bq Br Bs Bt Bu Bv Bw Bx By Bz Ca Cb Cc Cd", [1, 0, -1]) },
   { k: "fitness", name: "Fitness", target: 14, top: 3, codes: hbCodes("Au Av Aw Ax Ay Az", [1, 2, 3, 4, 5, 6]) },
   { k: "mental", name: "Mental", target: 45, top: 15, codes: hbCodes("Da Db Dc Dd De Df", [5, 10, 15, 20, 25, 30]) }
 ];
 /* the form's controls: a meal is healthy, neutral or unhealthy, and a habit is yes or no. The codes are how an archived week records each */
 const HB_MEALS = [["Breakfast", "Bm Bn Bo"], ["Lunch", "Bp Bq Br"], ["Snack", "Bs Bt Bu"], ["Dinner", "Bv Bw Bx"], ["Drink", "By Bz Ca"], ["Dessert", "Cb Cc Cd"]].map(m => ({ name: m[0], codes: m[1].split(" ") }));
-const HB_RULES = [["Pain bodies", "Aq Ar"], ["Posture", "Ao Ap"], ["Anxiety", "Am An"]].map(r => ({ name: r[0], codes: r[1].split(" ") }));
+/* col is the habit's column in habitsRegistry.md, as HW_RULES in mattOs.html; Stretching leads */
+const HB_RULES = [["Stretching", "As At", "Stretching"], ["Pain bodies", "Aq Ar", "Pain"], ["Posture", "Ao Ap", "Posture"], ["Anxiety", "Am An", "Anxiety"]].map(r => ({ name: r[0], codes: r[1].split(" "), col: r[2] }));
+/* the live week's targets are those of the latest archived week, except Habits, which is every habit every day */
+const hbLiveTargets = text => { const set = hbTargets(text); return HB_CATS.map(c => `${c.name} ${c.k === "habits" ? HB_RULES.length * 7 : set[c.k] || c.target}`).join(", "); };
 const hbTargets = text => Object.fromEntries([...(text || "").matchAll(/([A-Za-z]+)\s+(\d+(?:\.\d+)?)/g)].map(m => [m[1].toLowerCase(), +m[2]]));
 const hbRound = n => Math.round(n * 100) / 100;
 const hbScore = codes => Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(codes.reduce((a, x) => a + (c.codes[x] || 0), 0))]));
@@ -942,24 +941,26 @@ function hbRead(lines) {
    Water is bottles, a meal 1, 0 or -1, a habit Yes or No, and a blank cell nothing entered; Status is Saved, Draft or blank */
 const HW_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const hwBlank = () => ({ water: 0, food: HB_MEALS.map(() => null), rules: HB_RULES.map(() => null), sets: 0, med: 0 });
-const hwForm = f => ({ water: f.water || 0, food: HB_MEALS.map((m, i) => (f.food || [])[i] ?? null), rules: HB_RULES.map((r, i) => (f.rules || [])[i] ?? null), sets: f.sets || 0, med: f.med || 0 });
+const hwForm = f => ({ water: f.water || 0, food: HB_MEALS.map((m, i) => (f.food || [])[i] ?? null), rules: HB_RULES.map((r, i) => ((f.rules || []).length === HB_RULES.length - 1 ? [null, ...f.rules] : f.rules || [])[i] ?? null), sets: f.sets || 0, med: f.med || 0 });
 const hwSum = list => list.reduce((a, v) => a + (v || 0), 0);
 const hwScore = f => ({ water: f.water, habits: hwSum(f.rules), food: hwSum(f.food), fitness: f.sets, mental: f.med });
 const hwLine = (day, f, st) => `| ${[day, f.water, ...f.food.map(v => v ?? ""), f.sets, f.med, ...f.rules.map(v => v == null ? "" : v ? "Yes" : "No"), st].join(" | ")} |`;
-const hwText = week => `# Habits Registry\n\nThe HabitFlow week in progress for MattOS, written by the This Week tab of the app. One row per day: water in bottles, each meal as 1 (healthy), 0 (neutral), or -1 (unhealthy), resistance sets, meditation minutes, and each habit as Yes or No. A blank cell is nothing entered. Status is Saved, Draft, or blank.\n\n**Week of:** ${week}\n\n---\n\n## This Week\n\n| Day | Water | ${HB_MEALS.map(m => m.name).join(" | ")} | Sets | Minutes | Pain | Posture | Anxiety | Status |\n|${"---|".repeat(14)}\n${HW_DAYS.map(d => hwLine(d, hwBlank(), "")).join("\n")}\n`;
-/* a row's i is its line. A file in any other layout reads as no week, and is replaced on the first save, as on the desktop */
+const hwText = (week, rows) => `# Habits Registry\n\nThe HabitFlow week in progress for MattOS, written by the This Week tab of the app. One row per day: water in bottles, each meal as 1 (healthy), 0 (neutral), or -1 (unhealthy), resistance sets, meditation minutes, and each habit as Yes or No. A blank cell is nothing entered. Status is Saved, Draft, or blank.\n\n**Week of:** ${week}\n\n---\n\n## This Week\n\n| Day | Water | ${HB_MEALS.map(m => m.name).join(" | ")} | Sets | Minutes | ${HB_RULES.map(r => r.col).join(" | ")} | Status |\n|${"---|".repeat(11 + HB_RULES.length)}\n${HW_DAYS.map((d, n) => rows ? hwLine(d, rows[n].f, rows[n].st ? rows[n].st[0].toUpperCase() + rows[n].st.slice(1) : "") : hwLine(d, hwBlank(), "")).join("\n")}\n`;
+/* a row's i is its line. A file in any other layout reads as no week, and is replaced on the first save, as on the desktop.
+   Cells are found by their column name, so a week written before a habit was added still reads, with that habit blank, and is marked old */
 function hwRead(lines) {
   const num = x => x === "" || isNaN(+x) ? null : +x, yn = x => /^yes$/i.test(x) ? 1 : /^no$/i.test(x) ? 0 : null, rows = [];
-  let week = "";
+  let week = "", head = [];
   lines.forEach((line, i) => {
     const raw = line.replace(/\r$/, "").trim(), m = raw.match(/^\*\*Week of:\*\*\s*(\d{4}-\d{2}-\d{2})/);
     if (m) week = m[1];
     if (!raw.startsWith("|")) return;
-    const c = raw.split("|").slice(1, -1).map(x => x.trim());
+    const c = raw.split("|").slice(1, -1).map(x => x.trim()), col = name => c[head.indexOf(name)] ?? "";
+    if (c[0] === "Day") head = c;
     if (rows.length > 6 || c[0] !== HW_DAYS[rows.length]) return;
-    rows.push({ i, st: /^(saved|draft)$/i.test(c[13] || "") ? c[13].toLowerCase() : "", f: { water: num(c[1] || "") || 0, food: HB_MEALS.map((m, n) => num(c[2 + n] || "")), rules: HB_RULES.map((r, n) => yn(c[10 + n] || "")), sets: num(c[8] || "") || 0, med: num(c[9] || "") || 0 } });
+    rows.push({ i, st: /^(saved|draft)$/i.test(col("Status")) ? col("Status").toLowerCase() : "", f: { water: num(col("Water")) || 0, food: HB_MEALS.map(m => num(col(m.name))), rules: HB_RULES.map(r => yn(col(r.col))), sets: num(col("Sets")) || 0, med: num(col("Minutes")) || 0 } });
   });
-  return week && rows.length === 7 ? { week, rows } : null;
+  return week && rows.length === 7 ? { week, rows, old: HB_RULES.some(r => !head.includes(r.col)) } : null;
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
@@ -978,7 +979,7 @@ const hbGrade = p => p >= .9 ? "#3fcf8e" : p >= .8 ? "#f5c84b" : p >= .7 ? "#f79
 function drawHabits() {
   const now = today(), canLog = hbLive(hb.week), row = hb.hist.find(r => r.week === hb.week), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null);
   /* as on the desktop, an archived week is graded against its own targets and the week in progress against those of the latest archived week */
-  const set = hbTargets(canLog ? (latest || {}).targets : (row || {}).targets);
+  const set = hbTargets(canLog ? hbLiveTargets((latest || {}).targets) : (row || {}).targets);
   /* a day is saved, a draft, skipped (miss), not started ("") or still to come (off); a draft counts towards the week, here and on the desktop */
   const days = [0, 1, 2, 3, 4, 5, 6].map(i => {
     const date = addDays(hb.week, i), codes = row ? row.days[i] : [], filed = hbFiled(date), draft = hb.drafts[date];
@@ -1001,7 +1002,7 @@ function drawHabits() {
   const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
     + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-k="${i}">${m.name}<i>${v == null ? "Tap" : v > 0 ? "Healthy" : v < 0 ? "Unhealthy" : "Neutral"}</i></button>`; }).join("")}</div>`)
     + grp("Fitness", "", step("Resistance", "sets", "sets", 1)) + grp("Mental", "", step("Meditation", "med", "min", 5))
-    + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of 3`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
+    + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
   const bars = HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
   /* one day's total for one category; a day with nothing logged is a dashed blank */
   const cell = (c, x) => {
@@ -1041,7 +1042,7 @@ function hbSave() {
   commitFile(HABIT_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
     let t = hwRead(lines);
     if (t && t.week !== week) throw new Error("That week has been closed, so this day was not saved. Discard it to carry on.");
-    if (!t) { lines.splice(0, lines.length, ...hwText(week).split("\n")); t = hwRead(lines); }
+    if (!t || t.old) { lines.splice(0, lines.length, ...hwText(week, t && t.rows).split("\n")); t = hwRead(lines); }
     const at = t.rows[di].i;
     lines[at] = hwLine(HW_DAYS[di], f, "Saved") + (lines[at].endsWith("\r") ? "\r" : "");
     return f;
@@ -1076,7 +1077,7 @@ async function hbClose() {
     ok = !cells.some(Boolean) || await commitFile(HISTORY_FILE, split, join, lines => {
       const h = hbRead(lines), had = h.rows.find(r => r.week === week), latest = h.rows.filter(r => r !== had).reduce((a, r) => !a || r.week > a.week ? r : a, null);
       if (h.head < 0) throw new Error("The Weeks table is missing from the habit history, so the week was not closed.");
-      const row = `| ${[week, ...cells, latest && latest.targets || HB_CATS.map(c => `${c.name} ${c.target}`).join(", ")].join(" | ")} |` + (lines[h.head].endsWith("\r") ? "\r" : "");
+      const row = `| ${[week, ...cells, hbLiveTargets(latest && latest.targets)].join(" | ")} |` + (lines[h.head].endsWith("\r") ? "\r" : "");
       if (had) lines[had.i] = row; else lines.splice(h.head + 2, 0, row);
       return true;
     }, `Phone: habits week of ${monDay(week)} closed`);
