@@ -23,9 +23,8 @@
   /* the frame never zooms out, pans sideways or zooms on a double tap: only the screen area scrolls */
   html, body { height: 100%; overflow: hidden; touch-action: manipulation; }
   /* the frame is pinned to the screen's edges, not sized by 100dvh: on the Home Screen app iOS can report that height short,
-     most of all after the keyboard closes, which left the bottom bar floating above the bottom with its safe area added again.
-     The transform makes the add button, toast, and sheet place themselves within the frame, not the short window (fitFrame) */
-  body { margin: 0; position: fixed; top: 0; right: 0; bottom: 0; left: 0; height: auto; transform: translateZ(0); display: flex; flex-direction: column; overflow: hidden; background: var(--body); color: var(--tx); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 22px; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; --cut: var(--body); }
+     most of all after the keyboard closes, which left the bottom bar floating above the bottom with its safe area added again */
+  body { margin: 0; position: fixed; top: 0; right: 0; bottom: 0; left: 0; height: auto; display: flex; flex-direction: column; overflow: hidden; background: var(--body); color: var(--tx); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 22px; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; --cut: var(--body); }
   button { all: unset; box-sizing: border-box; cursor: pointer; }
   input, textarea { font: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 4px; }
@@ -837,28 +836,21 @@ function saveSheet() {
 function fitSheet() {
   const v = window.visualViewport, s = $("sheet");
   if (!v || s.hidden) return;
-  /* while the keyboard is up it is measured from the frame's bottom, which can sit below the window's (fitFrame) */
-  const kb = innerHeight - v.height - v.offsetTop;
-  s.style.setProperty("--kb", (kb > 0 ? Math.max(0, Math.round(document.body.getBoundingClientRect().height - v.height - v.offsetTop)) : 0) + "px");
+  s.style.setProperty("--kb", Math.max(0, Math.round(innerHeight - v.height - v.offsetTop)) + "px");
   s.style.setProperty("--vvh", Math.round(v.height) + "px");
 }
 if (window.visualViewport) ["resize", "scroll"].forEach(n => window.visualViewport.addEventListener(n, fitSheet));
-/* in the Home Screen app iOS can make the window 62px shorter than the screen (the status bar's height; seen on Matt's phone
-   as screen 874, window 812), leaving a strip under the bottom bar, and the window can shrink later without a resize.
-   So in portrait the frame is always the whole screen's height, set again whenever the app comes back to the front */
+/* in the Home Screen app iOS can make the window 62px shorter than the screen (seen on Matt's phone as screen 874, window 812).
+   Sizing the frame to the whole screen does not help: iOS paints nothing below the window, which hid the bottom bar's icons.
+   So the frame stays pinned to the window, and Settings shows the readings needed to find the cause */
 const standalone = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
-function fitFrame() {
-  const full = standalone && screen.width < screen.height && Math.abs(window.orientation || 0) !== 90;
-  document.body.style.bottom = full ? "auto" : ""; document.body.style.height = full ? screen.height + "px" : "";
-}
-fitFrame();
-["resize", "orientationchange", "pageshow", "focus"].forEach(n => addEventListener(n, () => setTimeout(fitFrame, 100)));
-document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(fitFrame, 100); });
 /* the sizes that place the bottom bar, shown in Settings for checking on the phone */
 function frameInfo() {
   const p = document.createElement("div"); p.style.cssText = "position:fixed;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)"; document.body.appendChild(p);
-  const cs = getComputedStyle(p), top = parseInt(cs.paddingTop), bot = parseInt(cs.paddingBottom), r = $("tabs").getBoundingClientRect(); p.remove();
-  return `Screen ${screen.height}, window ${innerHeight}, view ${window.visualViewport ? Math.round(visualViewport.height) : "-"}, frame ${Math.round(document.body.getBoundingClientRect().height)}, bar bottom ${Math.round(r.bottom)}, insets ${top}/${bot}, ${standalone ? "Home Screen app" : "browser"}`;
+  const vh = document.createElement("div"); vh.style.cssText = "position:absolute;height:100vh;width:0"; document.body.appendChild(vh);
+  const cs = getComputedStyle(p), top = parseInt(cs.paddingTop), bot = parseInt(cs.paddingBottom), r = $("tabs").getBoundingClientRect(), v100 = Math.round(vh.getBoundingClientRect().height); p.remove(); vh.remove();
+  const v = window.visualViewport;
+  return `Screen ${screen.height}, available ${screen.availHeight}, window ${innerHeight}, outer ${outerHeight}, root ${document.documentElement.clientHeight}, 100vh ${v100}, view ${v ? Math.round(v.height) : "-"} at ${v ? Math.round(v.offsetTop) : "-"}, frame ${Math.round(document.body.getBoundingClientRect().height)}, bar bottom ${Math.round(r.bottom)}, insets ${top}/${bot}, ${standalone ? "Home Screen app" : "browser"}`;
 }
 /* iOS scrolls the whole page up to show a focused field and can leave it there when the keyboard closes */
 document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement || !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) window.scrollTo(0, 0); }, 50));
