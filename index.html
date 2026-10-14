@@ -142,10 +142,10 @@
   .hpp i:first-child { border-radius: 8px 8px 0 0; }
   .hpp i:last-child { border-radius: 0 0 8px 8px; }
   .hpp i.gone { background: none; border: 1px dashed var(--rule); }
-  .hp.on .hpp { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .hpp i.on { position: relative; outline: 2px solid var(--blue); outline-offset: 1px; }
   .pdet { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); }
   .pdet b { color: var(--tx); font-weight: 600; }
-  .pwh { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 2px; }
+  .pwh { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
   .pwr { display: grid; grid-template-columns: 44px 18px 32px 38px minmax(0, 1fr) 16px; gap: 8px; align-items: center; font-size: 12.5px; line-height: 26px; color: var(--tx); }
   .pwr.past { opacity: .4; }
   .pwr svg { color: var(--tx); }
@@ -648,16 +648,18 @@ function calWeather() {
   const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${x.score}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
   const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
   const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
-  if (calPick && !days.includes(calPick)) calPick = null;
+  /* calPick is "day|block": a tapped third of a pill picks that block; a tap on the rest of the pill picks the day's first block not yet past */
+  let [pd, pk] = (calPick || "").split("|");
+  if (pd && pk === undefined) { pk = WX_BLOCKS.findIndex(b => wxBlock(pd, b)); calPick = pk < 0 ? null : `${pd}|${pk}`; }
+  if (calPick && (!days.includes(pd) || !wxBlock(pd, WX_BLOCKS[+pk]))) calPick = null;
   const pills = days.map(x => {
     const hs = wxHours(x, 8, 20).filter(h => !h.past), code = hs.length ? wxCommon(hs) : wxDay(x).code;
-    const segs = WX_BLOCKS.map(b => { const B = wxBlock(x, b); return B ? `<i style="--a:${Math.round(wxFill(B.score) * 95)}%"></i>` : '<i class="gone"></i>'; }).join("");
-    return `<button type="button" class="hp${x === td ? " td" : ""}${calPick === x ? " on" : ""}" data-p="${x}" aria-label="${fullDay(x)}"><span class="hpp">${segs}</span><b>${wkDay(x)}</b><span class="num">${wxDay(x).hi}°</span>${wxIco(wxIcon(code), 18)}</button>`;
+    const segs = WX_BLOCKS.map((b, k) => { const B = wxBlock(x, b); return B ? `<i data-p="${x}|${k}" class="${calPick === `${x}|${k}` ? "on" : ""}" style="--a:${Math.round(wxFill(B.score) * 95)}%" aria-label="${b.label}"></i>` : '<i class="gone"></i>'; }).join("");
+    return `<button type="button" class="hp${x === td ? " td" : ""}" data-p="${x}" aria-label="${fullDay(x)}"><span class="hpp">${segs}</span><b>${wkDay(x)}</b><span class="num">${wxDay(x).hi}°</span>${wxIco(wxIcon(code), 18)}</button>`;
   }).join("");
-  /* a tapped day opens the desktop app's hour by hour breakout beneath (pcalWxPop), one part for each block, scores shown out of 10 */
-  const w = calPick && wxDay(calPick);
-  const hourRows = b => wxHours(calPick, b.from, b.to).map(x => `<div class="pwr num${x.past ? " past" : ""}"><span>${hr12(x.h)}</span>${wxIco(wxHourIcon(x), 18)}<span>${x.temp}°</span><span>${x.p}%</span><i><u style="width:${Math.round(x.score)}%"></u></i><span>${Math.round(x.score / 10)}</span></div>`).join("");
-  const picked = w ? `<div class="pdet"><div class="s num"><b>${fullDay(calPick)}</b> ${wxLabel(w.code)}, H ${w.hi}° L ${w.lo}°, rain ${w.p}%</div>${WX_BLOCKS.map(b => { const B = wxBlock(calPick, b); return `<div class="pwh"><b>${b.label}</b><span class="pill num${B ? wxGood(B.score) : ""}">${B ? `Score ${Math.round(B.score / 10)}` : "Past"}</span></div>${hourRows(b)}`; }).join("")}</div>` : "";
+  /* the picked block's hour by hour breakout beneath, as in the desktop app's weather pop (pcalWxPop), scores shown out of 10 */
+  const b = calPick && WX_BLOCKS[+pk], B = b && wxBlock(pd, b);
+  const picked = B ? `<div class="pdet"><div class="pwh"><span class="s num"><b>${fullDay(pd)} · ${b.label}</b> ${wxLabel(B.code)}, ${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}, rain ${B.p}%</span><span class="pill num${wxGood(B.score)}">Score ${Math.round(B.score / 10)}</span></div>${wxHours(pd, b.from, b.to).map(x => `<div class="pwr num${x.past ? " past" : ""}"><span>${hr12(x.h)}</span>${wxIco(wxHourIcon(x), 18)}<span>${x.temp}°</span><span>${x.p}%</span><i><u style="width:${Math.round(x.score)}%"></u></i><span>${Math.round(x.score / 10)}</span></div>`).join("")}</div>` : "";
   return { head, strip, score: `<section><div class="h2">Outdoor Score Today</div><div class="bks">${tiles}</div></section>`,
     week: `<section><div class="h2">Weather</div><div class="hps">${pills}</div>${picked}</section>`, source: "" };
 }
@@ -838,6 +840,20 @@ function fitSheet() {
   s.style.setProperty("--vvh", Math.round(v.height) + "px");
 }
 if (window.visualViewport) ["resize", "scroll"].forEach(n => window.visualViewport.addEventListener(n, fitSheet));
+/* in the Home Screen app iOS can make the window shorter than the screen (by about the status bar's height), leaving a strip
+   under the bottom bar; in portrait the frame is then sized to the whole screen instead */
+const standalone = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
+function fitFrame() {
+  const short = standalone && innerWidth < innerHeight && innerHeight < screen.height;
+  document.body.style.bottom = short ? "auto" : ""; document.body.style.height = short ? screen.height + "px" : "";
+}
+fitFrame(); addEventListener("resize", fitFrame); addEventListener("orientationchange", () => setTimeout(fitFrame, 300));
+/* the sizes that place the bottom bar, shown in Settings for checking on the phone */
+function frameInfo() {
+  const p = document.createElement("div"); p.style.cssText = "position:fixed;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)"; document.body.appendChild(p);
+  const cs = getComputedStyle(p), r = $("tabs").getBoundingClientRect(); p.remove();
+  return `Screen ${screen.height}, window ${innerHeight}, view ${window.visualViewport ? Math.round(visualViewport.height) : "-"}, bar bottom ${Math.round(r.bottom)}, insets ${parseInt(cs.paddingTop)}/${parseInt(cs.paddingBottom)}, ${standalone ? "Home Screen app" : "browser"}`;
+}
 /* iOS scrolls the whole page up to show a focused field and can leave it there when the keyboard closes */
 document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement || !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) window.scrollTo(0, 0); }, 50));
 function tkAct(act, a, el) {
@@ -1206,7 +1222,8 @@ function showSetup(msg) {
     <label>Token<input id="s-token" type="password" value="${esc(c.token)}" autocomplete="off" required></label>
     <label>GitHub username<input id="s-owner" value="${esc(c.owner)}" autocomplete="off" autocapitalize="off"></label>
     <label>Repository<input id="s-repo" value="${esc(c.repo)}" autocomplete="off" autocapitalize="off"></label>
-    <button class="btn primary" type="submit">Save and Connect</button></form>`;
+    <button class="btn primary" type="submit">Save and Connect</button></form>
+    <p class="s num" style="padding:12px 2px">${frameInfo()}</p>`;
 }
 
 /* events */
