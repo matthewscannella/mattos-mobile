@@ -25,6 +25,10 @@
   /* the frame is pinned to the screen's edges, not sized by 100dvh: on the Home Screen app iOS can report that height short,
      most of all after the keyboard closes, which left the bottom bar floating above the bottom with its safe area added again */
   body { margin: 0; position: fixed; top: 0; right: 0; bottom: 0; left: 0; height: auto; display: flex; flex-direction: column; overflow: hidden; background: var(--body); color: var(--tx); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 22px; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; --cut: var(--body); }
+  /* in the Home Screen app iOS can make the window 62px shorter than the screen while 100vh still gives the whole screen
+     (on Matt's phone window 812, 100vh 874): the page itself, not only the frame, then takes the 100vh height (fitFrame) */
+  html.tall { height: 100vh; }
+  html.tall body { bottom: auto; height: 100vh; }
   button { all: unset; box-sizing: border-box; cursor: pointer; }
   input, textarea { font: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 4px; }
@@ -49,7 +53,7 @@
   .tab { display: grid; justify-items: center; }
   .tab .w { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: var(--mut); --cut: var(--side); }
   .tab.on .w { background: var(--blue); color: #fff; --cut: var(--blue); }
-  .fab { position: fixed; right: 16px; bottom: calc(var(--tabpad) + 70px); width: 54px; height: 54px; border-radius: 16px; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0, 0, 0, .5); z-index: 3; }
+  .fab { position: absolute; right: 16px; bottom: calc(var(--tabpad) + 70px); width: 54px; height: 54px; border-radius: 16px; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0, 0, 0, .5); z-index: 3; }
   .fab:active { filter: brightness(.9); }
 
   /* ---------- shared text, cards and buttons ---------- */
@@ -119,12 +123,12 @@
   .wc.on .dot { background: #fff; }
   .wc.on .dot.no { background: transparent; }
   .bks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .bk { display: grid; gap: 3px; align-content: start; padding: 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--rule); --cut: var(--card); min-height: 126px; }
+  /* --n is how nice the block is, 0 to 1 (wxNice): the tile's green deepens with it */
+  .bk { display: grid; gap: 3px; align-content: start; padding: 10px; border-radius: 14px; --cut: color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 24%), var(--card)); background: var(--cut); border: 1px solid color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 60%), var(--rule)); min-height: 126px; }
   .bk > b { font-size: 14px; color: #fff; font-weight: 600; }
   .bk .bl { font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
   .bk .sc { margin-top: 4px; font-size: 22px; line-height: 26px; font-weight: 700; color: var(--tx); }
   .bk .sc small { display: block; font-size: 11px; line-height: 13px; font-weight: 500; color: var(--mut); }
-  .bk.good { border-color: rgba(63, 207, 142, .5); background: #12241f; --cut: #12241f; }
   .bk.good .sc { color: var(--done); }
   .up { display: flex; align-items: center; gap: 12px; padding: 7px 2px; }
   .up .dt { flex: none; width: 50px; display: grid; font-size: 12px; line-height: 15px; color: var(--mut); }
@@ -195,7 +199,7 @@
   .cb { flex: none; width: 18px; height: 18px; border-radius: 6px; border: 2px solid var(--mut); display: grid; place-items: center; color: var(--card); }
   .cb.on { background: var(--done); border-color: var(--done); }
   /* the add form: a sheet that rises from the bottom and stays above the keyboard (--kb and --vvh are set by fitSheet) */
-  .sheet { position: fixed; inset: 0; z-index: 5; }
+  .sheet { position: absolute; inset: 0; z-index: 5; }
   .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); }
   .bs { position: absolute; left: 0; right: 0; bottom: var(--kb, 0px); max-height: calc(var(--vvh, 100dvh) - 12px); overflow-y: auto; scrollbar-width: none; display: grid; gap: 12px; background: var(--side); border-top: 1px solid var(--rule); border-radius: 22px 22px 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom) + 16px); }
   .bs::-webkit-scrollbar { display: none; }
@@ -353,7 +357,7 @@
   .setup input:focus { border-color: var(--blue); }
   .setup p { margin: 0; font-size: 14px; color: var(--mut); }
 
-  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
+  .toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
   .toast span { flex: 1; }
 </style>
 </head>
@@ -582,6 +586,9 @@ const wxScore = (feel, p, code) => Math.round(100
   * (p <= 50 ? 1 - p / 100 : Math.max(0, .5 * (80 - p) / 30))
   * (code <= 2 ? 1 : code === 3 ? .8 : code <= 48 ? .6 : code <= 55 ? .3 : 0));
 const wxFill = s => s < 65 ? 0 : .22 + .78 * Math.pow((s - 65) / 35, 1.4);
+/* how nice an hour is, 0 to 1, for the shade of the Outdoor Score tiles: 1 at 72°, clear and dry, less for each degree off, each step of cloud or rain, and the rain chance */
+const wxNice = x => Math.max(0, 1 - Math.abs(x.temp - 72) / 20)
+  * (x.code === 0 ? 1 : x.code === 1 ? .9 : x.code === 2 ? .8 : x.code === 3 ? .65 : x.code <= 48 ? .5 : x.code <= 55 ? .35 : .2) * (1 - x.p / 100);
 /* W is the newest forecast, or the one kept from the last load when there is no connection. It is dropped once it no longer covers today */
 let W = null, wxLive = false, wxRead = "";
 async function loadWeather() {
@@ -617,7 +624,7 @@ function wxCommon(hs) { const lit = hs.filter(x => x.day), count = {}; (lit.leng
 function wxBlock(s, b) {
   const hs = wxHours(s, b.from, b.to).filter(x => !x.past);
   if (!hs.length) return null;
-  return { score: Math.round(hs.reduce((a, x) => a + x.score, 0) / hs.length), lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
+  return { score: Math.round(hs.reduce((a, x) => a + x.score, 0) / hs.length), nice: hs.reduce((a, x) => a + wxNice(x), 0) / hs.length, lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
 }
 const wxHourIcon = x => !x.day && x.code <= 2 ? "moon" : wxIcon(x.code);
 const wxGood = s => s >= 65 ? " good" : "";
@@ -646,7 +653,7 @@ function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
   const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
   const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${x.score}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
-  const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
+  const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}" style="--n:${B.nice.toFixed(2)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
   const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
   /* calPick is "day|block": a tapped third of a pill picks that block; a tap on the rest of the pill picks the day's first block not yet past */
   let [pd, pk] = (calPick || "").split("|");
@@ -671,7 +678,7 @@ function drawCalendar() {
   const seg = `<div class="segw"><div class="seg">${["Today", "Next Up"].map(v => `<button type="button" data-v="${v}" class="${v === calView ? "on" : ""}"${v === calView ? ' aria-current="true"' : ""}>${v}</button>`).join("")}</div></div>`;
   const src = `${wx.source}<div class="srcl"><span class="ell num">${W ? `Open-Meteo, ${esc(shortAt(wxRead))}; ` : ""}GCal, ${esc(shortAt(cal.synced))}</span></div>`, end = addDays(td, 6);
   $("main").innerHTML = seg + (calView === "Today" ? `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
-    <div class="card">${ev.map(row).join("") || `<div class="s">Nothing scheduled today</div>`}${wx.head}</div>
+    ${ev.length || wx.head ? `<div class="card">${ev.map(row).join("")}${wx.head}</div>` : ""}
     ${wx.strip}${wx.score}${src}`
     : `<div class="big">${monDay(td)} to ${monDay(end)}</div>
     ${wx.week}<section><div class="h2">Calendar</div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}</section>${src}`);
@@ -836,14 +843,18 @@ function saveSheet() {
 function fitSheet() {
   const v = window.visualViewport, s = $("sheet");
   if (!v || s.hidden) return;
-  s.style.setProperty("--kb", Math.max(0, Math.round(innerHeight - v.height - v.offsetTop)) + "px");
+  /* while the keyboard is up it is measured from the frame's bottom, which can sit below the window's (fitFrame) */
+  const kb = innerHeight - v.height - v.offsetTop;
+  s.style.setProperty("--kb", (kb > 0 ? Math.max(0, Math.round(document.body.getBoundingClientRect().height - v.height - v.offsetTop)) : 0) + "px");
   s.style.setProperty("--vvh", Math.round(v.height) + "px");
 }
 if (window.visualViewport) ["resize", "scroll"].forEach(n => window.visualViewport.addEventListener(n, fitSheet));
-/* in the Home Screen app iOS can make the window 62px shorter than the screen (seen on Matt's phone as screen 874, window 812).
-   Sizing the frame to the whole screen does not help: iOS paints nothing below the window, which hid the bottom bar's icons.
-   So the frame stays pinned to the window, and Settings shows the readings needed to find the cause */
+/* in the Home Screen app in portrait the page takes the 100vh height when the window is shorter than it (html.tall) */
 const standalone = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
+function fitFrame() {
+  document.documentElement.classList.toggle("tall", standalone && screen.width < screen.height && Math.abs(window.orientation || 0) !== 90);
+}
+fitFrame(); addEventListener("orientationchange", () => setTimeout(fitFrame, 300));
 /* the sizes that place the bottom bar, shown in Settings for checking on the phone */
 function frameInfo() {
   const p = document.createElement("div"); p.style.cssText = "position:fixed;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)"; document.body.appendChild(p);
@@ -975,9 +986,11 @@ function drawHabits() {
   const cell = (c, x) => {
     const sel = x.date === d.date ? " sel" : "";
     if (x.st !== "draft" && x.st !== "saved") return `<span class="c off${sel}"></span>`;
-    const v = x.score[c.k], a = Math.min(Math.abs(v) / c.top, 1) * .55 + .08;
+    const v = x.score[c.k], a = (v > 0 ? x.share : Math.min(Math.abs(v) / c.top, 1)) * .55 + .08;
     return `<span class="c num${sel}" style="${v > 0 ? `background:rgba(63,207,142,${a});color:#d9f7e9` : v < 0 ? `background:rgba(249,112,102,${a});color:#ffd9d5` : "color:var(--mut)"}">${v}</span>`;
   };
+  /* a day's share of habits done: each category's total against its daily top, averaged */
+  days.forEach(x => { x.share = HB_CATS.reduce((a, c) => a + Math.max(0, Math.min(1, x.score[c.k] / c.top)), 0) / HB_CATS.length; });
   const grid = `<div class="hwg"><span></span>${days.map(x => `<button type="button" class="wd num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b></button>`).join("")}${HB_CATS.map(c => `<span class="rn">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
   /* the open week can be closed from its Sunday. Once it has ended the card moves to the top, as nothing new is logged until it is closed */
   const sun = addDays(hb.week, 6), none = days.filter(x => x.st !== "draft" && x.st !== "saved").map(x => wkDay(x.date)), ended = canLog && now > sun;
@@ -1155,17 +1168,19 @@ function hbNow() {
   return { cats, logged: live.length, overall: Math.round(cats.reduce((a, x) => a + x.part, 0) / cats.length * 100) };
 }
 function drawHome() {
-  const td = today(), ev = cal.events.filter(e => e.d === td), ahead = cal.events.filter(e => e.d > td), side = $("wk") ? $("wk").scrollLeft : 0;
+  /* from 7pm the events shown are tomorrow's, and the tasks today's and tomorrow's */
+  const td = today(), late = new Date().getHours() >= 19, d0 = late ? addDays(td, 1) : td, ev = cal.events.filter(e => e.d === d0), ahead = cal.events.filter(e => e.d > d0), side = $("wk") ? $("wk").scrollLeft : 0;
   const wx = W ? calWeather() : { head: "", strip: "" }, show = s => esc(s.replace(/<br\s*\/?>/gi, " "));
   const sec = (kind, cnt, body, to = kind) => `<div class="sec${home.shut[kind] ? " shut" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${svg(TAB[kind], 15)}</span>${kind}${cnt ? `<span class="cnt num">${cnt}</span>` : ""}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
-  const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${ev.map(e => `<div class="ev"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="s">Nothing scheduled today</div>`}${wx.head}</div></div>${wx.strip}`;
+  const top = `<div data-go="Today"><div class="big"${late ? ' style="padding-bottom:0"' : ""}>${fullDay(td)}</div>${late ? `<div class="s" style="padding:0 2px 12px">Tomorrow's events</div>` : ""}<div class="card">${ev.map(e => `<div class="ev"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="s">Nothing scheduled ${late ? "tomorrow" : "today"}</div>`}${wx.head}</div></div>${wx.strip}`;
   /* Yoni: today's goals and the part of the day it is now */
   const now = yoNow(), P = yo.data.parts[now], g = yoCount(yo.data.goals), c = yoCount([...P.steps, ...P.tasks]);
   const yoni = `<div class="ycard" data-go="Yoni"><span class="ye">👶</span><div class="grow"><b>Yoni</b><span class="s num">${g[0]} of ${g[1]} goals today, ${now.toLowerCase()} ${c[0]} of ${c[1]}</span></div>${svg(UI.right, 16, 2.6)}</div>`;
   const H = hbNow(), bars = H.cats.map(x => `<div class="hbr">${svg(CI[x.c.k], 16)}<span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="gd" style="background:${hbGrade(x.tot / x.target)}"></span></div>`).join("");
-  /* today's open tasks, or the first group that has any */
-  const open = tk.rows.filter(r => r.st !== "Done"), day = TK_TIMES[(new Date().getDay() + 6) % 7], grp = [day, ...TK_TIMES].find(t => open.some(r => r.time === t)), mine = open.filter(r => r.time === grp);
-  const tasks = grp ? `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + mine.slice(0, 3).map(r => `<div class="tc"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="grow"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join("") : `<div class="row">No open tasks</div>`;
+  /* today's open tasks, or the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's */
+  const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
+  const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
+  const tasks = grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.slice(0, 3).map(r => `<div class="tc"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="grow"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
   $("main").innerHTML = `${top}${yoni}<div class="rail">${sec("Habits", `${H.overall}%`, bars)}${sec("Tasks", `${open.length} open`, tasks)}${sec("Calendar", "Next up", next, "Next Up")}${sec("Notes", "", list)}</div>`;
