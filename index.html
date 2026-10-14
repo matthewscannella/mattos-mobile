@@ -42,7 +42,7 @@
   .ws { display: flex; align-items: center; gap: 10px; }
   .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: block; }
   .ws b { font-size: 19px; font-weight: 600; flex: 1; letter-spacing: -.01em; }
-  .av { width: 32px; height: 32px; border-radius: 8px; background: #e8b88f; color: #4a2a12; display: grid; place-items: center; font-size: 12px; font-weight: 700; position: relative; }
+  .av { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--mut); display: grid; place-items: center; position: relative; cursor: pointer; }
   .av::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--done); border: 2px solid var(--side); }
   .av.off::after { background: var(--mut); }
   .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
@@ -79,10 +79,8 @@
   .note:active { background: var(--raised); }
   .note b { font-size: 15px; line-height: 21px; font-weight: 600; color: var(--tx); }
   .editor { display: grid; gap: 10px; padding-top: 10px; }
-  .editor .top { display: flex; justify-content: space-between; align-items: center; }
   .editor input { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; padding: 4px 0 10px; font-size: 22px; line-height: 28px; font-weight: 700; color: #fff; outline: none; }
   .editor input:focus { border-bottom-color: var(--blue); }
-  .editor .top .acts { display: flex; gap: 8px; }
   /* the note grows with its text so only the screen scrolls: a box scrolling inside a scrolling screen made selecting jump */
   .editor textarea { width: 100%; min-height: 50vh; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 12px; resize: none; outline: none; field-sizing: content; overflow: hidden; }
   .editor textarea::selection { background: color-mix(in srgb, var(--blue) 40%, transparent); }
@@ -298,6 +296,9 @@
   .sv.ghost { flex: none; width: 96px; background: var(--raised); color: var(--tx); }
   .sv.saved { background: rgba(63, 207, 142, .18); color: var(--done); }
   .sv.off { opacity: .45; }
+  .sv.ghost.wide { width: auto; padding: 0 14px; }
+  .sv.del { color: var(--flag); }
+  .sv.ico { display: flex; align-items: center; justify-content: center; gap: 6px; }
 
   /* ---------- Yoni: a ring per daily goal, then each part of the day as a card that folds away ---------- */
   .rings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 4px 10px; }
@@ -362,7 +363,7 @@
 </style>
 </head>
 <body>
-<header class="hd"><div class="ws"><img class="logo" src="icon.svg" alt=""><b>MattOS</b><button class="av" type="button" id="settings" aria-label="Settings">MS</button></div></header>
+<header class="hd"><div class="ws"><img class="logo" src="icon.svg" alt=""><b>MattOS</b><button class="av" type="button" id="settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div></header>
 <main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
 <div class="savebar" id="savebar" hidden></div>
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
@@ -516,7 +517,7 @@ function upsertOpenNote() {
   });
 }
 function showNoteList() {
-  openId = null; base = null; swOpen = null; $("fab").hidden = offline;
+  leaveHabits(); openId = null; base = null; swOpen = null; $("fab").hidden = offline;
   $("main").innerHTML = `<div class="big">Notes</div>` + (notes.length
     ? notes.map(n => `<div class="nsw">${offline ? "" : `<button class="ndel" type="button" data-del="${esc(n.id)}" aria-label="Delete ${esc(n.title) || "Untitled"}">${svg(UI.trash, 22)}</button>`}<button class="note" type="button" data-id="${esc(n.id)}"><b class="ell">${esc(n.title) || "Untitled"}</b><span class="s ell num">${esc(n.edited)}</span><span class="s ell">${esc(n.body.split("\n").find(l => l.trim())) || "Empty note"}</span></button></div>`).join("")
     : `<div class="empty">No notes yet. Tap the add button to start one.</div>`);
@@ -528,10 +529,12 @@ function showNote(id) {
   $("fab").hidden = true;
   const ro = offline ? " readonly" : "";
   $("main").innerHTML = `<div class="editor">
-    <div class="top"><button class="btn" type="button" id="back">‹ Notes</button>${offline ? "" : `<span class="acts"><button class="btn" type="button" id="ntoday">Add to Today</button><button class="btn danger" type="button" id="del">Delete</button></span>`}</div>
     <input id="ntitle" placeholder="Untitled" value="${esc(n.title)}" autocomplete="off" aria-label="Title"${ro}>
     <span class="s num">Edited ${esc(n.edited)}</span>
     <textarea id="nbody" placeholder="Start writing…" aria-label="Note"${ro}>${esc(n.body)}</textarea></div>`;
+  /* a bar above the tabs, like the Habits save bar: Done saves and goes back to the list */
+  $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del">Delete</button><button class="sv ghost wide" type="button" id="ntoday">Add to Today</button>`) + `<button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
+  $("savebar").hidden = false; $("scr").classList.add("hbs");
 }
 async function loadNotes() {
   const f = await readFile(NOTES_FILE);
@@ -546,7 +549,7 @@ function newNote() {
   commitNotes(list => { list.unshift({ ...note }); return note; }, "Phone: new note", () => { seen[note.id] = { title: "", body: "" }; });
 }
 /* called before the screen changes: an open note with unsaved typing is saved first */
-function leaveNotes() { clearTimeout(saveTimer); if (dirty()) upsertOpenNote(); openId = null; base = null; }
+function leaveNotes() { clearTimeout(saveTimer); if (dirty()) upsertOpenNote(); openId = null; base = null; leaveHabits(); }
 
 /* ---------- dates ---------- */
 const p2 = n => String(n).padStart(2, "0");
