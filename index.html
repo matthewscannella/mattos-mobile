@@ -45,7 +45,7 @@
   .av { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--mut); display: grid; place-items: center; position: relative; cursor: pointer; }  .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
   .scr::-webkit-scrollbar { display: none; }
   /* the icons may sit partly over the home indicator's strip, as in native tab bars, so only part of the inset is added below them */
-  :root { --tabpad: max(8px, calc(env(safe-area-inset-bottom) - 20px)); }
+  :root { --tabpad: max(16px, calc(env(safe-area-inset-bottom) - 12px)); }
   .tabs { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px var(--tabpad); border-top: 1px solid var(--line); background: var(--side); }
   .tab { display: grid; justify-items: center; }
   .tab .w { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: var(--mut); --cut: var(--side); }
