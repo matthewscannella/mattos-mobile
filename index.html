@@ -401,6 +401,9 @@
   .med .dots span.on { background: currentColor; }
   .med .play { width: 76px; height: 76px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: 0 8px 22px rgba(59,110,245,.35); }
   .med .s { margin-top: 22px; }
+  .med .vol { display: grid; gap: 12px; width: 100%; max-width: 300px; margin-top: 34px; }
+  .med .vol label { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 12px; font-size: 14px; color: var(--mut); }
+  .med .vol input { width: 100%; accent-color: var(--blue); }
   .ph-in { color: var(--acc); } .ph-hold { color: #b79cf7; } .ph-out { color: var(--done); }
 </style>
 </head>
@@ -1021,30 +1024,83 @@ const MED_LEN = 900, MED_PH = [["Inhale", 4], ["Hold", 7], ["Exhale", 8]], MED_C
 const med = { ctx: null, t0: 0, next: 0, wake: null };
 const MED_PLAY = `<path fill="currentColor" stroke="none" d="M8 5.5v13a1 1 0 0 0 1.5.9l10.5-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/>`;
 const MED_PAUSE = `<rect fill="currentColor" stroke="none" x="6" y="5" width="4.5" height="14" rx="1.2"/><rect fill="currentColor" stroke="none" x="13.5" y="5" width="4.5" height="14" rx="1.2"/>`;
-function medDrone(out) {
-  const c = med.ctx, lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 850; lp.connect(out);
-  const dl = c.createDelay(); dl.delayTime.value = .45; const fb = c.createGain(); fb.gain.value = .35;
-  lp.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(out);
-  [[110, 0], [110.4, 0], [164.8, .2], [220, .4], [277.2, .6], [329.6, .8]].forEach(([f, ph], i) => {
-    const o = c.createOscillator(); o.type = i < 2 ? "triangle" : "sine"; o.frequency.value = f;
-    const g = c.createGain(); g.gain.value = .05;
-    const l = c.createOscillator(); l.frequency.value = .04 + i * .013; const lg = c.createGain(); lg.gain.value = .035;
-    l.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(lp); o.start(); l.start(ph);
+/* the music: a slow pad progression with soft piano, singing bowls at varying pitches, and single waves that roll in now and then.
+   Each layer is fed a little ahead by medTick; all of it shares one generated reverb */
+const MED_CHORDS = [[48, 55, 64, 71], [45, 52, 60, 67], [41, 48, 57, 64], [43, 50, 59, 62]], MED_PIANO = [72, 74, 76, 79, 81, 84], MED_BOWLS = [48, 52, 55, 57, 60, 64, 67];
+const medHz = m => 440 * Math.pow(2, (m - 69) / 12), medR = (a, b) => a + Math.random() * (b - a), medAny = a => a[Math.floor(Math.random() * a.length)];
+const medVol = () => Object.assign({ song: 1, ding: 1.2 }, JSON.parse(store.get("med-vol") || "{}"));
+function medSend(node, wet) { node.connect(med.dry); const w = med.ctx.createGain(); w.gain.value = wet; node.connect(w); w.connect(med.verb); }
+function medStrike(dest, at, f, parts, vol, decay) {
+  const c = med.ctx;
+  parts.forEach(([r, v, dm = 1]) => {
+    const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f * r;
+    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol * v, at + .008); g.gain.exponentialRampToValueAtTime(.0001, at + decay * dm);
+    o.connect(g); g.connect(dest); o.start(at); o.stop(at + decay * dm + .05);
   });
 }
-/* the hold chime sits a step higher than the inhale and exhale chimes */
+const MED_LAYERS = [
+  { gap: () => 14, step(at) {
+    const c = med.ctx, notes = MED_CHORDS[this.k = ((this.k ?? -1) + 1) % 4], end = at + 22.4, v = .056 / Math.sqrt(notes.length);
+    notes.forEach(m => {
+      const g = c.createGain(), f = c.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 650; f.Q.value = .5;
+      g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(v, at + 6.3); g.gain.setValueAtTime(v, at + 14); g.gain.linearRampToValueAtTime(0, end);
+      [-7, 7].forEach(d => { const o = c.createOscillator(); o.type = "sawtooth"; o.frequency.value = medHz(m); o.detune.value = d; o.connect(f); o.start(at); o.stop(end + .1); });
+      f.connect(g); medSend(g, .6);
+    });
+  } },
+  { gap: () => medR(4, 8), step(at) {
+    const lp = med.ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2200; medSend(lp, .7);
+    const n = Math.random() < .3 ? 2 : 1;
+    for (let i = 0; i < n; i++) medStrike(lp, at + i * medR(.25, .6), medHz(medAny(MED_PIANO)), [[1, 1], [2, .25, .6], [3, .08, .4]], .065, 4.5);
+  } },
+  { gap: () => medR(12, 22), step(at) {
+    const lp = med.ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 5000; medSend(lp, .8);
+    let last = -1; const n = Math.random() < .3 ? 2 : 1;
+    for (let i = 0; i < n; i++) {
+      let m; do m = medAny(MED_BOWLS); while (m === last); last = m;
+      medStrike(lp, at + i * medR(1.5, 3.5), medHz(m), [[1, 1], [medR(1.002, 1.007), .6], [2.76, .35, .7], [5.4, .12, .4]], .07 * medR(.75, 1), medR(9, 14));
+    }
+  } },
+  { gap: () => medR(18, 35), step(at) {
+    const c = med.ctx, n = Math.random() < .25 ? 2 : 1;
+    for (let i = 0; i < n; i++) {
+      const st = at + i * medR(3, 5), rise = medR(2.5, 4), end = st + rise + medR(4, 7);
+      const src = c.createBufferSource(); src.buffer = med.noise; src.loop = true;
+      const f = c.createBiquadFilter(), g = c.createGain(); f.type = "lowpass";
+      f.frequency.setValueAtTime(220, st); f.frequency.linearRampToValueAtTime(900 * medR(.8, 1.2), st + rise); f.frequency.linearRampToValueAtTime(220, end);
+      g.gain.setValueAtTime(0, st); g.gain.linearRampToValueAtTime(.14 * medR(.7, 1), st + rise); g.gain.linearRampToValueAtTime(0, end);
+      src.connect(f); f.connect(g); medSend(g, .3); src.start(st, medR(0, 3)); src.stop(end + .1);
+    }
+  } }
+];
+function medMusic(out) {
+  const c = med.ctx, n = c.sampleRate * 5, ir = c.createBuffer(2, n, c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
+  med.noise = c.createBuffer(1, c.sampleRate * 4, c.sampleRate);
+  const nd = med.noise.getChannelData(0); let b = 0;
+  for (let i = 0; i < nd.length; i++) { b = .985 * b + .015 * (Math.random() * 2 - 1); nd[i] = b * 6 + (Math.random() * 2 - 1) * .15; }
+  med.dry = out; med.verb = c.createConvolver(); med.verb.buffer = ir; const vg = c.createGain(); vg.gain.value = .9; med.verb.connect(vg); vg.connect(out);
+  med.dverb = c.createConvolver(); med.dverb.buffer = ir; med.dverb.connect(med.dingVol);
+  med.layers = MED_LAYERS.map((l, i) => ({ l, t: i ? medR(1, 9) : 0 }));
+}
+function medFeed() {
+  const el = med.ctx.currentTime - med.t0;
+  med.layers.forEach(x => { while (x.t < Math.min(el + 1, MED_LEN - 4)) { x.l.step.call(x, med.t0 + x.t); x.t += x.l.gap(); } });
+}
+/* the chime: a round temple bell; the hold chime sits a fifth above the inhale and exhale chimes */
 function medChime(at, hold) {
-  const c = med.ctx, f = hold ? 594 : 528;
-  [[f, .22], [f * 2.76, .05]].forEach(([hz, v]) => {
-    const o = c.createOscillator(); o.frequency.value = hz; const g = c.createGain();
-    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(v, at + .015); g.gain.exponentialRampToValueAtTime(.0001, at + 2.6);
-    o.connect(g); g.connect(c.destination); o.start(at); o.stop(at + 2.7);
+  const c = med.ctx, f = hold ? 247.5 : 165, wet = c.createGain(); wet.gain.value = .25; wet.connect(med.dverb);
+  [[1, 1], [1.5, .4, .6], [2.95, .22, .45], [4.1, .08, .3]].forEach(([r, v, dm = 1]) => {
+    const o = c.createOscillator(), g = c.createGain(), end = at + .85 * dm; o.frequency.value = f * r;
+    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.4 * v, at + .004); g.gain.exponentialRampToValueAtTime(.0001, end);
+    o.connect(g); g.connect(med.dingVol); g.connect(wet); o.start(at); o.stop(end + .05);
   });
 }
 const medCue = n => Math.floor(n / 3) * MED_CYCLE + MED_CUES[n % 3];
 function medTick() {
   if (!med.ctx || med.ctx.state !== "running") return;
   const el = med.ctx.currentTime - med.t0;
+  medFeed();
   while (medCue(med.next) < Math.min(el + .4, MED_LEN)) { medChime(med.t0 + medCue(med.next), med.next % 3 === 1); med.next++; }
   if (el >= MED_LEN) { med.ctx.close(); med.ctx = null; medRelease(); }
   medPaint();
@@ -1052,11 +1108,14 @@ function medTick() {
 const medRelease = () => { if (med.wake) { med.wake.release().catch(() => {}); med.wake = null; } };
 async function medToggle() {
   if (!med.ctx) {
-    const c = med.ctx = new (window.AudioContext || window.webkitAudioContext)(), m = c.createGain(); m.connect(c.destination);
+    const c = med.ctx = new (window.AudioContext || window.webkitAudioContext)(), m = c.createGain(), v = medVol();
+    const comp = c.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3; comp.connect(c.destination);
+    med.songVol = c.createGain(); med.songVol.gain.value = v.song; med.songVol.connect(m); m.connect(comp);
+    med.dingVol = c.createGain(); med.dingVol.gain.value = v.ding; med.dingVol.connect(comp);
     med.t0 = c.currentTime + .1; med.next = 0;
     m.gain.setValueAtTime(0, med.t0); m.gain.linearRampToValueAtTime(1, med.t0 + 4);
     m.gain.setValueAtTime(1, med.t0 + MED_LEN - 4); m.gain.linearRampToValueAtTime(0, med.t0 + MED_LEN);
-    medDrone(m);
+    medMusic(med.songVol);
   } else if (med.ctx.state === "running") { await med.ctx.suspend(); medRelease(); medPaint(); return; }
   else await med.ctx.resume();
   try { med.wake = await navigator.wakeLock.request("screen"); } catch (e) { /* no wake lock: the screen may sleep, the session keeps time */ }
@@ -1085,7 +1144,12 @@ function medPaint() {
 function drawMeditation() {
   $("main").innerHTML = segBar(["Today", "This Week", "Meditation"], hb.view, "hb", "view")
     + `<div class="med"><div class="huge num" id="medtm"></div><div class="cue" id="medpz"></div><div class="dots" id="meddt"><span></span><span></span><span></span></div>
-      <button type="button" class="play" id="medpb" data-hb="med" aria-label="Play"></button><span class="s">15 minutes, 4-7-8 breathing</span></div>`;
+      <button type="button" class="play" id="medpb" data-hb="med" aria-label="Play"></button><span class="s">15 minutes, 4-7-8 breathing</span>
+      <div class="vol"><label>Music <input type="range" id="medsv" min="0" max="2" step=".05" value="${medVol().song}"></label><label>Chimes <input type="range" id="meddv" min="0" max="2" step=".05" value="${medVol().ding}"></label></div></div>`;
+  /* volumes are kept on the phone and take effect at once, also mid-session */
+  [["medsv", "song", "songVol"], ["meddv", "ding", "dingVol"]].forEach(([id, k, node]) => $(id).addEventListener("input", e => {
+    const v = medVol(); v[k] = +e.target.value; store.set("med-vol", JSON.stringify(v)); if (med[node]) med[node].gain.value = v[k];
+  }));
   $("savebar").hidden = true; $("scr").classList.remove("hbs");
   medPaint();
 }
