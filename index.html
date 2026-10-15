@@ -187,6 +187,24 @@
   .rc.Blocked { border-color: var(--flag); }
   .rc.Done { background: var(--mut); border-color: var(--mut); opacity: .7; }
   .cp { flex: none; font-size: 18px; line-height: 20px; white-space: nowrap; }
+  /* the Tasks screen is a plain list, as in Reminders (mobileTasksOptionsV6.html option 5, Compact); Home keeps the cards above */
+  .tl { --ts: 15px; --tl: 20px; --ns: 13px; --nl: 17px; --cs: 20px; --cl: 12px; --gap: 10px; --es: 13px; --pad: 9px; }
+  .tl .dh { padding: 18px 0 6px; margin-left: calc(var(--cl) - 16px); }
+  .tl .dh b { font-size: 20px; line-height: 25px; letter-spacing: -.015em; }
+  .tr { position: relative; display: flex; align-items: flex-start; min-height: 44px; margin-left: -16px; }
+  .tr .rcb { width: calc(var(--cl) + var(--cs) + var(--gap)); display: flex; justify-content: flex-start; place-items: initial; padding: calc(var(--pad) + (var(--tl) - var(--cs)) / 2) 0 0 var(--cl); }
+  .tr .rc { width: var(--cs); height: var(--cs); border: 1.5px solid #5a6273; color: #fff; }
+  .tr .rc.WIP { border-color: var(--acc); }
+  .tr .rc.Blocked { border-color: var(--flag); }
+  .tr.dn { opacity: .45; }
+  .tr.dn .rc { background: var(--blue); border-color: var(--blue); opacity: 1; }
+  .tr .rt { flex: 1; min-width: 0; display: grid; gap: 2px; padding: var(--pad) 0; }
+  .tr .tt { font-size: var(--ts); line-height: var(--tl); font-weight: 400; letter-spacing: -.01em; }
+  .tr .tm { font-size: var(--ns); line-height: var(--nl); }
+  .tr .cp { width: 34px; padding-top: var(--pad); text-align: center; font-size: var(--es); line-height: var(--tl); }
+  .tr.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+  /* the hairline under each row starts at the text */
+  .tr::after { content: ""; position: absolute; left: calc(var(--cl) + var(--cs) + var(--gap)); right: 0; bottom: 0; height: 1px; transform: scaleY(.5); transform-origin: bottom; background: rgba(255, 255, 255, .1); }
   .idea { display: grid; gap: 4px; margin-bottom: 8px; padding: 11px 12px; border-radius: 14px; background: var(--card); }
   .tkbar + .idea { margin-top: 10px; }
   .idea h4 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
@@ -795,11 +813,12 @@ function drawTasks() {
   }).join("") || none("ideas");
   else {
     /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text */
-    const card = r => `<div class="tc${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="grow"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`;
+    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`;
     body = TK_TIMES.map(tm => {
       const all = tk.rows.filter(r => r.time === tm && inCat(r) && open(r));
       return all.length ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span></div>` + all.map(card).join("") : "";
-    }).join("") || none("open tasks");
+    }).join("");
+    body = body ? `<div class="tl">${body}</div>` : none("open tasks");
   }
   $("main").innerHTML = bar + body;
   $("fab").hidden = offline;
