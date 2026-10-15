@@ -102,6 +102,10 @@
   .ev + .ev { margin-top: 9px; }
   .wxl { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
   .wxl:first-child { margin-top: 0; }
+  .hch { display: grid; gap: 6px; margin-top: 12px; min-width: 0; }
+  .hc { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 32px; padding: 6px 10px; border-radius: 10px; background: var(--raised); color: var(--tx); font-size: 13.5px; line-height: 18px; font-weight: 600; --cut: var(--raised); }
+  .hc svg { flex: none; opacity: .85; }
+  .hc small { flex: none; font-size: 12px; font-weight: 500; color: var(--mut); }
   .wxl .v { font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
   .wxl .t1 { font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; }
   .srcl { display: flex; align-items: center; gap: 7px; padding: 12px 2px 0; font-size: 12px; line-height: 16px; color: var(--mut); }
@@ -512,11 +516,11 @@ const seen = {};
    Otherwise a save that lands just after a typed space looks like a laptop edit on the next save */
 const filed = n => ({ title: (n.title || "").trim(), body: (n.body || "").replace(/\s*(\n---\s*)?$/, "") });
 const differs = (a, b) => { a = filed(a); b = filed(b); return a.title !== b.title || a.body !== b.body; };
-const dirty = () => openId && base && $("ntitle") && ($("ntitle").value !== base.title || $("nbody").value !== base.body);
+const dirty = () => openId && base && $("ntitle") && ($("ntitle").value !== base.title || noteKeep($("nbody").value) !== base.body);
 /* If the same note changed on the laptop since it was opened here, the phone's version is saved as a separate copy */
 function upsertOpenNote() {
   if (!openId) return;
-  const title = $("ntitle").value, body = $("nbody").value, id = openId;
+  const title = $("ntitle").value, body = noteKeep($("nbody").value), id = openId;
   let clash = false;
   commitNotes(list => {
     const i = list.findIndex(n => n.id === id), cur = list[i], start = seen[id];
@@ -554,7 +558,7 @@ function showNote(id) {
   $("main").innerHTML = `<div class="editor">
     <input id="ntitle" placeholder="Untitled" value="${esc(n.title)}" autocomplete="off" aria-label="Title"${ro}>
     <span class="s num">Edited ${esc(n.edited)}</span>
-    <textarea id="nbody" placeholder="Start writing…" aria-label="Note"${ro}>${esc(n.body)}</textarea></div>`;
+    <textarea id="nbody" placeholder="Start writing…" aria-label="Note"${ro}>${esc(noteShow(n.body))}</textarea></div>`;
   /* a bar above the tabs, like the Habits save bar: Done saves and goes back to the list */
   $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del">Delete</button><button class="sv ghost wide" type="button" id="ntoday">Add to Today</button>`) + `<button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
@@ -1317,10 +1321,37 @@ function yoTick(i) {
 
 /* ---------- Home: the Calendar screen's date, today's card and hours, the Yoni card, then a rail section each for Habits, Tasks, Calendar and Notes.
    Nothing is changed here: a section's name folds it, anything else opens its tab, and the add button adds a task ---------- */
-const home = { shut: {} };
-/* the open week's totals, counted as drawHabits counts them: saved days and drafts, against the targets of the latest archived week */
+const home = { shut: {}, workout: "" };
+/* the hero's chips, as on the desktop's Home (hmChip, homeWear in mattOs.html): the first event with "+N" for the rest, today's row of the sample week, and what to wear */
+const WORKOUT_FILE = "06💪-physical/workoutRegistry.md";
+const HC = {
+  cal: `<path ${F} d="M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path ${C} d="M3 10h18"/><path ${K(2.6)} d="M8 2.5v3M16 2.5v3"/>`,
+  fitness: `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v4M21.5 10v4M6 12h12"/>`,
+  shirt: `<path ${F} d="M8.5 3 3 6l2 4.2 2-1V21h10V9.2l2 1L21 6l-5.5-3a3.5 3.5 0 0 1-7 0z"/>`
+};
+const hChip = (ico, text, sub, title) => `<div class="hc" title="${esc(title)}">${svg(HC[ico], 15)}<span class="grow ell">${esc(text)}</span>${sub ? `<small class="num">${esc(sub)}</small>` : ""}</div>`;
+function woToday(md) {
+  const k = new Date().toLocaleDateString("en-US", { weekday: "short" });
+  let on = false;
+  for (const l of md.split("\n")) {
+    if (/^## /.test(l)) on = l.trim() === "## Sample Week";
+    else if (on && l.startsWith("|")) { const c = l.split("|").slice(1, -1).map(s => s.trim()); if (c[0] === k) return { what: c[1], where: c[2] || "" }; }
+  }
+  return null;
+}
+/* clothes by the average feels-like temperature over the next 12 hours, then an umbrella, boots, or sunglasses as the sky calls for */
+function hWear() {
+  const hrs = wxFromNow(12);
+  if (!hrs.length) return "";
+  const feel = hrs.reduce((a, x) => a + x.feel, 0) / hrs.length, lit = hrs.filter(x => x.day);
+  const parts = feel < 32 ? ["heavy coat", "scarf", "gloves"] : feel < 45 ? ["winter coat"] : feel < 58 ? ["jacket"] : feel < 68 ? ["long sleeves", "pants"] : feel < 78 ? ["T-shirt", "pants"] : ["T-shirt", "shorts"];
+  const add = [hrs.some(x => wxIcon(x.code) === "snow") && "boots", Math.max(...hrs.map(x => x.p)) >= 40 && "umbrella", lit.length && lit.filter(x => wxIcon(x.code) === "sun").length >= lit.length / 2 && "sunglasses"].filter(Boolean);
+  const all = [...parts, ...add], text = all.length > 2 ? `${all.slice(0, -1).join(", ")}, and ${all[all.length - 1]}` : all.join(" and ");
+  return hChip("shirt", text[0].toUpperCase() + text.slice(1), "", `What to wear: feels like ${Math.round(feel)}° over the next ${hrs.length} hours`);
+}
+/* the open week's totals, counted as drawHabits counts them: saved days and drafts, against the same targets as the Habits tab (those of the latest archived week, except Habits, which is every habit every day) */
 function hbNow() {
-  const w = hbOpen(), now = today(), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null), set = hbTargets((latest || {}).targets);
+  const w = hbOpen(), now = today(), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null), set = hbTargets(hbLiveTargets((latest || {}).targets));
   const live = [0, 1, 2, 3, 4, 5, 6].map(i => addDays(w, i)).filter(d => d <= now && (hb.drafts[d] || hbFiled(d).st)).map(d => hwScore(hb.drafts[d] || hbFiled(d).f));
   const cats = HB_CATS.map(c => { const tot = hbRound(live.reduce((a, s) => a + s[c.k], 0)), target = set[c.k] || c.target; return { c, tot, target, part: Math.max(0, Math.min(1, tot / target)) }; });
   return { cats, logged: live.length, overall: Math.round(cats.reduce((a, x) => a + x.part, 0) / cats.length * 100) };
@@ -1330,7 +1361,10 @@ function drawHome() {
   const td = today(), late = new Date().getHours() >= 19, d0 = late ? addDays(td, 1) : td, ev = cal.events.filter(e => e.d === d0), ahead = cal.events.filter(e => e.d > d0), side = $("wk") ? $("wk").scrollLeft : 0;
   const wx = W ? calWeather() : { head: "", strip: "" }, show = s => esc(s.replace(/<br\s*\/?>/gi, " "));
   const sec = (kind, cnt, body, to = kind) => `<div class="sec${home.shut[kind] ? " shut" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${svg(TAB[kind], 15)}</span>${kind}${cnt ? `<span class="cnt num">${cnt}</span>` : ""}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
-  const top = `<div data-go="Today"><div class="big"${late ? ' style="padding-bottom:0"' : ""}>${fullDay(td)}</div>${late ? `<div class="s" style="padding:0 2px 12px">Tomorrow's events</div>` : ""}<div class="card">${ev.map(e => `<div class="ev"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="s">Nothing scheduled ${late ? "tomorrow" : "today"}</div>`}${wx.head}</div></div>${wx.strip}`;
+  const wo = woToday(home.workout);
+  const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
+  const woChip = hChip("fitness", wo ? wo.what : "No workout", wo ? wo.where : "", "Today's workout");
+  const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
   /* Yoni: today's goals and the part of the day it is now */
   const now = yoNow(), P = yo.data.parts[now], g = yoCount(yo.data.goals), c = yoCount([...P.steps, ...P.tasks]);
   const yoni = `<div class="ycard" data-go="Yoni"><span class="ye">👶</span><div class="grow"><b>Yoni</b><span class="s num">${g[0]} of ${g[1]} goals today, ${now.toLowerCase()} ${c[0]} of ${c[1]}</span></div>${svg(UI.right, 16, 2.6)}</div>`;
@@ -1346,9 +1380,10 @@ function drawHome() {
   $("fab").hidden = offline;
 }
 async function loadHome() {
-  const [c, t, f, h, n, y] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(HABIT_FILE), readFile(HISTORY_FILE), readFile(NOTES_FILE), readFile(FATHER_FILE), loadWeather()]);
+  /* a missing workout file only leaves the workout chip empty */
+  const [c, t, f, h, n, y, w] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(HABIT_FILE), readFile(HISTORY_FILE), readFile(NOTES_FILE), readFile(FATHER_FILE), readFile(WORKOUT_FILE).catch(() => ({ text: home.workout })), loadWeather()]);
   if (tab !== "Home") return;
-  cal = parseCalendar(c.text); notes = parseNotes(n.text);
+  cal = parseCalendar(c.text); notes = parseNotes(n.text); home.workout = w.text;
   hb.cur = hwRead(f.text.split("\n")); hb.hist = hbRead(h.text.split("\n")).rows;
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
   if (!tkBusy) { tk.lines = t.text.split("\n"); yo.lines = y.text.split("\n"); tkParse(); } /* a task still being saved is not drawn over */
@@ -1425,7 +1460,7 @@ document.addEventListener("click", e => {
   if (e.target.closest("#ntoday")) { noteToToday($("ntitle").value); return; }
   if (e.target.closest("#del")) {
     const id = openId;
-    deleteNote(id, { title: $("ntitle").value, body: $("nbody").value });
+    deleteNote(id, { title: $("ntitle").value, body: noteKeep($("nbody").value) });
     return;
   }
   if (e.target.closest("#undo") && undoNote) {
@@ -1490,12 +1525,15 @@ function noteToToday(title) {
 }
 /* note editor shortcuts, the same in the phone app. Every change goes through insertText or delete, so the textarea's own undo still works
    and the input event it fires saves the note as typing does.
-   Enter continues a "- " bullet, a "1. " number (counting up), a "- [ ] " checkbox, or a "> " quote, and Enter on an empty one ends it.
+   A "-" typed at the start of a line becomes a "•" bullet once a space follows it. The note files keep "- ", so the bullet is only how a list line shows here.
+   Enter continues a "• " bullet, a "1. " number (counting up), a "- [ ] " checkbox, or a "> " quote, and Enter on an empty one ends it.
    Backspace just after a marker outdents the line, or removes the marker when the line is not indented. Tab and Shift+Tab indent and outdent list lines.
    Ctrl+B, Ctrl+I, and Ctrl+K make bold, italic, and a link; Ctrl+Enter ticks a checkbox, or makes the line one; Alt+Shift+Up and Down move lines.
    Typing * _ ` " ( or [ over selected text wraps it, and pasting a web address over selected text links it.
    Phone keyboards often send Enter and Backspace with no key name, so the edit the textarea is about to make is caught as well */
-const NOTE_MARK = /^([ \t]*)([-*+] \[[ xX]\] |[-*+] |\d+[.)] |> )/;
+const NOTE_MARK = /^([ \t]*)([-*+•] \[[ xX]\] |[-*+•] |\d+[.)] |> )/;
+function noteShow(body) { return (body || "").replace(/^([ \t]*)- /gm, "$1• "); }
+function noteKeep(text) { return text.replace(/^([ \t]*)• /gm, "$1- "); }
 const NOTE_WRAP = { "*": "*", _: "_", "`": "`", '"': '"', "(": ")", "[": "]" };
 const NOTE_URL = /^https?:\/\/\S+$/;
 let noteKey = "", noteBusy = false;
@@ -1543,7 +1581,7 @@ function noteLink(ta, url) {
   else noteEdit(ta, s, e, `[${sel}]()`, s + sel.length + 3);
 }
 function noteCheck(ta) {
-  const v = ta.value, at = ta.selectionStart, from = noteLine(v, at)[0], m = v.slice(from).match(/^([ \t]*)(?:([-*+]) (\[[ xX]\] )?)?/);
+  const v = ta.value, at = ta.selectionStart, from = noteLine(v, at)[0], m = v.slice(from).match(/^([ \t]*)(?:([-*+•]) (\[[ xX]\] )?)?/);
   const mark = m[3] ? `${m[1]}${m[2]} [${m[3][1] === " " ? "x" : " "}] ` : `${m[1]}${m[2] || "-"} [ ] `;
   noteEdit(ta, from, from + m[0].length, mark, Math.max(from + mark.length, at + mark.length - m[0].length));
 }
@@ -1570,6 +1608,10 @@ function noteBefore(e, ta) {
   if (noteBusy || ta.readOnly) return;
   if ((e.inputType === "insertLineBreak" || e.inputType === "insertParagraph") && named !== "Enter") noteEnter(e, ta);
   if (e.inputType === "deleteContentBackward" && named !== "Backspace") noteBack(e, ta);
+  if (e.inputType === "insertText" && e.data === " " && ta.selectionStart === ta.selectionEnd) {
+    const at = ta.selectionStart;
+    if (/^[ \t]*-$/.test(ta.value.slice(noteLine(ta.value, at)[0], at))) { e.preventDefault(); noteEdit(ta, at - 1, at, "• "); }
+  }
 }
 function notePaste(e, ta) {
   const url = ((e.clipboardData && e.clipboardData.getData("text")) || "").trim();
