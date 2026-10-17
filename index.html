@@ -213,9 +213,6 @@
   .tkbar + .idea { margin-top: 10px; }
   .idea h4 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
   .idea p { margin: 0; font-size: 13.5px; line-height: 18px; color: var(--mut); white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
-  .stp { display: flex; align-items: center; gap: 9px; min-height: 30px; font-size: 14px; }
-  .cb { flex: none; width: 18px; height: 18px; border-radius: 6px; border: 2px solid var(--mut); display: grid; place-items: center; color: var(--card); }
-  .cb.on { background: var(--done); border-color: var(--done); }
   /* the add form: a sheet that rises from the bottom and stays above the keyboard (--kb and --vvh are set by fitSheet) */
   .sheet { position: absolute; inset: 0; z-index: 5; }
   .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); }
@@ -377,12 +374,10 @@
   .yr.on .nm, .yr.on .val { color: var(--done); font-weight: 600; }
   .yr .ge { font-size: 16px; letter-spacing: 5px; }
   .yr .ge .off { filter: grayscale(1); opacity: .35; }
-  /* a row's state at its end: a green check once done, a grey ring until then, and an amber ring for a habit not yet logged today */
+  /* a row's state at its end: a green check once done, a grey ring until then */
   .ok { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #3a4150; display: grid; place-items: center; color: var(--body); }
   .ok.on { background: var(--done); border-color: var(--done); }
-  .ok.due { border-color: #f5c84b; }
   .aok { color: var(--done); font-weight: 600; }
-  .due-t { color: #f5c84b; }
   .rail { margin: 14px -16px 0; }
   .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
   .sh { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 18px 7px 16px; font-size: 14px; font-weight: 600; color: var(--tx); }
@@ -846,7 +841,7 @@ function drawTasks() {
   let body;
   if (tk.view === "Ideas") body = tk.ideas.filter(inCat).map(d => {
     const n = d.steps.length;
-    return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}${d.steps.map(s => `<div class="stp"><span class="cb${s.sent ? " on" : ""}"${s.sent ? ' role="img" aria-label="In Tasks"' : ""}>${s.sent ? tick(11) : ""}</span><span class="grow">${esc(s.text)}</span></div>`).join("")}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
+    return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
   }).join("") || none("ideas");
   else {
     /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
@@ -1507,25 +1502,23 @@ function drawHome() {
   const woChip = hChip("fitness", wo ? wo.what : "No workout", wo ? wo.where : "", "Today's workout");
   const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
   /* Yoni: a row for today's goals and one per part of the day, each green with a check once done, and All set once every row is */
-  const ok = (on, due) => `<span class="ok${on ? " on" : due ? " due" : ""}">${on ? svg(UI.check, 11, 4) : ""}</span>`;
+  const ok = on => `<span class="ok${on ? " on" : ""}">${on ? svg(UI.check, 11, 4) : ""}</span>`;
   const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
   const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
   const yr = (name, c, body, cls = "") => `<div class="yr${full(c) ? " on" : ""}${cls}"><span class="nm">${name}</span><div class="grow">${body}</div><span class="val num">${c[0]}/${c[1]}</span>${ok(full(c))}</div>`;
   const yoni = yr("Goals", g, `<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span>`)
     + YO_PARTS.map((p, i) => yr(p === "Evening" ? "Night" : p, pc[i], `<div class="hbar"><i style="width:${pc[i][1] ? pc[i][0] / pc[i][1] * 100 : 0}%"></i></div>`, p === now && !full(pc[i]) ? " now" : "")).join("");
-  /* Habits: the week's bars, each with a green check once today has an entry for it, or an amber ring until then; a saved day counts as all of them */
+  /* Habits: the week's bars, each with a green check once today has an entry for it; a saved day counts as all of them */
   const H = hbNow(), tf = hwForm(hb.drafts[td] || hbFiled(td).f), saved = hbFiled(td).st === "saved";
   const logged = k => saved || { water: tf.water > 0, habits: tf.rules.every(v => v != null), food: tf.food.some(v => v != null), fitness: tf.sets > 0, mental: tf.med > 0 }[k];
-  const due = H.cats.filter(x => !logged(x.c.k)).length;
-  const bars = H.cats.map(x => `<div class="hbr">${svg(CI[x.c.k], 16)}<span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="gd" style="background:${hbGrade(x.tot / x.target)}"></span>${ok(logged(x.c.k), true)}</div>`).join("");
+  const bars = H.cats.map(x => `<div class="hbr">${svg(CI[x.c.k], 16)}<span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="gd" style="background:${hbGrade(x.tot / x.target)}"></span>${ok(logged(x.c.k))}</div>`).join("");
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
-  const shown = open.filter(r => grps.includes(r.time)).length;
   const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
-  $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet ? `<span class="aok">All set</span>` : `${g[0]} of ${g[1]} goals`, yoni)}${sec("Habits", `${H.overall}%, ${due ? `<span class="due-t">${due} to log today</span>` : `<span class="aok">logged today</span>`}`, bars)}${sec("Tasks", `${shown} open`, tasks)}${sec("Calendar", "Next up", next, "Next Up")}${sec("Notes", "", list)}</div>`;
+  $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet ? `<span class="aok">All set</span>` : "", yoni)}${sec("Habits", saved ? `<span class="aok">Saved</span>` : "", bars)}${sec("Tasks", "", tasks)}${sec("Calendar", "", next, "Next Up")}${sec("Notes", "", list)}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
