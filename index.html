@@ -129,6 +129,7 @@
   .bk .sc { margin-top: 4px; font-size: 22px; line-height: 26px; font-weight: 700; color: var(--tx); }
   .bk .sc small { display: block; font-size: 11px; line-height: 13px; font-weight: 500; color: var(--mut); }
   .bk.good .sc { color: var(--done); }
+  .bk.on { outline: 2px solid var(--blue); outline-offset: 1px; }
   .up { display: flex; align-items: center; gap: 12px; padding: 7px 2px; }
   .up .dt { flex: none; width: 50px; display: grid; font-size: 12px; line-height: 15px; color: var(--mut); }
   .up .dt b { font-size: 14px; line-height: 18px; color: var(--tx); font-weight: 600; }
@@ -155,6 +156,7 @@
   .pwr i { height: 6px; border-radius: 3px; background: var(--raised); overflow: hidden; }
   .pwr u { display: block; height: 100%; background: var(--done); }
   .pwr span:last-child { text-align: right; }
+  .pwr.good span:last-child { color: var(--done); font-weight: 600; }
   .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
   .pill { height: 22px; line-height: 22px; padding: 0 8px; border-radius: 11px; background: var(--raised); font-size: 11.5px; font-weight: 600; color: var(--tx); white-space: nowrap; }
   .pill.good { background: rgba(63, 207, 142, .16); color: var(--done); }
@@ -203,12 +205,14 @@
   .tr .tm { font-size: var(--ns); line-height: var(--nl); }
   .tr .cp { width: 34px; padding-top: var(--pad); text-align: center; font-size: var(--es); line-height: var(--tl); }
   .tr.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+  .tr .mv { gap: 5px; padding: 6px 0 2px; }
+  .tr .mv .o { height: 30px; padding: 0 9px; font-size: 13px; }
   /* the hairline under each row starts at the text */
   .tr::after { content: ""; position: absolute; left: calc(var(--cl) + var(--cs) + var(--gap)); right: 0; bottom: 0; height: 1px; transform: scaleY(.5); transform-origin: bottom; background: rgba(255, 255, 255, .1); }
   .idea { display: grid; gap: 4px; margin-bottom: 8px; padding: 11px 12px; border-radius: 14px; background: var(--card); }
   .tkbar + .idea { margin-top: 10px; }
   .idea h4 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
-  .idea p { margin: 0; font-size: 13.5px; line-height: 18px; color: var(--mut); white-space: pre-line; }
+  .idea p { margin: 0; font-size: 13.5px; line-height: 18px; color: var(--mut); white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
   .stp { display: flex; align-items: center; gap: 9px; min-height: 30px; font-size: 14px; }
   .cb { flex: none; width: 18px; height: 18px; border-radius: 6px; border: 2px solid var(--mut); display: grid; place-items: center; color: var(--card); }
   .cb.on { background: var(--done); border-color: var(--done); }
@@ -362,12 +366,23 @@
   .pkf.open .ic { transform: rotate(90deg); }
   .pkf + .pkl { margin-top: 6px; }
 
-  /* ---------- Home: the Calendar screen's top and the Yoni card, then a rail section per tab. A section's name folds it, and its rows open the tab ---------- */
+  /* ---------- Home: the Calendar screen's top, then a rail section per tab. A section's name folds it, and its rows open the tab ---------- */
   [data-go], [data-tk] { cursor: pointer; }
-  .ycard { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--rule); }
-  .ycard .ye { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--raised); display: grid; place-items: center; font-size: 20px; }
-  .ycard b { display: block; font-size: 16px; line-height: 21px; font-weight: 600; color: #fff; }
-  .ycard .ic { color: var(--mut); }
+  /* Yoni's rows: the goals as emoji, grey until done, then a bar per part of the day. A done row turns green with a check, and the section reads All set once every row is */
+  .yr { display: flex; align-items: center; gap: 10px; min-height: 38px; }
+  .yr + .yr { border-top: 1px solid var(--line); }
+  .yr .nm { width: 84px; flex: none; font-size: 14px; }
+  .yr.now .nm { color: var(--acc); font-weight: 600; }
+  .yr .val { width: 40px; flex: none; text-align: right; font-size: 13px; color: var(--mut); }
+  .yr.on .nm, .yr.on .val { color: var(--done); font-weight: 600; }
+  .yr .ge { font-size: 16px; letter-spacing: 5px; }
+  .yr .ge .off { filter: grayscale(1); opacity: .35; }
+  /* a row's state at its end: a green check once done, a grey ring until then, and an amber ring for a habit not yet logged today */
+  .ok { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #3a4150; display: grid; place-items: center; color: var(--body); }
+  .ok.on { background: var(--done); border-color: var(--done); }
+  .ok.due { border-color: #f5c84b; }
+  .aok { color: var(--done); font-weight: 600; }
+  .due-t { color: #f5c84b; }
   .rail { margin: 14px -16px 0; }
   .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
   .sh { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 18px 7px 16px; font-size: 14px; font-weight: 600; color: var(--tx); }
@@ -378,7 +393,12 @@
   .sec.shut .chev { transform: rotate(-90deg); }
   .sec.shut .rb { display: none; }
   .rb .dh { padding: 2px 0 6px; }
-  .rb .tc:last-child { margin-bottom: 2px; }
+  /* Tasks on Home: the Tasks screen's plain list, set inside the rail */
+  .rb .tl { --cl: 0px; }
+  .rb .tl .dh { margin-left: 0; padding: 2px 0; }
+  .rb .tl .dh b { font-size: 17px; line-height: 22px; }
+  .rb .tl .tr + .dh { padding-top: 14px; }
+  .rb .tr { margin-left: 0; }
   .row { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--mut); }
   .row .meta { font-size: 13px; white-space: nowrap; }
 
@@ -401,6 +421,7 @@
   .med .dots span.on { background: currentColor; }
   .med .play { width: 76px; height: 76px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: 0 8px 22px rgba(59,110,245,.35); }
   .med .s { margin-top: 22px; }
+  .med .rs { margin-top: 14px; } .med .rs:disabled { opacity: .4; }
   .med .vol { display: grid; gap: 12px; width: 100%; max-width: 300px; margin-top: 34px; }
   .med .vol label { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 12px; font-size: 14px; color: var(--mut); }
   .med .vol input { width: 100%; accent-color: var(--blue); }
@@ -581,7 +602,7 @@ function showNote(id) {
     <span class="s num">Edited ${esc(n.edited)}</span>
     <textarea id="nbody" placeholder="Start writing…" aria-label="Note"${ro}>${esc(noteShow(n.body))}</textarea></div>`;
   /* a bar above the tabs, like the Habits save bar: Done saves and goes back to the list */
-  $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del">Delete</button><button class="sv ghost wide" type="button" id="ntoday">Add to Today</button>`) + `<button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
+  $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del">Delete</button>`) + `<button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
   fitNote();
 }
@@ -633,10 +654,22 @@ const wxIco = (n, s) => svg(WXI[n], s);
 const wxIcon = c => c === 0 ? "sun" : c <= 2 ? "part" : c <= 48 ? "cloud" : (c >= 71 && c <= 77) || c === 85 || c === 86 ? "snow" : "rain";
 const wxLabel = c => WX_LABEL[c] || "Weather";
 const WX_BLOCKS = [{ label: "Morning", from: 8, to: 12 }, { label: "Afternoon", from: 12, to: 16 }, { label: "Evening", from: 16, to: 20 }];
-const wxScore = (feel, p, code) => Math.round(100
-  * (feel >= 66 && feel <= 76 ? 1 : feel < 66 ? Math.max(0, (feel - 40) / 26) : Math.max(0, (95 - feel) / 19))
-  * (p <= 50 ? 1 - p / 100 : Math.max(0, .5 * (80 - p) / 30))
-  * (code <= 2 ? 1 : code === 3 ? .8 : code <= 48 ? .6 : code <= 55 ? .3 : 0));
+/* the desktop app's formula (WX_COLD, wxTemp, wxScore), kept identical so both show the same score:
+   58 to 75 feels perfect; cold falls through 55=.9, 50=.6, 45=.4, 40=.2 to 0 at 35; heat falls to 0 at 95.
+   clouds feel 2 (partly) or 4 (overcast and worse) degrees cooler; rain chance is free up to 20% and zeroes the score at 80% */
+const WX_COLD = [[35, 0], [40, .2], [45, .4], [50, .6], [55, .9], [58, 1]];
+const wxTemp = f => {
+  if (f > 75) return Math.max(0, (95 - f) / 20);
+  if (f <= 35) return 0;
+  for (let i = 1; i < WX_COLD.length; i++) if (f <= WX_COLD[i][0]) { const [a, b] = WX_COLD[i - 1], [c, d] = WX_COLD[i]; return b + (d - b) * (f - a) / (c - a); }
+  return 1;
+};
+const wxScore = (feel, p, code) => 100
+  * wxTemp(feel - (code === 2 ? 2 : code >= 3 ? 4 : 0))
+  * (p <= 20 ? 1 : Math.max(0, 1 - (p - 20) / 60))
+  * (code <= 2 ? 1 : code === 3 ? .9 : code <= 48 ? .7 : code <= 55 ? .4 : code >= 71 && code <= 77 ? .35 : 0);
+/* a score is held as 0 to 100 and shown as 0 to 10; it shows green from 65 (a shown 7) up, and gray below */
+const wx10 = s => Math.round(s / 10);
 const wxFill = s => s < 65 ? 0 : .22 + .78 * Math.pow((s - 65) / 35, 1.4);
 /* the shade of an Outdoor Score tile, 0 to 1, in five steps of the score: none below 50, then the 50s, 60s, 70s, 80s, and 90 to 100 */
 const wxStep = s => s < 50 ? 0 : Math.min(5, Math.floor((s - 50) / 10) + 1) / 5;
@@ -671,11 +704,11 @@ const wxHours = (s, from, to) => wxHoursAt(W.hourly.time.indexOf(`${s}T${p2(from
 const wxFromNow = n => wxHoursAt(W.hourly.time.indexOf(wxNowKey() + ":00"), n);
 /* the commonest sky over the daylight hours given, or over all of them when none are in daylight */
 function wxCommon(hs) { const lit = hs.filter(x => x.day), count = {}; (lit.length ? lit : hs).forEach(x => { count[x.code] = (count[x.code] || 0) + 1; }); return +Object.keys(count).sort((a, b) => count[b] - count[a])[0]; }
-/* one block of one day: null when the forecast does not reach it or the block is over */
+/* one block of one day: null when the forecast does not reach it or the block is over. Its score is its best hour still to come */
 function wxBlock(s, b) {
   const hs = wxHours(s, b.from, b.to).filter(x => !x.past);
   if (!hs.length) return null;
-  return { score: Math.round(hs.reduce((a, x) => a + x.score, 0) / hs.length), lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
+  return { score: Math.max(...hs.map(x => x.score)), lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
 }
 const wxHourIcon = x => !x.day && x.code <= 2 ? "moon" : wxIcon(x.code);
 const wxGood = s => s >= 65 ? " good" : "";
@@ -703,8 +736,9 @@ const calWhen = e => e.start ? (e.end ? `${e.start} to ${e.end}` : e.start) : "A
 function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
   const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
-  const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${x.score}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
-  const tiles = WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<div class="bk${wxGood(B.score)}" style="--n:${wxStep(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${B.score}<small>Outdoor score</small></span></div>` : `<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
+  const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${wx10(x.score)}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
+  /* a tapped tile shows its hour by hour breakout beneath, as a tapped third of a Next Up pill does */
+  const tiles = WX_BLOCKS.map((b, k) => { const B = wxBlock(td, b); return B ? `<button type="button" data-p="${td}|${k}" class="bk${wxGood(B.score)}${calPick === `${td}|${k}` ? " on" : ""}" style="--n:${wxStep(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${wx10(B.score)}<small>Outdoor score</small></span></button>` :`<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
   const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
   /* calPick is "day|block": a tapped third of a pill picks that block; a tap on the rest of the pill picks the day's first block not yet past */
   let [pd, pk] = (calPick || "").split("|");
@@ -717,8 +751,8 @@ function calWeather() {
   }).join("");
   /* the picked block's hour by hour breakout beneath, as in the desktop app's weather pop (pcalWxPop), scores shown out of 10 */
   const b = calPick && WX_BLOCKS[+pk], B = b && wxBlock(pd, b);
-  const picked = B ? `<div class="pdet"><div class="pwh"><span class="s num"><b>${fullDay(pd)} · ${b.label}</b> ${wxLabel(B.code)}, ${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}, rain ${B.p}%</span><span class="pill num${wxGood(B.score)}">Score ${Math.round(B.score / 10)}</span></div>${wxHours(pd, b.from, b.to).map(x => `<div class="pwr num${x.past ? " past" : ""}"><span>${hr12(x.h)}</span>${wxIco(wxHourIcon(x), 18)}<span>${x.temp}°</span><span>${x.p}%</span><i><u style="width:${Math.round(x.score)}%"></u></i><span>${Math.round(x.score / 10)}</span></div>`).join("")}</div>` : "";
-  return { head, strip, score: `<section><div class="h2">Outdoor Score Today</div><div class="bks">${tiles}</div></section>`,
+  const picked = B ? `<div class="pdet"><div class="pwh"><span class="s num"><b>${fullDay(pd)} · ${b.label}</b> ${wxLabel(B.code)}, ${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}, rain ${B.p}%</span><span class="pill num${wxGood(B.score)}">Score ${wx10(B.score)}</span></div>${wxHours(pd, b.from, b.to).map(x => `<div class="pwr num${x.past ? " past" : ""}${wxGood(x.score)}"><span>${hr12(x.h)}</span>${wxIco(wxHourIcon(x), 18)}<span>${x.temp}°</span><span>${x.p}%</span><i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`).join("")}<div class="s" style="margin-top:4px">The score is the best hour still to come. Green from 7 up, gray below.</div></div>` : "";
+  return { head, strip, score: `<section><div class="h2">Outdoor Score Today</div><div class="bks">${tiles}</div>${pd === td ? picked : ""}</section>`,
     week: `<section><div class="h2">Weather</div><div class="hps">${pills}</div>${picked}</section>`, source: "" };
 }
 function drawCalendar() {
@@ -743,7 +777,7 @@ async function loadCalendar() {
   drawCalendar();
 }
 
-/* ---------- Tasks: add and check off only. Row order is priority, so the phone never reorders, edits or deletes ---------- */
+/* ---------- Tasks: add, check off, and move to another day. Row order is priority, so the phone never reorders, edits or deletes ---------- */
 const TASK_FILE = "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
 const TK_CATS = { Habits: "🥕", Family: "👪", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
 const TK_TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
@@ -815,8 +849,9 @@ function drawTasks() {
     return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}${d.steps.map(s => `<div class="stp"><span class="cb${s.sent ? " on" : ""}"${s.sent ? ' role="img" aria-label="In Tasks"' : ""}>${s.sent ? tick(11) : ""}</span><span class="grow">${esc(s.text)}</span></div>`).join("")}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
   }).join("") || none("ideas");
   else {
-    /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text */
-    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`;
+    /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
+    const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3)}</button>`).join("")}</div>`;
+    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}${days(r)}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`;
     body = TK_TIMES.map(tm => {
       const all = tk.rows.filter(r => r.time === tm && inCat(r) && open(r));
       return all.length ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span></div>` + all.map(card).join("") : "";
@@ -864,6 +899,22 @@ function tickTask(n) {
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Phone: ${to === "Done" ? "done" : "reopen"} "${r.title}"`);
+}
+/* a day button on an opened card rewrites the task's Timing in place, as the laptop's timing picker does */
+function moveTask(n, to) {
+  const r = tk.rows[n];
+  if (!r || r.time === to) return;
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  tk.wide = null;
+  tkSave(TASK_FILE, lines => {
+    const t = tkRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw), at = t.head.indexOf("Timing");
+    if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+    if (at < 0) throw new Error("The task table has no Timing column, so the task was not moved.");
+    const cells = lines[hit.i].split("|");
+    cells[at + 1] = ` ${to} `;
+    lines[hit.i] = cells.join("|");
+    return hit;
+  }, `Phone: move "${r.title}" to ${to}`);
 }
 /* the add button: a new task goes after the last task with the same timing, as on the laptop; a new idea goes first */
 function openSheet() {
@@ -927,6 +978,7 @@ function tkAct(act, a, el) {
   else if (act === "cat") { tk.cat = a; tk.menu = false; drawTasks(); }
   else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
   else if (act === "tick") tickTask(+a);
+  else if (act === "move") moveTask(tk.wide, a);
   else if (act === "yo") yoTick(+a);
   else if (act === "fold") { yo.open[a] = !yo.open[a]; drawYoni(); }
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
@@ -1106,9 +1158,14 @@ function medTick() {
   medPaint();
 }
 const medRelease = () => { if (med.wake) { med.wake.release().catch(() => {}); med.wake = null; } };
+function medReset() { if (med.ctx) { med.ctx.close(); med.ctx = null; } medRelease(); medPaint(); }
+/* iOS mutes web audio under the silent switch unless the page asks for playback, and may start a new context suspended,
+   so both are settled within the tap that starts the session */
 async function medToggle() {
   if (!med.ctx) {
+    if (navigator.audioSession) navigator.audioSession.type = "playback";
     const c = med.ctx = new (window.AudioContext || window.webkitAudioContext)(), m = c.createGain(), v = medVol();
+    c.resume();
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3; comp.connect(c.destination);
     med.songVol = c.createGain(); med.songVol.gain.value = v.song; med.songVol.connect(m); m.connect(comp);
     med.dingVol = c.createGain(); med.dingVol.gain.value = v.ding; med.dingVol.connect(comp);
@@ -1139,12 +1196,13 @@ function medPaint() {
   pz.className = "cue " + (s.started ? MED_CLS[s.i] : "");
   pz.innerHTML = s.started ? `${MED_PH[s.i][0]}<b class="num">${s.count}</b>` : `<span style="color:var(--mut)">Tap play to begin</span>`;
   dt.className = "dots " + (s.started ? MED_CLS[s.i] : ""); [...dt.children].forEach((d, i) => d.className = s.started && i === s.i ? "on" : "");
+  $("medrs").disabled = !s.started;
   pb.setAttribute("aria-label", s.run ? "Pause" : "Play"); pb.innerHTML = svg(s.run ? MED_PAUSE : MED_PLAY, 30);
 }
 function drawMeditation() {
   $("main").innerHTML = segBar(["Today", "This Week", "Meditation"], hb.view, "hb", "view")
     + `<div class="med"><div class="huge num" id="medtm"></div><div class="cue" id="medpz"></div><div class="dots" id="meddt"><span></span><span></span><span></span></div>
-      <button type="button" class="play" id="medpb" data-hb="med" aria-label="Play"></button><span class="s">15 minutes, 4-7-8 breathing</span>
+      <button type="button" class="play" id="medpb" data-hb="med" aria-label="Play"></button><span class="s">15 minutes, 4-7-8 breathing</span><button type="button" class="btn rs" id="medrs" data-hb="medreset">Reset</button>
       <div class="vol"><label>Music <input type="range" id="medsv" min="0" max="2" step=".05" value="${medVol().song}"></label><label>Chimes <input type="range" id="meddv" min="0" max="2" step=".05" value="${medVol().ding}"></label></div></div>`;
   /* volumes are kept on the phone and take effect at once, also mid-session */
   [["medsv", "song", "songVol"], ["meddv", "ding", "dingVol"]].forEach(([id, k, node]) => $(id).addEventListener("input", e => {
@@ -1194,8 +1252,7 @@ function drawHabits() {
   const grid = `<div class="hwg"><span></span>${days.map(x => `<button type="button" class="wd num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b></button>`).join("")}${HB_CATS.map(c => `<span class="rn">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
   /* the open week can be closed from its Sunday. Once it has ended the card moves to the top, as nothing new is logged until it is closed */
   const sun = addDays(hb.week, 6), none = days.filter(x => x.st !== "draft" && x.st !== "saved").map(x => wkDay(x.date)), ended = canLog && now > sun;
-  const close = !canLog || !hb.cur ? "" : `<div class="hcard hcl">${now < sun ? `<span>Close Week opens on Sunday, ${monDay(sun)}.</span>`
-    : hb.closing ? `<span>${none.length === 7 ? "Nothing is logged, so no week is added to the history." : `${7 - none.length} of 7 days are logged.${none.length ? ` ${hbList(none)} ${none.length > 1 ? "have" : "has"} nothing logged.` : ""}`} A closed week cannot be reopened. A clean week starts for ${monDay([addDays(hb.week, 7), hbMonday(now)].sort()[1])}.</span><div class="two"><button type="button" class="sv ghost" data-hb="closeno">Cancel</button><button type="button" class="sv" data-hb="closeyes">Close Week</button></div>`
+  const close = !canLog || !hb.cur || now < sun ? "" : `<div class="hcard hcl">${hb.closing ? `<span>${none.length === 7 ? "Nothing is logged, so no week is added to the history." : `${7 - none.length} of 7 days are logged.${none.length ? ` ${hbList(none)} ${none.length > 1 ? "have" : "has"} nothing logged.` : ""}`} A closed week cannot be reopened. A clean week starts for ${monDay([addDays(hb.week, 7), hbMonday(now)].sort()[1])}.</span><div class="two"><button type="button" class="sv ghost" data-hb="closeno">Cancel</button><button type="button" class="sv" data-hb="closeyes">Close Week</button></div>`
     : `<span>${ended ? "This week has ended. Close it to start the next one." : "Finished logging? Closing saves this week to the history and starts a clean one."}</span><button type="button" class="sv${hb.busy ? " off" : ""}" data-hb="close">${hb.busy ? "Working…" : "Close Week"}</button>`}</div>`;
   /* Today is the day's form and This Week the week's progress and grid, switched at the top as on Calendar */
   $("main").innerHTML = segBar(["Today", "This Week", "Meditation"], hb.view, "hb", "view") + (hb.view === "Today" ? `<div class="hb">${head}${ended ? close : ""}${form}</div>`
@@ -1275,6 +1332,7 @@ function hbAct(act, k, a) {
   if (act === "save") { hbSave(); return; }
   if (act === "view") { hb.view = a; $("scr").scrollTop = 0; drawHabits(); return; }
   if (act === "med") { medToggle(); return; }
+  if (act === "medreset") { medReset(); return; }
   if (hb.busy) return;
   if (act === "day") { if (a > now) return; hb.day = a; hb.view = "Today"; }
   else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbOpen()) return; hb.week = w; hb.day = w === hbOpen() ? hbDayIn(w) : addDays(w, 6); hb.closing = false; }
@@ -1448,17 +1506,26 @@ function drawHome() {
   const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
   const woChip = hChip("fitness", wo ? wo.what : "No workout", wo ? wo.where : "", "Today's workout");
   const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
-  /* Yoni: today's goals and the part of the day it is now */
-  const now = yoNow(), P = yo.data.parts[now], g = yoCount(yo.data.goals), c = yoCount([...P.steps, ...P.tasks]);
-  const yoni = `<div class="ycard" data-go="Yoni"><span class="ye">👶</span><div class="grow"><b>Yoni</b><span class="s num">${g[0]} of ${g[1]} goals today, ${now.toLowerCase()} ${c[0]} of ${c[1]}</span></div>${svg(UI.right, 16, 2.6)}</div>`;
-  const H = hbNow(), bars = H.cats.map(x => `<div class="hbr">${svg(CI[x.c.k], 16)}<span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="gd" style="background:${hbGrade(x.tot / x.target)}"></span></div>`).join("");
-  /* today's open tasks, or the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's */
+  /* Yoni: a row for today's goals and one per part of the day, each green with a check once done, and All set once every row is */
+  const ok = (on, due) => `<span class="ok${on ? " on" : due ? " due" : ""}">${on ? svg(UI.check, 11, 4) : ""}</span>`;
+  const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
+  const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
+  const yr = (name, c, body, cls = "") => `<div class="yr${full(c) ? " on" : ""}${cls}"><span class="nm">${name}</span><div class="grow">${body}</div><span class="val num">${c[0]}/${c[1]}</span>${ok(full(c))}</div>`;
+  const yoni = yr("Goals", g, `<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span>`)
+    + YO_PARTS.map((p, i) => yr(p === "Evening" ? "Night" : p, pc[i], `<div class="hbar"><i style="width:${pc[i][1] ? pc[i][0] / pc[i][1] * 100 : 0}%"></i></div>`, p === now && !full(pc[i]) ? " now" : "")).join("");
+  /* Habits: the week's bars, each with a green check once today has an entry for it, or an amber ring until then; a saved day counts as all of them */
+  const H = hbNow(), tf = hwForm(hb.drafts[td] || hbFiled(td).f), saved = hbFiled(td).st === "saved";
+  const logged = k => saved || { water: tf.water > 0, habits: tf.rules.every(v => v != null), food: tf.food.some(v => v != null), fitness: tf.sets > 0, mental: tf.med > 0 }[k];
+  const due = H.cats.filter(x => !logged(x.c.k)).length;
+  const bars = H.cats.map(x => `<div class="hbr">${svg(CI[x.c.k], 16)}<span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="gd" style="background:${hbGrade(x.tot / x.target)}"></span>${ok(logged(x.c.k), true)}</div>`).join("");
+  /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
-  const tasks = grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.slice(0, 3).map(r => `<div class="tc"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="grow"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`;
+  const shown = open.filter(r => grps.includes(r.time)).length;
+  const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
-  $("main").innerHTML = `${top}${yoni}<div class="rail">${sec("Habits", `${H.overall}%`, bars)}${sec("Tasks", `${open.length} open`, tasks)}${sec("Calendar", "Next up", next, "Next Up")}${sec("Notes", "", list)}</div>`;
+  $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet ? `<span class="aok">All set</span>` : `${g[0]} of ${g[1]} goals`, yoni)}${sec("Habits", `${H.overall}%, ${due ? `<span class="due-t">${due} to log today</span>` : `<span class="aok">logged today</span>`}`, bars)}${sec("Tasks", `${shown} open`, tasks)}${sec("Calendar", "Next up", next, "Next Up")}${sec("Notes", "", list)}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
@@ -1540,7 +1607,6 @@ document.addEventListener("click", e => {
   /* a tap on a swiped-open note closes it rather than opening it */
   if (n) { if (swOpen) { shutSwipe(); return; } showNote(n.dataset.id); return; }
   if (e.target.closest("#back")) { leaveNotes(); showNoteList(); return; }
-  if (e.target.closest("#ntoday")) { noteToToday($("ntitle").value); return; }
   if (e.target.closest("#del")) {
     const id = openId;
     deleteNote(id, { title: $("ntitle").value, body: noteKeep($("nbody").value) });
@@ -1594,18 +1660,6 @@ document.addEventListener("touchend", e => {
   document.addEventListener("click", stop, { capture: true, once: true });
   setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
 });
-/* a note's Add to Today button puts a task to work through it at the top of today's tasks, as on the laptop */
-function noteToToday(title) {
-  const day = new Date().toLocaleDateString("en-US", { weekday: "long" }), name = tkCell(`Execute tasks in Note: ${title.trim() || "Untitled"}`);
-  commitFile(TASK_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
-    const t = tkRead(lines);
-    if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
-    const first = t.rows.find(r => r.time === day), at = first ? first.i : t.rows.length ? t.rows[0].i : t.end + 1;
-    const cells = { Status: "Open", Category: "🧱 Building", Timing: day, Task: name, Note: "" };
-    lines.splice(at, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[t.end].endsWith("\r") ? "\r" : ""));
-    return cells;
-  }, `Phone: new task "${name}"`).then(item => { if (item) status(`Added to ${day}`, "ok"); });
-}
 /* note editor shortcuts, the same in the phone app. Every change goes through insertText or delete, so the textarea's own undo still works
    and the input event it fires saves the note as typing does.
    A "-" typed at the start of a line becomes a "•" bullet once a space follows it. The note files keep "- ", so the bullet is only how a list line shows here.
