@@ -365,7 +365,7 @@
 
   /* ---------- Home: the Calendar screen's top, then a rail section per tab. A section's name folds it, and its rows open the tab ---------- */
   [data-go], [data-tk] { cursor: pointer; }
-  /* Yoni's rows: the goals as emoji, grey until done, then a bar per part of the day. A done row turns green with a check, and the section reads All set once every row is */
+  /* Yoni's rows: the goals as emoji, grey until done, then a bar per part of the day. A done row turns green with a check, and the section's icon turns green once every row is */
   .yr { display: flex; align-items: center; gap: 10px; min-height: 38px; }
   .yr + .yr { border-top: 1px solid var(--line); }
   .yr .nm { width: 84px; flex: none; font-size: 14px; }
@@ -374,16 +374,22 @@
   .yr.on .nm, .yr.on .val { color: var(--done); font-weight: 600; }
   .yr .ge { font-size: 16px; letter-spacing: 5px; }
   .yr .ge .off { filter: grayscale(1); opacity: .35; }
-  /* a row's state at its end: a green check once done, a grey ring until then */
+  /* a row's state at its end: a grey ring, a blue arc filling as steps are done, then a green check */
   .rk { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #3a4150; display: grid; place-items: center; color: var(--body); }
   .rk.on { background: var(--done); border-color: var(--done); }
-  .aok { color: var(--done); font-weight: 600; }
+  .rk.arc { border: 0; }
+  /* Habits' rows: blue weekly bars, and the habit's emoji faded until today has an entry for it */
+  .rb .hbar i { background: var(--blue); }
+  .rb .hbr .nm { font-size: 14px; }
+  .rb .hbr .val { width: 56px; }
+  .rb .hbr .em { flex: none; width: 22px; text-align: center; font-size: 17px; }
+  .rb .hbr .em.off { filter: grayscale(1); opacity: .35; }
   .rail { margin: 14px -16px 0; }
   .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
   .sh { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 18px 7px 16px; font-size: 14px; font-weight: 600; color: var(--tx); }
-  .sh .cnt { font-weight: 400; color: var(--mut); }
   .sh .chev { color: var(--mut); margin-left: auto; transition: transform .15s; }
   .hsq { width: 26px; height: 26px; border-radius: 8px; background: rgba(59, 110, 245, .18); color: var(--acc); display: grid; place-items: center; --cut: #131b33; }
+  .sec.done .hsq { background: var(--done); color: var(--body); }
   .rb { margin: 0 16px 0 28px; padding: 2px 0 2px 14px; border-left: 2px solid var(--rule); border-radius: 0 0 2px 2px; --cut: var(--body); }
   .sec.shut .chev { transform: rotate(-90deg); }
   .sec.shut .rb { display: none; }
@@ -1496,29 +1502,31 @@ function drawHome() {
   /* from 7pm the events shown are tomorrow's, and the tasks today's and tomorrow's */
   const td = today(), late = new Date().getHours() >= 19, d0 = late ? addDays(td, 1) : td, ev = cal.events.filter(e => e.d === d0), ahead = cal.events.filter(e => e.d > d0), side = $("wk") ? $("wk").scrollLeft : 0;
   const wx = W ? calWeather() : { head: "", strip: "" }, show = s => esc(s.replace(/<br\s*\/?>/gi, " "));
-  const sec = (kind, cnt, body, to = kind) => `<div class="sec${home.shut[kind] ? " shut" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${svg(TAB[kind], 15)}</span>${kind}${cnt ? `<span class="cnt num">${cnt}</span>` : ""}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
+  /* a done section's icon turns into a green square with a check */
+  const sec = (kind, done, body, to = kind) => `<div class="sec${home.shut[kind] ? " shut" : ""}${done ? " done" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${done ? svg(UI.check, 14, 4) : svg(TAB[kind], 15)}</span>${kind}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
   const wo = woToday(home.workout);
   const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
   const woChip = hChip("fitness", wo ? wo.what : "No workout", wo ? wo.where : "", "Today's workout");
   const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
-  /* Yoni: a row for today's goals and one per part of the day, each green with a check once done, and All set once every row is */
-  const ok = on => `<span class="rk${on ? " on" : ""}">${on ? svg(UI.check, 11, 4) : ""}</span>`;
+  /* Yoni: a row for today's goals and one per part of the day, its ring filling blue as steps are done and green with a check once all are */
+  const ring = 2 * Math.PI * 8, ok = c => { const f = c[1] ? c[0] / c[1] : 0; return f >= 1 ? `<span class="rk on">${svg(UI.check, 11, 4)}</span>` : !f ? `<span class="rk"></span>` : `<span class="rk arc"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="none" stroke="#3a4150" stroke-width="1.5"/><circle cx="9" cy="9" r="8" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-dasharray="${ring * f} ${ring}" transform="rotate(-90 9 9)" stroke-linecap="round"/></svg></span>`; };
   const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
   const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
-  const yr = (name, c, body, cls = "") => `<div class="yr${full(c) ? " on" : ""}${cls}"><span class="nm">${name}</span><div class="grow">${body}</div><span class="val num">${c[0]}/${c[1]}</span>${ok(full(c))}</div>`;
+  const yr = (name, c, body, cls = "") => `<div class="yr${full(c) ? " on" : ""}${cls}"><span class="nm">${name}</span><div class="grow">${body}</div><span class="val num">${c[0]}/${c[1]}</span>${ok(c)}</div>`;
   const yoni = yr("Goals", g, `<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span>`)
     + YO_PARTS.map((p, i) => yr(p === "Evening" ? "Night" : p, pc[i], `<div class="hbar"><i style="width:${pc[i][1] ? pc[i][0] / pc[i][1] * 100 : 0}%"></i></div>`, p === now && !full(pc[i]) ? " now" : "")).join("");
-  /* Habits: the week's bars, each with a green check once today has an entry for it; a saved day counts as all of them */
+  /* Habits: the week's bars, each with its emoji in colour once today has an entry for it. No checks, as a habit like fitness is skipped some days on purpose */
   const H = hbNow(), tf = hwForm(hb.drafts[td] || hbFiled(td).f), saved = hbFiled(td).st === "saved";
-  const logged = k => saved || { water: tf.water > 0, habits: tf.rules.every(v => v != null), food: tf.food.some(v => v != null), fitness: tf.sets > 0, mental: tf.med > 0 }[k];
-  const bars = H.cats.map(x => `<div class="hbr">${svg(CI[x.c.k], 16)}<span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="gd" style="background:${hbGrade(x.tot / x.target)}"></span>${ok(logged(x.c.k))}</div>`).join("");
+  const HE = { water: "💧", habits: "✅", food: "🥗", fitness: "💪🏻", mental: "🧠" };
+  const logged = k => ({ water: tf.water > 0, habits: tf.rules.every(v => v != null), food: tf.food.some(v => v != null), fitness: tf.sets > 0, mental: tf.med > 0 })[k];
+  const bars = H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${logged(x.c.k) ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
   const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
-  $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet ? `<span class="aok">All set</span>` : "", yoni)}${sec("Habits", saved ? `<span class="aok">Saved</span>` : "", bars)}${sec("Tasks", "", tasks)}${sec("Calendar", "", next, "Next Up")}${sec("Notes", "", list)}</div>`;
+  $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet, yoni)}${sec("Habits", saved, bars)}${sec("Tasks", false, tasks)}${sec("Calendar", false, next, "Next Up")}${sec("Notes", false, list)}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
