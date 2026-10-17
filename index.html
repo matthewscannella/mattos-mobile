@@ -57,7 +57,7 @@
   .status { font-size: 12.5px; line-height: 16px; color: var(--mut); padding: 8px 2px 0; }
   .status:empty { display: none; }
   .status.err { color: var(--flag); }
-  .status.ok { color: var(--done); }
+  .status.ok { color: var(--done); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* "Synced 11:33am" keeps to one line */
   .big { padding: 14px 2px 10px; font-size: 22px; line-height: 28px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
   .s { font-size: 13px; line-height: 18px; color: var(--mut); }
   .card { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 14px; --cut: var(--card); }
@@ -375,8 +375,8 @@
   .yr .ge { font-size: 16px; letter-spacing: 5px; }
   .yr .ge .off { filter: grayscale(1); opacity: .35; }
   /* a row's state at its end: a green check once done, a grey ring until then */
-  .ok { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #3a4150; display: grid; place-items: center; color: var(--body); }
-  .ok.on { background: var(--done); border-color: var(--done); }
+  .rk { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #3a4150; display: grid; place-items: center; color: var(--body); }
+  .rk.on { background: var(--done); border-color: var(--done); }
   .aok { color: var(--done); font-weight: 600; }
   .rail { margin: 14px -16px 0; }
   .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
@@ -1502,7 +1502,7 @@ function drawHome() {
   const woChip = hChip("fitness", wo ? wo.what : "No workout", wo ? wo.where : "", "Today's workout");
   const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
   /* Yoni: a row for today's goals and one per part of the day, each green with a check once done, and All set once every row is */
-  const ok = on => `<span class="ok${on ? " on" : ""}">${on ? svg(UI.check, 11, 4) : ""}</span>`;
+  const ok = on => `<span class="rk${on ? " on" : ""}">${on ? svg(UI.check, 11, 4) : ""}</span>`;
   const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
   const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
   const yr = (name, c, body, cls = "") => `<div class="yr${full(c) ? " on" : ""}${cls}"><span class="nm">${name}</span><div class="grow">${body}</div><span class="val num">${c[0]}/${c[1]}</span>${ok(full(c))}</div>`;
