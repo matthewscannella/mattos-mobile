@@ -229,6 +229,10 @@
   .opts { display: flex; flex-wrap: wrap; gap: 6px; }
   .o { height: 34px; padding: 0 11px; border-radius: 9px; background: var(--raised); color: var(--mut); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
   .o.on { background: var(--blue); color: #fff; }
+  .inwrap { position: relative; }
+  .in.bugpad { padding-right: 46px; }
+  .o.bug { position: absolute; right: 5px; top: 5px; height: 32px; width: 36px; padding: 0; justify-content: center; font-size: 16px; background: none; filter: grayscale(1); opacity: .45; }
+  .o.bug.on { background: var(--raised); filter: none; opacity: 1; }
   .o .nm { display: none; }
   .o.on .nm { display: inline; }
   .fb { display: flex; gap: 8px; }
@@ -923,7 +927,7 @@ function openSheet() {
   const o = (k, v, label, on) => `<button type="button" class="o${on ? " on" : ""}" data-tk="opt" data-k="${k}" data-a="${v}" aria-pressed="${on}">${label}</button>`;
   tk.sheet = idea ? "Idea" : "Task"; tk.menu = false;
   $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tk.sheet}</h3>
-    <label class="fl"><span>${tk.sheet}</span><input class="in" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done"></label>
+    <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${idea ? "" : " bugpad"}" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done">${idea ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
     ${idea ? "" : `<div class="fl"><span>Timing</span><div class="opts">${TK_TIMES.map(t => o("t", t, t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3), t === day)).join("")}</div></div>`}
     <div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>
     <label class="fl"><span>Note</span><input class="in" id="tk-n" placeholder="Add a note…" autocomplete="off" enterkeyhint="done"></label>
@@ -933,7 +937,7 @@ function openSheet() {
 function closeSheet() { tk.sheet = ""; $("sheet").hidden = true; $("sheet").innerHTML = ""; }
 function saveSheet() {
   const pick = k => ($("sheet").querySelector(`.o.on[data-k="${k}"]`) || { dataset: {} }).dataset.a;
-  const title = tkCell($("tk-x").value), note = tkCell($("tk-n").value), cat = pick("c") || "Family", time = pick("t") || "Backlog", idea = tk.sheet === "Idea";
+  const bug = tk.sheet !== "Idea" && pick("b"), raw = $("tk-x").value.trim(), title = tkCell(raw && bug && !raw.startsWith("🐞") ? "🐞 " + raw : raw), note = tkCell($("tk-n").value), cat = pick("c") || "Family", time = pick("t") || "Backlog", idea = tk.sheet === "Idea";
   if (!title) { $("tk-x").classList.add("bad"); $("tk-x").focus(); return; }
   closeSheet();
   if (idea) tkSave(IDEA_FILE, lines => { const d = { title, cat, added: today(), note }; addIdeaLines(lines, d); return d; }, `Phone: new idea "${title}"`);
@@ -985,6 +989,8 @@ function tkAct(act, a, el) {
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
   else if (act === "yopacked") { yo.packed = !yo.packed; drawYoni(); }
   else if (act === "yoclear") yoClear();
+  /* the Bug button in the task field switches on and off */
+  else if (act === "opt" && el.dataset.k === "b") { el.classList.toggle("on"); el.setAttribute("aria-pressed", el.classList.contains("on")); }
   else if (act === "opt") el.parentNode.querySelectorAll(".o").forEach(b => { b.classList.toggle("on", b === el); b.setAttribute("aria-pressed", b === el); });
   else if (act === "cancel") closeSheet();
 }
