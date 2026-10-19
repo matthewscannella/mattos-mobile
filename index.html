@@ -1370,7 +1370,7 @@ function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("
 /* ---------- Yoni, its own tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
    A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
    Goals, steps and tasks are added on the laptop only ---------- */
-const FATHER_FILE = "08👶🏻-father/fatherRegistry.md";
+const FATHER_FILE = "17👪-family/02👶🏻-father/fatherRegistry.md";
 const YO_PARTS = ["Morning", "Afternoon", "Evening"];
 const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
 const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
