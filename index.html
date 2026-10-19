@@ -241,6 +241,7 @@
   /* ---------- Habits ---------- */
   /* one day's form, then the week as bars and as a grid by day. A day is a draft on this phone until Save is pressed */
   .scr.hbs { padding-bottom: 20px; }
+  .scr.hbs ~ .fab { bottom: calc(var(--tabpad) + 136px); } /* clear of the save bar */
   .hb { padding-top: 12px; }
   .hcard { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 4px 12px; --cut: var(--card); }
   .hcard.top { padding: 12px; }
@@ -776,6 +777,7 @@ function drawCalendar() {
     : `<div class="big">${monDay(td)} to ${monDay(end)}</div>
     ${wx.week}<section><div class="h2">Calendar</div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}</section>${src}`);
   if ($("wk")) $("wk").scrollLeft = side;
+  $("fab").hidden = offline;
 }
 async function loadCalendar() {
   const [f] = await Promise.all([readFile(CAL_FILE), loadWeather()]);
@@ -884,7 +886,7 @@ async function loadTasks(quiet) {
 function tkSave(path, change, message) {
   try { change(path === TASK_FILE ? tk.lines : path === IDEA_FILE ? tk.ilines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
-  if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else drawTasks(); /* a task added from Home's add button */
+  if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
   tkBusy++;
   commitFile(path, text => text.split("\n"), lines => lines.join("\n"), change, message).then(item => {
     if (!item) tkFail = true;
@@ -1286,7 +1288,7 @@ async function loadHabits() {
   hb.drafts = Object.fromEntries(Object.entries(hb.drafts).filter(([date]) => hbLive(hbMonday(date))).map(([date, d]) => [date, hwForm(d)]));
   if (hb.on !== now) { hb.on = now; hb.week = hbOpen(); hb.day = hbDayIn(hb.week); }
   status(f.at ? `Offline. Showing habits loaded ${f.at}; a draft is kept on this phone and can be saved once you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
-  drawHabits();
+  drawHabits(); $("fab").hidden = offline;
 }
 /* only the day's own row is rewritten, so every other line stays as the laptop wrote it. Save Draft writes it with Status Draft and Submit with Saved;
    a draft already in the file is submitted as it stands. The bar shows the time the file took it, so the screen can be left with confidence */
@@ -1447,7 +1449,7 @@ function yoniBody() {
     <p class="ynote">Goals, routines, and tasks clear at midnight Eastern.</p>`;
 }
 /* Yoni, its own tab: Routines and Packing, switched at the top */
-function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = true; }
+function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = offline; }
 async function loadYoni(quiet) {
   const y = await readFile(FATHER_FILE);
   if (tab !== "Yoni" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
@@ -1564,11 +1566,11 @@ function homeGo(to) {
   else if (to === "Today" || to === "Next Up") { calView = to; to = "Calendar"; }
   go(to);
 }
-/* the add button on Home adds a task, whichever of Tasks and Ideas was last open */
+/* the add button on Home, Calendar, Habits, and Yoni adds a task, whichever of Tasks and Ideas was last open */
 function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view = v; }
 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
-const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar }, Habits: { load: loadHabits, leave: leaveHabits }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Home";
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
