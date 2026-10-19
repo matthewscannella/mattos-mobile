@@ -241,6 +241,7 @@
   /* ---------- Habits ---------- */
   /* one day's form, then the week as bars and as a grid by day. A day is a draft on this phone until Save is pressed */
   .scr.hbs { padding-bottom: 20px; }
+  .scr.hbs ~ .fab { bottom: calc(var(--tabpad) + 136px); } /* clear of the save bar */
   .hb { padding-top: 12px; }
   .hcard { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 4px 12px; --cut: var(--card); }
   .hcard.top { padding: 12px; }
@@ -773,6 +774,7 @@ function drawCalendar() {
     : `<div class="big">${monDay(td)} to ${monDay(end)}</div>
     ${wx.week}<section><div class="h2">Calendar</div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}</section>${src}`);
   if ($("wk")) $("wk").scrollLeft = side;
+  $("fab").hidden = offline;
 }
 async function loadCalendar() {
   const [f] = await Promise.all([readFile(CAL_FILE), loadWeather()]);
@@ -881,7 +883,7 @@ async function loadTasks(quiet) {
 function tkSave(path, change, message) {
   try { change(path === TASK_FILE ? tk.lines : path === IDEA_FILE ? tk.ilines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
-  if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else drawTasks(); /* a task added from Home's add button */
+  if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
   tkBusy++;
   commitFile(path, text => text.split("\n"), lines => lines.join("\n"), change, message).then(item => {
     if (!item) tkFail = true;
@@ -1065,7 +1067,7 @@ function hwRead(lines) {
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
-const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, busy: false, closing: false, view: "Today" };
+const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, bases: {}, timer: null, busy: false, closing: false, view: "Today" };
 const hbMonday = s => addDays(s, -((atNoon(s).getDay() + 6) % 7));
 const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
 /* only the open week can be logged: the week in the file, until it is closed, or the week of today when the file holds none */
@@ -1075,7 +1077,24 @@ const hbLive = w => w === hbOpen();
 const hbDayIn = w => [w, today(), addDays(w, 6)].sort()[1];
 const hbList = a => a.length < 3 ? a.join(" and ") : `${a.slice(0, -1).join(", ")}, and ${a[a.length - 1]}`;
 const hbFiled = s => hb.cur && hb.cur.week === hbMonday(s) ? hb.cur.rows[hbIndex(s)] : { st: "", f: hwBlank() };
-const hbKeep = () => store.set("habit-drafts", JSON.stringify(hb.drafts));
+const hbKeep = () => { store.set("habit-drafts", JSON.stringify(hb.drafts)); store.set("habit-bases", JSON.stringify(hb.bases)); };
+/* a draft is also written to its day's row with Status Draft, a moment after the last change, so it lasts past this phone and shows on the laptop.
+   bases holds each draft day's row as it was before, so Discard can put it back */
+const hbSame = (a, b) => JSON.stringify(hwForm(a)) === JSON.stringify(hwForm(b));
+function hbRow(date, row) {
+  const week = hbMonday(date), di = hbIndex(date);
+  return commitFile(HABIT_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
+    const r = row();
+    let t = hwRead(lines);
+    if (!r || (t && t.week !== week)) return null;
+    if (!t || t.old) { lines.splice(0, lines.length, ...hwText(week, t && t.rows).split("\n")); t = hwRead(lines); }
+    const at = t.rows[di].i;
+    lines[at] = hwLine(HW_DAYS[di], r.f, r.st) + (lines[at].endsWith("\r") ? "\r" : "");
+    return r;
+  }, `Phone: habits draft for ${fullDay(date)}`, (item, lines) => { hb.cur = hwRead(lines); }).then(() => { if (tab === "Habits" && !hb.busy) drawHabits(); });
+}
+const hbPush = date => hbRow(date, () => hb.drafts[date] ? { f: hb.drafts[date], st: "Draft" } : null);
+function hbLater(date) { clearTimeout(hb.timer); hb.timer = setTimeout(() => hbPush(date), 1500); }
 const hbGrade = p => p >= .9 ? "#3fcf8e" : p >= .8 ? "#f5c84b" : p >= .7 ? "#f79a3e" : p >= .6 ? "#f97066" : "#a78bfa";
 /* Meditation: a 15-minute session of generated ambient music with a chime at each turn of 4-7-8 breathing, all timed on the audio clock
    so it keeps time with the screen off; the screen is held awake while it plays */
@@ -1274,15 +1293,19 @@ async function loadHabits() {
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
   /* a draft for a week that can no longer be logged is dropped */
   hb.drafts = Object.fromEntries(Object.entries(hb.drafts).filter(([date]) => hbLive(hbMonday(date))).map(([date, d]) => [date, hwForm(d)]));
+  try { hb.bases = JSON.parse(store.get("habit-bases")) || hb.bases; } catch (e) { /* nothing kept */ }
+  hb.bases = Object.fromEntries(Object.entries(hb.bases).filter(([date]) => hb.drafts[date]));
+  /* a draft not yet in the file, as when it was made offline, is written now */
+  if (!f.at) Object.keys(hb.drafts).forEach(date => { const r = hbFiled(date); if (r.st !== "draft" || !hbSame(r.f, hb.drafts[date])) hbPush(date); });
   if (hb.on !== now) { hb.on = now; hb.week = hbOpen(); hb.day = hbDayIn(hb.week); }
   status(f.at ? `Offline. Showing habits loaded ${f.at}; a draft is kept on this phone and can be saved once you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
-  drawHabits();
+  drawHabits(); $("fab").hidden = offline;
 }
 /* only the day's own row is rewritten, with Status Saved, so every other line stays as the laptop wrote it. A draft left by the laptop is saved as it stands */
 function hbSave() {
   const date = hb.day, week = hbMonday(date), di = hbIndex(date), filed = hbFiled(date), f = hb.drafts[date] || (filed.st === "draft" ? filed.f : null);
   if (!f || hb.busy || !hbLive(week) || date > today()) return;
-  hb.busy = true; drawHabits();
+  clearTimeout(hb.timer); hb.busy = true; drawHabits();
   commitFile(HABIT_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
     let t = hwRead(lines);
     if (t && t.week !== week) throw new Error("That week has been closed, so this day was not saved. Discard it to carry on.");
@@ -1290,7 +1313,7 @@ function hbSave() {
     const at = t.rows[di].i;
     lines[at] = hwLine(HW_DAYS[di], f, "Saved") + (lines[at].endsWith("\r") ? "\r" : "");
     return f;
-  }, `Phone: habits for ${fullDay(date)}`, (item, lines) => { hb.cur = hwRead(lines); delete hb.drafts[date]; hbKeep(); }).then(item => {
+  }, `Phone: habits for ${fullDay(date)}`, (item, lines) => { hb.cur = hwRead(lines); delete hb.drafts[date]; delete hb.bases[date]; hbKeep(); }).then(item => {
     hb.busy = false;
     if (tab !== "Habits") return;
     if (!item) $("scr").scrollTop = 0; /* the reason is in the status line at the top; the draft is still here */
@@ -1343,7 +1366,7 @@ function hbAct(act, k, a) {
   if (hb.busy) return;
   if (act === "day") { if (a > now) return; hb.day = a; hb.view = "Today"; }
   else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbOpen()) return; hb.week = w; hb.day = w === hbOpen() ? hbDayIn(w) : addDays(w, 6); hb.closing = false; }
-  else if (act === "discard") { delete hb.drafts[hb.day]; hbKeep(); }
+  else if (act === "discard") { const date = hb.day, was = hb.bases[date]; clearTimeout(hb.timer); delete hb.drafts[date]; delete hb.bases[date]; hbKeep(); if (was) hbRow(date, () => hb.drafts[date] ? null : was); }
   else if (act === "close") {
     const left = Object.keys(hb.drafts).filter(x => hbMonday(x) === hbOpen()).sort()[0];
     if (left) { status(`Save or discard the draft for ${fullDay(left)} before closing the week.`, "err"); $("scr").scrollTop = 0; return; }
@@ -1354,13 +1377,16 @@ function hbAct(act, k, a) {
   else if (!hbLive(hb.week)) { status("An archived week cannot be changed.", "err"); return; }
   else if (hb.day > now) { status("That day has not started yet.", "err"); return; }
   else {
-    /* any change makes the day a draft; changing it back to what is in the file drops the draft */
-    const was = hbFiled(hb.day).f, f = hb.drafts[hb.day] || hwForm(was);
+    /* any change makes the day a draft; changing it back to what was in the file drops the draft */
+    const date = hb.day, filed = hbFiled(date);
+    if (!hb.drafts[date] || !hb.bases[date]) hb.bases[date] = { f: hwForm(filed.f), st: filed.st ? filed.st[0].toUpperCase() + filed.st.slice(1) : "" };
+    const was = hb.bases[date].f, f = hb.drafts[date] || hwForm(was);
     if (act === "water") f.water = f.water === +a ? +a - 1 : +a;
     else if (act === "cycle") { const o = [null, 1, 0, -1]; f.food[k] = o[(o.indexOf(f.food[k]) + 1) % o.length]; }
     else if (act === "set") f.rules[k] = f.rules[k] === +a ? null : +a;
     else if (act === "inc") f[k] = Math.max(0, Math.min(k === "sets" ? 18 : 90, f[k] + +a));
-    if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
+    if (hbSame(f, was)) { const back = hb.bases[date]; clearTimeout(hb.timer); delete hb.drafts[date]; delete hb.bases[date]; hbRow(date, () => hb.drafts[date] ? null : back); }
+    else { hb.drafts[date] = f; hbLater(date); }
     hbKeep();
   }
   drawHabits();
@@ -1435,7 +1461,7 @@ function yoniBody() {
     <p class="ynote">Goals, routines, and tasks clear at midnight Eastern.</p>`;
 }
 /* Yoni, its own tab: Routines and Packing, switched at the top */
-function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = true; }
+function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = offline; }
 async function loadYoni(quiet) {
   const y = await readFile(FATHER_FILE);
   if (tab !== "Yoni" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
@@ -1552,11 +1578,11 @@ function homeGo(to) {
   else if (to === "Today" || to === "Next Up") { calView = to; to = "Calendar"; }
   go(to);
 }
-/* the add button on Home adds a task, whichever of Tasks and Ideas was last open */
+/* the add button on Home, Calendar, Habits, and Yoni adds a task, whichever of Tasks and Ideas was last open */
 function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view = v; }
 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
-const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar }, Habits: { load: loadHabits, leave: leaveHabits }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Home";
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
