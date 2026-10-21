@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CucuBarri">
+<meta name="theme-color" content="#0f1218">
+<title>CucuBarri</title>
+<link rel="apple-touch-icon" href="tablet-icon-180.png">
+<link rel="manifest" href="tablet.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<!-- CucuBarri for the iPad A16 in landscape (1180 x 820), from 15🎨-mockups/tabletScreensV3.html. Reads and writes the registry files in the
+     private mattos-data repository through the GitHub API, with the phone app's shared functions (index.html). Built in five stages:
+     1 Shell and Home, 2 Tasks, 3 Calendar, 4 Weather, and 5 Yoni. -->
+<style>
+:root{--side:#0f1218;--body:#0a0c11;--tx:#e7e9ee;--hi:#fff;--mut:#8b93a3;--dim:#5f6676;--line:#1c202a;--rule:#232733;--card:#13161d;--raised:#1b202b;--acc:#8dabf9;--blue:#3b6ef5;--done:#3fcf8e;--flag:#f97066;--emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--side);overscroll-behavior:none}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:21px;color:var(--tx);-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{all:unset;box-sizing:border-box;cursor:pointer}
+input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-select:text}
+.ic{flex:none;display:block}
+.num{font-variant-numeric:tabular-nums}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.grow{flex:1;min-width:0}
+.e{font-family:var(--emoji)}
+/* the frame: pinned to the screen's edges, below the status bar */
+.app{position:fixed;inset:0;padding-top:env(safe-area-inset-top);display:flex}
+/* sidebar: the dock photo, then the phone's solid tab icons with the blue square on the open one */
+.side{width:208px;flex:none;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 12px calc(16px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 6px 18px}
+.brand img{width:44px;height:44px;border-radius:12px;object-fit:cover;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.brand b{font-size:19px;font-weight:600;letter-spacing:-.01em;color:#fff}
+.nv{display:flex;align-items:center;gap:12px;height:52px;padding:0 8px;border-radius:13px;color:var(--mut);font-size:15.5px;font-weight:600}
+.nv .w{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;--cut:var(--side)}
+.nv.on{color:#fff}
+.nv.on .w{background:var(--blue);color:#fff;--cut:var(--blue)}
+.nv + .nv{margin-top:4px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;background:var(--body);padding-right:env(safe-area-inset-right)}
+.hd{flex:none;display:flex;align-items:center;gap:14px;padding:14px 22px 12px;min-height:66px}
+.hd h1{margin:0;font-size:26px;line-height:32px;font-weight:700;letter-spacing:-.015em;color:#fff}
+.hd .dt{font-size:14px;color:var(--mut);padding-top:5px}
+.hd .rt{margin-left:auto;display:flex;align-items:center;gap:10px}
+.st{font-size:13px;color:var(--dim);padding-top:4px;max-width:420px}
+.st.err{color:var(--flag)}
+.nowx{display:flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 10px;border-radius:12px;background:var(--card);border:1px solid var(--rule);font-weight:600;color:#fff;--cut:var(--card)}
+.body{flex:1;min-height:0;padding:0 22px calc(20px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:14px;--cut:var(--card)}
+.ch{display:flex;align-items:center;gap:8px;margin:-2px 0 10px;font-size:14px;font-weight:600;color:var(--tx)}
+.ch .hsq{flex:none;width:26px;height:26px;border-radius:8px;background:#172243;color:var(--acc);display:grid;place-items:center;--cut:#172243}
+.ch .s{margin-left:auto}
+.s{font-size:13px;line-height:18px;color:var(--mut)}
+.scroll{overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.empty{padding:6px 0;font-size:13.5px;color:var(--dim)}
+
+/* tasks: the web app's status glyphs and owner avatars */
+.sgl{flex:none;display:block}
+.glb{flex:none;width:30px;height:30px;margin:-5px;display:grid;place-items:center;border-radius:8px}
+.tav{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:600;color:#fff;background:var(--raised)}
+.tav.MS{background:linear-gradient(135deg,#3b6ef5,#8b5cf6)}
+.tav.BB{background:linear-gradient(135deg,#f472b6,#f59e0b)}
+.avs{flex:none;display:flex}
+.avs .tav{box-shadow:0 0 0 2px var(--avr,var(--card))}
+.avs .tav+.tav{margin-left:-7px}
+.lrd{flex:none;font-size:12.5px;color:var(--dim)}
+.gone{opacity:0;transform:scale(.97)}
+/* Home's task strip: one column per owner */
+.mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;min-height:0;flex:1}
+.mc{display:flex;flex-direction:column;min-height:0}
+.mch{flex:none;display:flex;align-items:center;gap:8px;padding:0 0 6px;font-size:13px;font-weight:600;color:var(--hi)}
+.mch .s{margin-left:auto}
+.mr{display:flex;align-items:center;gap:10px;height:34px;border-top:1px solid var(--line);font-size:14px;transition:opacity .3s}
+
+/* calendar rows */
+.ev{display:flex;gap:11px;align-items:stretch}
+.ev>i{flex:none;width:4px;border-radius:2px;background:var(--blue)}
+.ev b{display:block;font-size:16px;line-height:22px;font-weight:600;color:#fff}
+.ev span{display:block;font-size:13px;line-height:18px;color:var(--mut)}
+.ev+.ev{margin-top:11px}
+.ev.past{opacity:.45}
+.sub{font-size:11px;line-height:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);padding:12px 0 8px;margin-top:12px;border-top:1px solid var(--line);display:flex}
+.sub .n{margin-left:auto;font-weight:400;letter-spacing:0}
+
+/* weather: the phone's now line and strip, and the score pills */
+.wxl{display:flex;align-items:center;gap:14px}
+.wxl .v{font-size:44px;line-height:48px;font-weight:700;letter-spacing:-.02em;color:#fff}
+.wxl .t1{font-weight:600;color:#fff;display:flex;align-items:center;gap:7px}
+.wk{display:grid;gap:4px}
+.wc{white-space:nowrap;display:grid;justify-items:center;gap:5px;padding:10px 0 9px;border-radius:14px;font-size:12.5px;line-height:16px;color:var(--mut);--cut:var(--card)}
+.wc b{font-size:18px;line-height:22px;color:var(--tx);font-weight:700}
+.wc svg{color:var(--tx)}
+.wc.on{background:var(--blue);color:rgba(255,255,255,.85);--cut:var(--blue)}
+.wc.on b,.wc.on svg{color:#fff}
+.hp{display:grid;gap:4px;justify-items:center;font-size:13px;line-height:17px;color:var(--mut);--cut:var(--card)}
+.hp>b{font-weight:600;color:var(--tx);margin-top:4px}
+.hp.td>b{color:var(--acc)}
+.hpp{width:100%;display:grid;gap:2px}
+.sg{height:var(--h,64px);display:grid;place-items:center;font-size:var(--f,15px);font-weight:600;color:#fff;background:color-mix(in srgb,var(--done) var(--a,0%),var(--raised))}
+.sg.lo{color:var(--mut)}
+.sg:first-child{border-radius:9px 9px 0 0}
+.sg:last-child{border-radius:0 0 9px 9px}
+.sg.gone{opacity:1;transform:none;background:none;border:1px dashed #2f3544;cursor:default}
+
+/* Yoni */
+.ynow{height:20px;padding:0 8px;border-radius:10px;font-size:11.5px;font-weight:600;display:grid;place-items:center;background:rgba(59,110,245,.2);color:var(--acc)}
+.ysub{font-size:11px;line-height:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);padding:10px 0 4px;border-top:1px solid var(--line);display:flex}
+.ysub .n{margin-left:auto;font-weight:400;letter-spacing:0}
+.ysub.on{color:var(--done)}
+.rw{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:5px 0;font-size:15px;line-height:20px}
+.rw+.rw,.ysub+.rw{border-top:1px solid var(--line)}
+.rw .wh{flex:none;width:66px;font-size:13px;font-weight:600;color:var(--acc)}
+.rw.done .tx,.rw.done .wh{color:var(--mut)}
+.rw.done .tx{text-decoration:line-through}
+.box{flex:none;width:20px;height:20px;border:1.5px solid var(--mut);border-radius:6px;display:grid;place-items:center;color:var(--body)}
+.box.rd{border-radius:50%}
+.box.on{background:var(--done);border-color:var(--done)}
+
+/* the one-time token card, and the screens still to come */
+.setup{max-width:520px;display:grid;gap:14px}
+.setup h3{margin:0;font-size:18px;font-weight:600;color:#fff}
+.setup p{margin:0;color:var(--mut)}
+.in{width:100%;min-height:44px;border-radius:10px;border:1px solid var(--rule);background:var(--body);padding:11px 12px;font-size:16px;line-height:20px;color:var(--tx)}
+.in:focus{border-color:var(--blue)}
+.btn{height:46px;line-height:46px;border-radius:12px;padding:0 18px;font-size:15px;font-weight:600;text-align:center;background:var(--blue);color:#fff}
+</style>
+</head>
+<body>
+<div class="app"><nav class="side" id="side"></nav><main class="main" id="main"></main></div>
+<script>
+/* ---------- icons: the phone's solid style (index.html ~453-463) ---------- */
+const F = 'fill="currentColor" stroke="none"', C = 'fill="none" stroke="var(--cut)" stroke-width="2"';
+const FS = 'fill="currentColor" stroke="currentColor" stroke-width="1.5"', CF = 'fill="var(--cut)" stroke="none"';
+const K = w => `fill="none" stroke="currentColor" stroke-width="${w}"`;
+const svg = (inner, s = 24, w = 2) => `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+const cloudD = "M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.3 11.5 3.8 3.8 0 0 0 7 19z";
+const WXI = {
+  sun: `<circle ${F} cx="12" cy="12" r="5"/><path ${K(2.6)} d="M12 2v1.5M12 20.5V22M4.9 4.9 6 6M18 18l1.1 1.1M2 12h1.5M20.5 12H22M4.9 19.1 6 18M18 6l1.1-1.1"/>`,
+  part: `<circle ${F} cx="8.5" cy="7.5" r="4.8"/><path fill="currentColor" stroke="var(--cut)" stroke-width="2" d="M17.5 21.5a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.5 14 3.8 3.8 0 0 0 7 21.5z"/>`,
+  cloud: `<path ${F} d="${cloudD}"/>`,
+  rain: `<path ${F} transform="translate(0 -3.5)" d="${cloudD}"/><path ${K(2.4)} d="M8 19.5v2M12 19.5v2M16 19.5v2"/>`,
+  snow: `<path ${F} transform="translate(0 -3.5)" d="${cloudD}"/><path ${K(2.8)} d="M8 20.5h.01M12 20.5h.01M16 20.5h.01"/>`,
+  moon: `<path ${F} d="M20.5 14.2A8.6 8.6 0 1 1 9.8 3.5a7 7 0 0 0 10.7 10.7z"/>`
+};
+const TAB = {
+  Home: `<path ${FS} d="M12 3 2.5 11h2.5v9.5h14V11h2.5z"/><rect ${CF} x="10" y="14" width="4" height="7.5" rx="1"/>`,
+  Tasks: `<rect ${F} x="4" y="4" width="16" height="18" rx="3"/><rect fill="currentColor" stroke="var(--cut)" stroke-width="1.8" x="8.5" y="1.8" width="7" height="5" rx="1.8"/><path ${C} d="m8.5 14.3 2.4 2.4 4.6-5"/>`,
+  Calendar: `<rect ${F} x="2.5" y="3.5" width="19" height="18" rx="3"/><path ${C} d="M2.5 9.5h19"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17.5h.01M12 17.5h.01"/>`,
+  Weather: WXI.part,
+  Yoni: `<circle ${F} cx="12" cy="13.5" r="8.3"/><circle ${F} cx="3.6" cy="13.8" r="1.9"/><circle ${F} cx="20.4" cy="13.8" r="1.9"/><path ${K(2.4)} d="M12 5.4c-.9-2.3 1.4-3.7 3.2-2.3"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M8.9 12.6h.01M15.1 12.6h.01"/><path ${C} d="M9.6 16.4c1.4 1.3 3.4 1.3 4.8 0"/>`
+};
+const UI = { check: `<path d="m5 12.5 4.5 4.5L19 7"/>` };
+/* Linear's status glyphs, as the web app's SGLYPH (screens.js ~1180) */
+const SGLYPH = {
+  Open: '<circle cx="7" cy="7" r="5.6" fill="none" stroke="#8b93a3" stroke-width="1.5"/>',
+  WIP: '<circle cx="7" cy="7" r="5.6" fill="none" stroke="#f5a524" stroke-width="1.5"/><path d="M7 3.6A3.4 3.4 0 0 1 7 10.4Z" fill="#f5a524"/>',
+  Blocked: '<circle cx="7" cy="7" r="5.6" fill="none" stroke="#f97066" stroke-width="1.5"/><path d="M4.4 7h5.2" stroke="#f97066" stroke-width="1.6" stroke-linecap="round"/>',
+  Done: '<circle cx="7" cy="7" r="6.4" fill="#3fcf8e"/><path d="M4.4 7.1l1.8 1.8 3.4-3.6" fill="none" stroke="#06130d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
+};
+const sGlyph = (l, s = 18) => `<svg class="sgl" width="${s}" height="${s}" viewBox="0 0 14 14">${SGLYPH[l]}</svg>`;
+const NAV = ["Home", "Tasks", "Calendar", "Weather", "Yoni"];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+const stamp = () => { const d = new Date(), h = d.getHours(), m = d.getMinutes(); return `${d.toLocaleString("en-US", { month: "short" })} ${d.getDate()}, ${d.getFullYear()}, ${h % 12 || 12}${m ? ":" + String(m).padStart(2, "0") : ""}${h < 12 ? "am" : "pm"}`; };
+let stMsg = "", stKind = "";
+function status(msg, kind = "") { stMsg = msg; stKind = kind; const e = $("st"); if (e) { e.textContent = msg; e.className = "st ell" + (kind === "err" ? " err" : ""); } }
+
+/* ---------- GitHub: the phone app's shared functions (index.html ~482-544), with the same mattos- names in this browser ---------- */
+const store = {
+  get: k => { try { return localStorage.getItem("mattos-" + k) || ""; } catch (e) { return ""; } },
+  set: (k, v) => { try { localStorage.setItem("mattos-" + k, v); } catch (e) { /* private mode: lasts until the tab closes */ } }
+};
+const cfg = () => ({ owner: store.get("owner") || "matthewscannella", repo: store.get("repo") || "mattos-data", token: store.get("token") });
+const b64decode = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, "")), c => c.charCodeAt(0)));
+const b64encode = text => { const bytes = new TextEncoder().encode(text); let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(bin); };
+const apiUrl = path => { const c = cfg(); return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`; };
+const headers = () => ({ Authorization: `Bearer ${cfg().token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" });
+const keep = (path, text) => store.set("file-" + path, JSON.stringify({ text, at: stamp() }));
+async function fetchFile(path) {
+  const r = await fetch(apiUrl(path) + "?ref=main&t=" + Date.now(), { headers: headers(), cache: "no-store" });
+  if (r.status === 401) throw new Error("The token was rejected. Paste a new one.");
+  if (r.status === 404) throw new Error(`${path.split("/").pop()} was not found. Check that the laptop has synced once.`);
+  if (!r.ok) throw new Error(`GitHub returned ${r.status}.`);
+  const j = await r.json(), text = b64decode(j.content);
+  keep(path, text);
+  return { text, sha: j.sha };
+}
+async function putFile(path, text, sha, message) {
+  const r = await fetch(apiUrl(path), { method: "PUT", headers: { ...headers(), "Content-Type": "application/json" }, body: JSON.stringify({ message, content: b64encode(text), sha, branch: "main" }) });
+  if (r.status === 409 || r.status === 422) return null; /* someone else saved first: caller retries on the newer file */
+  if (!r.ok) throw new Error(r.status === 403 ? "The token can't write to this repository. Give it Contents: Read and write." : `Save failed: GitHub returned ${r.status}.`);
+  keep(path, text);
+  return (await r.json()).content.sha;
+}
+/* the newest file, or the copy kept from the last load when there is no connection. Nothing is edited from a kept copy */
+let offline = false;
+const kept = path => { try { return JSON.parse(store.get("file-" + path)); } catch (e) { return null; } };
+async function readFile(path) {
+  try { const f = await fetchFile(path); offline = false; return f; }
+  catch (e) {
+    if (!(e instanceof TypeError)) throw e;
+    const k = kept(path);
+    if (!k) throw new Error("No connection, and nothing has been loaded on this iPad yet.");
+    offline = true;
+    return { text: k.text, sha: null, at: k.at };
+  }
+}
+/* every save starts from the newest file on GitHub and changes only its own part, so laptop edits to the rest are kept */
+let saving = Promise.resolve();
+function commitFile(path, parse, serialize, change, message, onSaved) {
+  saving = saving.then(async () => {
+    status("Saving…");
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const latest = await fetchFile(path);
+      const list = parse(latest.text);
+      const item = change(list);
+      const text = serialize(list);
+      if (text === latest.text) { if (onSaved) onSaved(item, list); status("Saved", "ok"); return item; }
+      const newSha = await putFile(path, text, latest.sha, message);
+      if (newSha) { if (onSaved) onSaved(item, list); status("Saved " + stamp().split(", ").pop(), "ok"); return item; }
+    }
+    throw new Error("Could not save after several tries. Check the connection.");
+  }).catch(e => { status(e instanceof TypeError ? "No connection. This change was not saved." : e.message, "err"); });
+  return saving;
+}
+
+/* ---------- dates ---------- */
+const p2 = n => String(n).padStart(2, "0");
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const isoDay = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+const atNoon = s => new Date(s + "T12:00");
+const today = () => isoDay(new Date());
+const addDays = (s, n) => { const d = atNoon(s); d.setDate(d.getDate() + n); return isoDay(d); };
+const fmtDay = (s, o) => atNoon(s).toLocaleDateString("en-US", o);
+const hr12 = h => `${h % 12 || 12} ${h < 12 ? "AM" : "PM"}`;
+const nowH = () => { const d = new Date(); return d.getHours() + d.getMinutes() / 60; };
+/* "11:30 AM" as 11.5 */
+const tH = s => { const m = (s || "").match(/(\d{1,2})(?::(\d{2}))?\s*([AP]M)/i); return m ? (+m[1] % 12) + (/p/i.test(m[3]) ? 12 : 0) + (+m[2] || 0) / 60 : null; };
+
+/* ---------- weather: the phone's Open-Meteo call, outdoor score, and day blocks (index.html ~650-724) ---------- */
+const WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=40.744&longitude=-74.0324&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=16";
+const WX_LABEL = { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Cloudy", 45: "Fog", 48: "Fog", 51: "Light drizzle", 53: "Drizzle", 55: "Heavy drizzle", 61: "Light rain", 63: "Rain", 65: "Heavy rain", 66: "Freezing rain", 67: "Freezing rain", 71: "Light snow", 73: "Snow", 75: "Heavy snow", 77: "Snow grains", 80: "Showers", 81: "Showers", 82: "Heavy showers", 85: "Snow showers", 86: "Snow showers", 95: "Thunderstorm", 96: "Thunderstorm, hail", 99: "Thunderstorm, hail" };
+const wxIco = (n, s) => svg(WXI[n], s);
+const wxIcon = c => c === 0 ? "sun" : c <= 2 ? "part" : c <= 48 ? "cloud" : (c >= 71 && c <= 77) || c === 85 || c === 86 ? "snow" : "rain";
+const wxLabel = c => WX_LABEL[c] || "Weather";
+const WX_BLOCKS = [{ label: "Morning", from: 8, to: 12 }, { label: "Afternoon", from: 12, to: 16 }, { label: "Evening", from: 16, to: 20 }];
+const WX_COLD = [[35, 0], [40, .2], [45, .4], [50, .6], [55, .9], [58, 1]];
+const wxTemp = f => {
+  if (f > 75) return Math.max(0, (95 - f) / 20);
+  if (f <= 35) return 0;
+  for (let i = 1; i < WX_COLD.length; i++) if (f <= WX_COLD[i][0]) { const [a, b] = WX_COLD[i - 1], [c, d] = WX_COLD[i]; return b + (d - b) * (f - a) / (c - a); }
+  return 1;
+};
+const wxScore = (feel, p, code) => 100
+  * wxTemp(feel - (code === 2 ? 2 : code >= 3 ? 4 : 0))
+  * (p <= 20 ? 1 : Math.max(0, 1 - (p - 20) / 60))
+  * (code <= 2 ? 1 : code === 3 ? .9 : code <= 48 ? .7 : code <= 55 ? .4 : code >= 71 && code <= 77 ? .35 : 0);
+const wx10 = s => Math.round(s / 10);
+const wxFill = s => s < 65 ? 0 : .22 + .78 * Math.pow((s - 65) / 35, 1.4);
+let W = null, wxLive = false;
+async function loadWeather() {
+  const covers = j => j && j.current && j.hourly && j.daily && j.daily.time.includes(today());
+  try {
+    const j = await (await fetch(WX_URL, { cache: "no-store" })).json();
+    if (!covers(j)) throw new Error("no forecast");
+    W = j; wxLive = true;
+    store.set("weather", JSON.stringify({ j, at: stamp() }));
+  } catch (e) { keptWeather(); }
+}
+function keptWeather() { let k = null; try { k = JSON.parse(store.get("weather")); } catch (x) { /* nothing kept */ } wxLive = false; W = k && k.j && k.j.daily && k.j.daily.time.includes(today()) ? k.j : null; }
+const wxNowKey = () => `${today()}T${p2(new Date().getHours())}`;
+const wxDay = s => { const d = W.daily, i = d.time.indexOf(s); return i < 0 || d.temperature_2m_max[i] == null ? null : { code: d.weather_code[i], hi: Math.round(d.temperature_2m_max[i]), lo: Math.round(d.temperature_2m_min[i]), p: d.precipitation_probability_max[i] ?? 0 }; };
+function wxHoursAt(i0, n) {
+  const h = W.hourly, out = [];
+  if (i0 < 0) return out;
+  for (let i = i0; i < i0 + n && i < h.time.length; i++) {
+    if (h.temperature_2m[i] == null || h.weather_code[i] == null) continue;
+    const p = h.precipitation_probability[i] ?? 0, feel = h.apparent_temperature[i] ?? h.temperature_2m[i];
+    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(feel, p, h.weather_code[i]) });
+  }
+  return out;
+}
+const wxHours = (s, from, to) => wxHoursAt(W.hourly.time.indexOf(`${s}T${p2(from)}:00`), to - from);
+const wxFromNow = n => wxHoursAt(W.hourly.time.indexOf(wxNowKey() + ":00"), n);
+function wxCommon(hs) { const lit = hs.filter(x => x.day), count = {}; (lit.length ? lit : hs).forEach(x => { count[x.code] = (count[x.code] || 0) + 1; }); return +Object.keys(count).sort((a, b) => count[b] - count[a])[0]; }
+/* one block of one day: null when the forecast does not reach it or the block is over. Its score is its best hour still to come */
+function wxBlock(s, b) {
+  const hs = wxHours(s, b.from, b.to).filter(x => !x.past);
+  if (!hs.length) return null;
+  return { score: Math.max(...hs.map(x => x.score)), lo: Math.min(...hs.map(x => x.temp)), hi: Math.max(...hs.map(x => x.temp)), p: Math.max(...hs.map(x => x.p)), code: wxCommon(hs) };
+}
+const wxHourIcon = x => !x.day && x.code <= 2 ? "moon" : wxIcon(x.code);
+const wxNow = () => !W ? null : wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
+
+/* ---------- calendar: read only (index.html ~727-742) ---------- */
+const CAL_FILE = "10📅-calendar/calendarRegistry.md";
+function parseCalendar(md) {
+  const synced = ((md.match(/^\*\*Synced:\*\*\s*(.+?)\s*$/m) || [])[1] || "");
+  const sm = synced.match(/([A-Z][a-z]{2}) \d{1,2}, (\d{4})/), now = new Date();
+  const m0 = sm ? MONTHS.indexOf(sm[1]) : now.getMonth(), y0 = sm ? +sm[2] : now.getFullYear();
+  const events = [];
+  (md.split(/^## Events\s*$/m)[1] || "").split(/\r?\n/).forEach(line => {
+    const c = line.split("|").slice(1, -1).map(x => x.trim()), dm = (c[0] || "").match(/^[A-Z][a-z]{2} ([A-Z][a-z]{2}) (\d{1,2})$/);
+    if (!dm || !c[3]) return;
+    const m = MONTHS.indexOf(dm[1]);
+    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3] });
+  });
+  return { synced: synced.replace(/, \d{4}/, ""), events };
+}
+let cal = { synced: "", events: [] };
+
+/* ---------- CucuBarri tasks: 11🏖️-weekend/cucuBarriRegistry.md, changed as lines like the phone's tkRead (index.html ~802) ---------- */
+const CUCU_FILE = "11🏖️-weekend/cucuBarriRegistry.md";
+const STATS = ["Open", "WIP", "Blocked", "Done"], OWNERS = ["MS", "BB", "Both"];
+const TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
+const dayName = () => new Date().toLocaleDateString("en-US", { weekday: "long" });
+const tShort = t => t === dayName() ? "Today" : t === "Next Week" ? "Next wk" : t === "Backlog" ? "Later" : t.slice(0, 3);
+/* head is the table's column names, col the Status column, and a row's i its line; a blank Owner is both of us */
+function cbRead(lines) {
+  let head = null;
+  const rows = [];
+  lines.forEach((line, i) => {
+    const raw = line.replace(/\r$/, "");
+    if (!raw.trim().startsWith("|")) return;
+    const c = raw.trim().split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { if (c.includes("Status") && c.includes("Task")) head = c; return; }
+    const cell = n => c[head.indexOf(n)] || "";
+    if (/^:?-+:?$/.test(c[0]) || !cell("Task")) return;
+    rows.push({ n: rows.length, i, raw, st: STATS.includes(cell("Status")) ? cell("Status") : "Open", owner: OWNERS.includes(cell("Owner")) ? cell("Owner") : "Both", time: TIMES.find(t => t.toLowerCase() === cell("Timing").toLowerCase()) || "Backlog", title: cell("Task"), note: cell("Note") });
+  });
+  return { head, col: head ? head.indexOf("Status") : -1, rows };
+}
+const cb = { lines: [], rows: [], col: -1 };
+const av = o => o === "Both" ? `<span class="avs"><span class="tav MS">MS</span><span class="tav BB">BB</span></span>` : `<span class="tav ${o}">${o}</span>`;
+/* what Home's strip shows: open cards only, in week order, then the registry's order */
+const cbLive = o => cb.rows.filter(r => r.st !== "Done" && (!o || r.owner === o)).sort((a, b) => TIMES.indexOf(a.time) - TIMES.indexOf(b.time) || a.n - b.n);
+
+/* ---------- Yoni: the phone's yoRead and yoTick (index.html ~1387-1482) ---------- */
+const FATHER_FILE = "17👪-family/02👶🏻-father/fatherRegistry.md";
+const YO_PARTS = ["Morning", "Afternoon", "Evening"];
+const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
+const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
+const yoNow = () => { const h = +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening"; };
+function yoRead(lines) {
+  const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], all: [] };
+  let h = "", head = null;
+  lines.forEach((line, i) => {
+    const raw = line.replace(/\r$/, "").trim();
+    if (raw.startsWith("#")) { h = raw.replace(/^#+ /, "").trim(); head = null; return; }
+    if (!raw.startsWith("|")) return;
+    const c = raw.split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { head = c; return; }
+    if (/^:?-+:?$/.test(c[0])) return;
+    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^Packing: (.+)$/);
+    if (h !== "Daily Goals" && !part && !pk) return;
+    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), room: cell("Room"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[1] : "" };
+    if (!it.text) return;
+    (pk ? out.packs : part ? part[m[2] === "Routine" ? "steps" : "tasks"] : out.goals).push(it); out.all.push(it);
+  });
+  return out;
+}
+const yo = { lines: [], data: yoRead([]) };
+const yoCount = list => [list.filter(x => x.on).length, list.length];
+
+/* ---------- saving: the change shows at once and is then saved on top of the newest file (the phone's tkSave, index.html ~886) ---------- */
+let busy = 0, failed = false;
+const LINES = { [CUCU_FILE]: () => cb.lines, [FATHER_FILE]: () => yo.lines };
+function parseAll() { const t = cbRead(cb.lines); cb.rows = t.rows; cb.col = t.col; yo.data = yoRead(yo.lines); }
+function save(path, change, message) {
+  if (offline) { status("Offline. Changes are off until the connection is back.", "err"); return; }
+  try { change(LINES[path]()); } catch (e) { /* the save below reports it */ }
+  parseAll(); draw();
+  busy++;
+  commitFile(path, text => text.split("\n"), lines => lines.join("\n"), change, message).then(item => {
+    if (!item) failed = true;
+    if (--busy || !failed) return;
+    failed = false; loadAll();
+  });
+}
+/* only the row's own cell is rewritten; a row is found again by its exact text */
+function setCell(lines, i, k, v) { const cr = lines[i].endsWith("\r") ? "\r" : "", cells = lines[i].replace(/\r$/, "").split("|"); cells[k] = ` ${v} `; lines[i] = cells.join("|") + cr; }
+function cbTick(n) {
+  const r = cb.rows[n];
+  if (!r) return;
+  save(CUCU_FILE, lines => {
+    const t = cbRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw);
+    if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+    setCell(lines, hit.i, t.col + 1, "Done");
+    return hit;
+  }, `Tablet: done "${r.title}"`);
+}
+function yoTick(i) {
+  const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "";
+  if (!it) return;
+  save(FATHER_FILE, lines => {
+    const all = yoRead(lines).all, hit = all.find(x => x.i === it.i && x.raw === it.raw) || all.find(x => x.h === it.h && x.raw === it.raw);
+    if (!hit) throw new Error(`"${it.text}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+    const cells = lines[hit.i].split("|");
+    cells[cells.length - 2] = to ? ` ${to} ` : " ";
+    lines[hit.i] = cells.join("|");
+    return hit;
+  }, `Tablet: ${to ? "check" : "uncheck"} "${it.text}"`);
+}
+
+/* ---------- shared pieces ---------- */
+/* the sky now, with the moon after dark as the hour strip shows it */
+const wxNowIcon = n => { const h = wxFromNow(1)[0]; return wxHourIcon({ code: n.code, day: h ? h.day : true }); };
+const nowWx = () => { const n = wxNow(); return n ? `<div class="nowx">${wxIco(wxNowIcon(n), 22)}<span class="num">${n.temp}°</span></div>` : ""; };
+const head = (title, mid = "") => `<div class="hd"><h1>${title}</h1><span class="dt">${fmtDay(today(), { weekday: "long", month: "short", day: "numeric" })}</span>${mid}<div class="rt"><span class="st ell${stKind === "err" ? " err" : ""}" id="st">${esc(stMsg)}</span>${nowWx()}</div></div>`;
+const hsq = n => `<span class="hsq">${svg(TAB[n], 16)}</span>`;
+const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
+const sideBar = () => `<div class="brand"><img src="tablet-icon-180.png" alt=""><b>CucuBarri</b></div>${NAV.map(n => `<button class="nv${n === tab ? " on" : ""}" data-go="${n}"><span class="w">${svg(TAB[n], 24)}</span>${n}</button>`).join("")}`;
+
+/* ---------- Home: today's calendar, the weather, Yoni's part of the day, and the open tasks by owner ---------- */
+function evRow(e, td) {
+  const past = td && (tH(e.end) ?? tH(e.start) ?? 24) <= nowH();
+  return `<div class="ev${past ? " past" : ""}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${e.start ? (e.end ? `${esc(e.start)} to ${esc(e.end)}` : esc(e.start)) : "All day"}</span></div></div>`;
+}
+function homeCal() {
+  const td = today(), tm = addDays(td, 1), a = cal.events.filter(e => e.d === td), b = cal.events.filter(e => e.d === tm);
+  return `<section class="card scroll" style="min-height:0" data-go="Calendar"><div class="ch">${hsq("Calendar")}Today<span class="s num">${a.length} event${a.length === 1 ? "" : "s"}</span></div>${a.map(e => evRow(e, true)).join("") || '<div class="empty">Nothing on the calendar.</div>'}<div class="sub">Tomorrow<span class="n">${fmtDay(tm, { weekday: "short", month: "short", day: "numeric" })}</span></div>${b.map(e => evRow(e)).join("") || '<div class="empty">Nothing on the calendar.</div>'}</section>`;
+}
+function homeWx() {
+  const n = wxNow(), d = W && wxDay(today());
+  if (!n || !d) return `<section class="card" data-go="Weather"><div class="ch">${hsq("Weather")}Weather<span class="s">Hoboken</span></div><div class="empty">Weather is unavailable right now.</div></section>`;
+  const strip = `<div class="wk" style="grid-template-columns:repeat(5,1fr)">${wxFromNow(5).map((x, k) => `<div class="wc${k ? "" : " on"}"><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 22)}<span class="num">${x.p}%</span></div>`).join("")}</div>`;
+  const days = Array.from({ length: 7 }, (_, i) => addDays(today(), i)).filter(wxDay);
+  const pills = days.map((x, k) => `<div class="hp${k ? "" : " td"}" style="--h:26px;--f:12px"><div class="hpp">${WX_BLOCKS.map(b => { const B = wxBlock(x, b); return B ? `<span class="sg num${B.score < 65 ? " lo" : ""}" style="--a:${Math.round(wxFill(B.score) * 95)}%">${wx10(B.score)}</span>` : '<span class="sg gone"></span>'; }).join("")}</div><b style="font-size:12px;margin-top:2px">${k ? fmtDay(x, { weekday: "short" }) : "Tdy"}</b></div>`).join("");
+  return `<section class="card" style="min-height:0" data-go="Weather"><div class="ch">${hsq("Weather")}Weather<span class="s">Hoboken</span></div>
+    <div class="wxl">${wxIco(wxNowIcon(n), 40)}<span class="v num">${n.temp}°</span><div class="grow"><div class="t1 ell">${wxLabel(n.code)}</div><div class="s num">H ${d.hi}° L ${d.lo}°</div></div></div>
+    <div style="margin:10px -6px 0">${strip}</div>
+    <div class="sub" style="margin-top:8px">Next 7 Days<span class="n">Outdoor score</span></div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px">${pills}</div></section>`;
+}
+/* the part of the day it is now: a round row per step, rows with a Room under a header for their time and room, then the part's tasks */
+function partRows(P) {
+  const row = (it, step) => `<button class="rw${it.on ? " done" : ""}" data-yo="${it.i}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`;
+  let last = "";
+  const steps = P.steps.map(it => {
+    if (!it.room) { last = ""; return row(it, true); }
+    const k = it.when + "|" + it.room, grp = P.steps.filter(x => x.room && x.when + "|" + x.room === k), c = yoCount(grp);
+    const hd = k === last ? "" : `<div class="ysub${c[0] === c[1] ? " on" : ""}">${esc(it.when)} - ${esc(it.room)}<span class="n num">${c[0] === c[1] ? "✓ " : ""}${c.join("/")}</span></div>`;
+    last = k;
+    return hd + row(it, false);
+  }).join("");
+  return (steps + (P.tasks.length ? `<div class="ysub">Tasks</div>${P.tasks.map(it => row(it, false)).join("")}` : "")) || '<div class="empty">Nothing set for this part of the day.</div>';
+}
+function homeYoni() {
+  const d = yo.data, now = yoNow(), P = d.parts[now], c = yoCount([...P.steps, ...P.tasks]), g = yoCount(d.goals);
+  return `<section class="card" style="display:flex;flex-direction:column;min-height:0;padding-bottom:6px"><div class="ch" data-go="Yoni">${hsq("Yoni")}Yoni · ${now}<span class="ynow" style="margin-left:6px">Now</span><span class="s num">${c.join(" / ")}</span></div>
+    ${d.goals.length ? `<div style="display:flex;align-items:center;gap:10px;padding:0 0 6px"><span class="s">Goals</span><span class="e" style="font-size:18px;letter-spacing:6px">${d.goals.map(x => `<span style="${x.on ? "" : "filter:grayscale(1);opacity:.35"}">${esc(x.em)}</span>`).join("")}</span><span class="s num" style="margin-left:auto">${g[0]} of ${g[1]}</span></div>` : ""}
+    <div class="scroll" style="flex:1;min-height:0">${partRows(P)}</div></section>`;
+}
+function homeTasks() {
+  const td = dayName();
+  const cols = OWNERS.map(o => { const m = cbLive(o); return `<div class="mc"><div class="mch">${av(o)}${o}<span class="s num">${m.length}</span></div><div class="scroll" style="flex:1;min-height:0">${m.map(r => `<div class="mr" data-row="${r.n}"><button class="glb" data-done="${r.n}" aria-label="Check off">${sGlyph(r.st, 16)}</button><span class="ell grow">${esc(r.title)}</span><span class="lrd"${r.time === td ? ' style="color:var(--done)"' : ""}>${tShort(r.time)}</span></div>`).join("") || '<div class="empty">Nothing open.</div>'}</div></div>`; }).join("");
+  return `<section class="card" style="display:flex;flex-direction:column;min-height:0;padding-bottom:6px"><div class="ch" style="margin-bottom:8px" data-go="Tasks">${hsq("Tasks")}Tasks<span class="s num">${cbLive().length} open</span></div><div class="mini">${cols}</div></section>`;
+}
+function homeScreen() {
+  return head("Home") + `<div class="body" style="display:grid;grid-template-rows:minmax(0,1fr) 196px;gap:12px">
+    <div style="display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,1.1fr);gap:12px;min-height:0">${homeCal()}${homeWx()}${homeYoni()}</div>
+    ${homeTasks()}</div>`;
+}
+/* the screens built in later stages */
+const soon = n => () => head(n) + `<div class="body"><section class="card"><div class="empty">${n} is on its way. Home shows its summary for now.</div></section></div>`;
+function setupScreen(msg) {
+  return head("Connect") + `<div class="body"><form class="card setup" id="setup"><h3>Connect to MattOS</h3><p>${esc(msg || "Paste the GitHub token for the mattos-data repository once. It is kept only on this iPad.")}</p><input class="in" id="token" type="password" autocomplete="off" placeholder="Token" required><button class="btn" type="submit">Connect</button></form></div>`;
+}
+const SCREENS = { Home: homeScreen, Tasks: soon("Tasks"), Calendar: soon("Calendar"), Weather: soon("Weather"), Yoni: soon("Yoni") };
+
+/* ---------- router and loading ---------- */
+let tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home", setupMsg = null;
+function draw() {
+  $("side").innerHTML = sideBar();
+  const sc = [...document.querySelectorAll("#main .scroll")].map(e => e.scrollTop);
+  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]();
+  document.querySelectorAll("#main .scroll").forEach((e, k) => { e.scrollTop = sc[k] || 0; }); /* a redraw keeps each list where it was */
+}
+/* first from the copies kept on this iPad, so it opens at once, then from the newest files */
+function fromKept() {
+  const c = kept(CAL_FILE), t = kept(CUCU_FILE), y = kept(FATHER_FILE);
+  if (c) cal = parseCalendar(c.text);
+  if (t) cb.lines = t.text.split("\n");
+  if (y) yo.lines = y.text.split("\n");
+  keptWeather(); parseAll();
+}
+let loading = false;
+async function loadAll() {
+  if (!cfg().token) { setupMsg = ""; draw(); return; }
+  if (loading || busy) return;
+  loading = true;
+  status("Updating…");
+  const [c, t, y] = await Promise.allSettled([readFile(CAL_FILE), readFile(CUCU_FILE), readFile(FATHER_FILE), loadWeather()]);
+  loading = false;
+  if (busy) return; /* a change made while loading is not drawn over */
+  if (c.status === "fulfilled") cal = parseCalendar(c.value.text);
+  if (t.status === "fulfilled") cb.lines = t.value.text.split("\n");
+  if (y.status === "fulfilled") yo.lines = y.value.text.split("\n");
+  parseAll();
+  const bad = [c, t, y].find(x => x.status === "rejected");
+  if (bad && /token/i.test(bad.reason.message)) { setupMsg = bad.reason.message; draw(); return; }
+  const at = [c, t, y].map(x => x.value && x.value.at).find(Boolean);
+  status(bad ? bad.reason.message : at ? `Offline. Showing what was loaded ${at}.` : "Synced " + stamp().split(", ").pop(), bad || at ? "err" : "ok");
+  draw();
+}
+
+document.addEventListener("click", ev => {
+  const at = q => ev.target.closest(q);
+  let x;
+  if ((x = at("[data-done]"))) { const n = +x.dataset.done; x.innerHTML = sGlyph("Done", 16); const row = x.closest("[data-row]"); if (row) row.classList.add("gone"); setTimeout(() => cbTick(n), 320); }
+  else if ((x = at("[data-yo]"))) yoTick(+x.dataset.yo);
+  else if ((x = at("[data-go]")) && !setupMsg) { if (x.dataset.go === tab && tab === "Home") loadAll(); location.hash = x.dataset.go; }
+});
+document.addEventListener("submit", ev => {
+  ev.preventDefault();
+  if (ev.target.id !== "setup") return;
+  store.set("token", $("token").value.trim()); setupMsg = null; draw(); loadAll();
+});
+addEventListener("hashchange", () => { tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home"; draw(); });
+/* the iPad sits on its dock: the files are read again every five minutes and whenever the app comes back to the front */
+setInterval(() => { if (!document.hidden) loadAll(); }, 5 * 60e3);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAll(); });
+
+fromKept(); draw(); loadAll();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>

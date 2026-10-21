@@ -1,0 +1,14 @@
+{
+  "name": "CucuBarri",
+  "short_name": "CucuBarri",
+  "start_url": "./tablet.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0f1218",
+  "theme_color": "#0f1218",
+  "icons": [
+    { "src": "tablet-icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "tablet-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
