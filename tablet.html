@@ -121,6 +121,74 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .box.rd{border-radius:50%}
 .box.on{background:var(--done);border-color:var(--done)}
 
+/* Tasks: the web board's toolbar (+ Filter and its chips, List and Board, Display), lanes of cards or rows, and the edit sheet */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:12px;background:var(--card);border:1px solid var(--rule)}
+.seg button{text-align:center;height:34px;line-height:34px;padding:0 16px;border-radius:9px;font-size:14px;font-weight:600;color:var(--mut)}
+.seg button.on{background:var(--blue);color:#fff}
+.sq{flex:none;width:42px;height:42px;border-radius:12px;background:var(--blue);display:grid;place-items:center;color:#fff}
+.tool{flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--mut)}
+.tbar{flex:none;display:flex;align-items:center;gap:8px;padding:0 22px 12px}
+.tb{height:42px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border-radius:12px;border:1px solid var(--rule);background:var(--card);font-size:14px;font-weight:600;color:var(--tx);white-space:nowrap;--cut:var(--card)}
+.tb.ghost{border-style:dashed;background:none;color:var(--mut)}
+.tb.on{border-color:var(--blue);background:#172243;color:var(--acc);--cut:#172243}
+.fchip{height:42px;display:inline-flex;align-items:center;gap:7px;max-width:280px;padding:0 4px 0 13px;border:1px solid var(--rule);border-radius:12px;background:var(--card);font-size:14px;color:var(--tx)}
+.fchip .k{flex:none;color:var(--mut)}
+.fchip button{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:9px;color:var(--mut)}
+.popdim{position:absolute;inset:0;z-index:4}
+.pop{position:absolute;top:120px;z-index:5;background:var(--side);border:1px solid var(--rule);border-radius:18px;padding:10px 12px 12px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.pop-h{padding:8px 4px 6px;font-size:12px;line-height:14px;font-weight:600;color:var(--mut)}
+.fcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 14px}
+.pi{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 8px;border-radius:10px;font-size:15px;color:var(--tx)}
+.pi.on{background:#172243}
+.dsw{display:flex;align-items:center;justify-content:space-between;width:100%;height:48px;margin-top:6px;padding:0 4px;border-top:1px solid var(--line);font-size:15px;color:var(--tx)}
+.dsw i{flex:none;position:relative;width:44px;height:26px;border-radius:13px;background:var(--rule)}
+.dsw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--mut);transition:left .15s}
+.dsw.on i{background:var(--blue)}
+.dsw.on i::after{left:21px;background:#fff}
+.lbd{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(286px,1fr);gap:12px;height:100%;overflow-x:auto}
+.is-done{opacity:.5}
+.is-done .lct,.is-done .lrt{text-decoration:line-through}
+.lrc{flex:none;height:26px;line-height:24px;padding:0 9px;border-radius:7px;border:1px solid var(--rule);font-size:12.5px;color:var(--mut)}
+.lrc.today{color:var(--done)}
+.lcol{display:flex;flex-direction:column;min-height:0;padding:4px;border-radius:14px;background:rgba(255,255,255,.015);--avr:var(--body)}
+.lch{flex:none;display:flex;align-items:center;gap:9px;height:44px;padding:0 4px 0 10px;font-size:13.5px;color:var(--mut)}
+.lch b{font-size:15px;font-weight:500;color:var(--hi)}
+.lcl{flex:1;min-height:0;display:grid;align-content:start;gap:8px;padding-bottom:6px}
+.lc{display:grid;gap:5px;padding:12px 14px 11px;border-radius:11px;background:var(--card);border:1px solid var(--line);transition:opacity .3s,transform .3s;--avr:var(--card)}
+.lc.sel{border-color:var(--blue);background:#141927}
+.lchd{display:flex;align-items:center;gap:6px;min-width:0;font-size:12.5px;color:var(--mut)}
+.lchd.today{color:var(--done)}
+.sep{margin:0 5px;color:var(--dim)}
+.lct{font-size:15px;line-height:20px;font-weight:500;color:var(--hi)}
+.lcn{font-size:13px;line-height:17px;color:var(--dim)}
+.lcf{display:flex;align-items:center;gap:9px;margin-top:3px;font-size:12px;color:var(--dim)}
+.addc{justify-self:start;padding:8px 10px;border-radius:8px;font-size:13.5px;color:var(--dim)}
+.ll{height:100%;border:1px solid var(--rule);border-radius:16px;background:var(--body)}
+.band{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;height:42px;padding:0 10px 0 16px;background:var(--card);border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}
+.ll .band:not(:first-child){border-top:1px solid var(--line)}
+.band b{font-size:14px;font-weight:500;color:var(--hi)}
+.band.today b{color:var(--done)}
+.lr{display:flex;align-items:center;gap:14px;height:50px;padding:0 16px 0 18px;border-bottom:1px solid var(--line);border-left:2px solid transparent;transition:opacity .3s;--avr:var(--body)}
+.lr.sel{background:#141927;border-left-color:var(--blue)}
+.lrt{flex:none;max-width:42%;font-size:15px;font-weight:500;color:var(--hi)}
+.lrn{font-size:13px;color:var(--dim)}
+/* the sheet sits high, so the keyboard does not cover it */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.58);z-index:4}
+.bs{position:absolute;left:50%;top:24px;transform:translateX(-50%);width:520px;z-index:5;display:grid;gap:14px;background:var(--side);border:1px solid var(--rule);border-radius:22px;padding:18px 20px 20px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.bs h3{margin:0;font-size:18px;font-weight:600;color:#fff;display:flex;align-items:center}
+.bs h3 button{margin-left:auto;font-size:14px;color:var(--mut);font-weight:500}
+.fl{display:grid;gap:6px}
+.fl>span{font-size:12px;line-height:14px;font-weight:600;color:var(--mut)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.o{height:34px;padding:0 12px;border-radius:9px;background:var(--raised);color:var(--mut);font-size:14px;font-weight:600;display:inline-flex;align-items:center}
+.o.on{background:var(--blue);color:#fff}
+.fb{display:flex;gap:8px;margin-top:4px}
+.fb .btn{flex:1}
+.fb .btn.del{flex:none;background:var(--raised);color:var(--flag);display:flex;align-items:center;gap:6px}
+.toast{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);width:440px;display:flex;align-items:center;gap:12px;background:var(--raised);border:1px solid var(--rule);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:6}
+.toast span{flex:1}
+.toast button{color:var(--acc);font-weight:600;padding:4px 6px}
+
 /* the one-time token card, and the screens still to come */
 .setup{max-width:520px;display:grid;gap:14px}
 .setup h3{margin:0;font-size:18px;font-weight:600;color:#fff}
@@ -154,7 +222,11 @@ const TAB = {
   Weather: WXI.part,
   Yoni: `<circle ${F} cx="12" cy="13.5" r="8.3"/><circle ${F} cx="3.6" cy="13.8" r="1.9"/><circle ${F} cx="20.4" cy="13.8" r="1.9"/><path ${K(2.4)} d="M12 5.4c-.9-2.3 1.4-3.7 3.2-2.3"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M8.9 12.6h.01M15.1 12.6h.01"/><path ${C} d="M9.6 16.4c1.4 1.3 3.4 1.3 4.8 0"/>`
 };
-const UI = { check: `<path d="m5 12.5 4.5 4.5L19 7"/>` };
+const UI = {
+  check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, plus: `<path d="M12 5v14M5 12h14"/>`, x: `<path d="M6 6l12 12M18 6 6 18"/>`,
+  display: `<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>`,
+  trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`
+};
 /* Linear's status glyphs, as the web app's SGLYPH (screens.js ~1180) */
 const SGLYPH = {
   Open: '<circle cx="7" cy="7" r="5.6" fill="none" stroke="#8b93a3" stroke-width="1.5"/>',
@@ -321,25 +393,34 @@ const STATS = ["Open", "WIP", "Blocked", "Done"], OWNERS = ["MS", "BB", "Both"];
 const TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
 const dayName = () => new Date().toLocaleDateString("en-US", { weekday: "long" });
 const tShort = t => t === dayName() ? "Today" : t === "Next Week" ? "Next wk" : t === "Backlog" ? "Later" : t.slice(0, 3);
-/* head is the table's column names, col the Status column, and a row's i its line; a blank Owner is both of us */
+const tLabel = t => t === dayName() ? "Today" : t;
+/* the timings from today onwards: today, the next six days, then Next Week and Backlog */
+const timeOrder = () => { const k = TIMES.indexOf(dayName()); return [...TIMES.slice(k, 7), ...TIMES.slice(0, k), "Next Week", "Backlog"]; };
+/* the date a timing falls on: the next such weekday, or next Monday to Sunday */
+const timeDate = t => {
+  const k = TIMES.indexOf(t), td = TIMES.indexOf(dayName()), md = s => fmtDay(s, { month: "short", day: "numeric" });
+  if (t === "Next Week") { const mon = addDays(today(), 7 - td); return `${md(mon)} to ${md(addDays(mon, 6))}`; }
+  return k < 0 || k > 6 ? "" : k === td ? fmtDay(today(), { weekday: "short", month: "short", day: "numeric" }) : md(addDays(today(), (k - td + 7) % 7));
+};
+/* head is the table's column names, hi its line, col the Status column, and a row's i its line; a blank Owner is both of us */
 function cbRead(lines) {
-  let head = null;
+  let head = null, hi = -1;
   const rows = [];
   lines.forEach((line, i) => {
     const raw = line.replace(/\r$/, "");
     if (!raw.trim().startsWith("|")) return;
     const c = raw.trim().split("|").slice(1, -1).map(x => x.trim());
-    if (!head) { if (c.includes("Status") && c.includes("Task")) head = c; return; }
+    if (!head) { if (c.includes("Status") && c.includes("Task")) { head = c; hi = i; } return; }
     const cell = n => c[head.indexOf(n)] || "";
     if (/^:?-+:?$/.test(c[0]) || !cell("Task")) return;
-    rows.push({ n: rows.length, i, raw, st: STATS.includes(cell("Status")) ? cell("Status") : "Open", owner: OWNERS.includes(cell("Owner")) ? cell("Owner") : "Both", time: TIMES.find(t => t.toLowerCase() === cell("Timing").toLowerCase()) || "Backlog", title: cell("Task"), note: cell("Note") });
+    rows.push({ n: rows.length, i, raw, st: STATS.includes(cell("Status")) ? cell("Status") : "Open", owner: OWNERS.includes(cell("Owner")) ? cell("Owner") : "Both", time: TIMES.find(t => t.toLowerCase() === cell("Timing").toLowerCase()) || "Backlog", title: cell("Task"), note: cell("Note").replace(/<br\s*\/?>/gi, " "), cat: cell("Category") });
   });
-  return { head, col: head ? head.indexOf("Status") : -1, rows };
+  return { head, hi, col: head ? head.indexOf("Status") : -1, rows };
 }
 const cb = { lines: [], rows: [], col: -1 };
 const av = o => o === "Both" ? `<span class="avs"><span class="tav MS">MS</span><span class="tav BB">BB</span></span>` : `<span class="tav ${o}">${o}</span>`;
-/* what Home's strip shows: open cards only, in week order, then the registry's order */
-const cbLive = o => cb.rows.filter(r => r.st !== "Done" && (!o || r.owner === o)).sort((a, b) => TIMES.indexOf(a.time) - TIMES.indexOf(b.time) || a.n - b.n);
+/* what Home's strip shows: open cards only, soonest first, then the registry's order */
+const cbLive = o => { const ord = timeOrder(); return cb.rows.filter(r => r.st !== "Done" && (!o || r.owner === o)).sort((a, b) => ord.indexOf(a.time) - ord.indexOf(b.time) || a.n - b.n); };
 
 /* ---------- Yoni: the phone's yoRead and yoTick (index.html ~1387-1482) ---------- */
 const FATHER_FILE = "17👪-family/02👶🏻-father/fatherRegistry.md";
@@ -374,7 +455,7 @@ let busy = 0, failed = false;
 const LINES = { [CUCU_FILE]: () => cb.lines, [FATHER_FILE]: () => yo.lines };
 function parseAll() { const t = cbRead(cb.lines); cb.rows = t.rows; cb.col = t.col; yo.data = yoRead(yo.lines); }
 function save(path, change, message) {
-  if (offline) { status("Offline. Changes are off until the connection is back.", "err"); return; }
+  if (offline) { status("Offline. Changes are off until the connection is back.", "err"); draw(); return; }
   try { change(LINES[path]()); } catch (e) { /* the save below reports it */ }
   parseAll(); draw();
   busy++;
@@ -386,15 +467,64 @@ function save(path, change, message) {
 }
 /* only the row's own cell is rewritten; a row is found again by its exact text */
 function setCell(lines, i, k, v) { const cr = lines[i].endsWith("\r") ? "\r" : "", cells = lines[i].replace(/\r$/, "").split("|"); cells[k] = ` ${v} `; lines[i] = cells.join("|") + cr; }
+function cbFind(lines, r) {
+  const t = cbRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw);
+  if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+  return { t, hit };
+}
 function cbTick(n) {
   const r = cb.rows[n];
   if (!r) return;
   save(CUCU_FILE, lines => {
-    const t = cbRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw);
-    if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+    const { t, hit } = cbFind(lines, r);
     setCell(lines, hit.i, t.col + 1, "Done");
     return hit;
   }, `Tablet: done "${r.title}"`);
+}
+/* a card's cells as the file holds them: a blank Owner for both of us, and no pipes or line breaks in the text */
+const cbEnc = s => String(s || "").replace(/\|/g, "/").replace(/\r?\n/g, " ").trim();
+const cbCells = f => ({ Status: f.st, Owner: f.owner === "Both" ? "" : f.owner, Timing: f.time, Task: cbEnc(f.title), Note: cbEnc(f.note) });
+/* only the cells that were changed in the sheet are rewritten, so the Category and any note line breaks stay as they were */
+function cbEdit(r, f) {
+  const was = cbCells(r), now = cbCells(f);
+  save(CUCU_FILE, lines => {
+    const { t, hit } = cbFind(lines, r);
+    Object.keys(now).forEach(k => { const c = t.head.indexOf(k); if (c >= 0 && now[k] !== was[k]) setCell(lines, hit.i, c + 1, now[k]); });
+    return hit;
+  }, `Tablet: edit "${now.Task}"`);
+}
+/* a new line takes the file's line endings, as its header row has them */
+const cbEol = (lines, i) => (lines[i] || "").endsWith("\r") ? "\r" : "";
+/* a new card goes at the end of the table, in Family when the file has that category */
+function cbAdd(f) {
+  const cells = cbCells(f);
+  save(CUCU_FILE, lines => {
+    const t = cbRead(lines);
+    if (!t.head) throw new Error("The CucuBarri table was not found in the file.");
+    cells.Category = ((lines.join("\n").match(/^\*\*Category:\*\*(.+)$/m) || [])[1] || "").split(",").map(s => s.trim()).find(s => / Family$/.test(s)) || "";
+    const at = t.rows.length ? t.rows[t.rows.length - 1].i + 1 : t.hi + 2;
+    lines.splice(at, 0, `| ${t.head.map(h => cells[h] || "").join(" | ")} |`.replace(/ {2}\|/g, " |") + cbEol(lines, t.hi));
+    return true;
+  }, `Tablet: add "${cells.Task}"`);
+}
+/* a deleted card is kept for Undo with the card above it, so it goes back in the same place */
+let undoCard = null, toastT = 0;
+function cbDel(r) {
+  const prev = cb.rows[r.n - 1];
+  undoCard = { raw: r.raw, after: prev ? prev.raw : null, title: r.title };
+  save(CUCU_FILE, lines => { const { hit } = cbFind(lines, r); lines.splice(hit.i, 1); return hit; }, `Tablet: delete "${r.title}"`);
+  clearTimeout(toastT); toastT = setTimeout(() => { undoCard = null; draw(); }, 6000);
+}
+function cbUndo() {
+  const u = undoCard;
+  undoCard = null; clearTimeout(toastT);
+  if (!u) return;
+  save(CUCU_FILE, lines => {
+    const t = cbRead(lines), above = u.after && t.rows.find(x => x.raw === u.after);
+    if (!t.head) throw new Error("The CucuBarri table was not found in the file.");
+    lines.splice(above ? above.i + 1 : t.hi + 2, 0, u.raw + cbEol(lines, t.hi));
+    return true;
+  }, `Tablet: undo delete "${u.title}"`);
 }
 function yoTick(i) {
   const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "";
@@ -413,7 +543,8 @@ function yoTick(i) {
 /* the sky now, with the moon after dark as the hour strip shows it */
 const wxNowIcon = n => { const h = wxFromNow(1)[0]; return wxHourIcon({ code: n.code, day: h ? h.day : true }); };
 const nowWx = () => { const n = wxNow(); return n ? `<div class="nowx">${wxIco(wxNowIcon(n), 22)}<span class="num">${n.temp}°</span></div>` : ""; };
-const head = (title, mid = "") => `<div class="hd"><h1>${title}</h1><span class="dt">${fmtDay(today(), { weekday: "long", month: "short", day: "numeric" })}</span>${mid}<div class="rt"><span class="st ell${stKind === "err" ? " err" : ""}" id="st">${esc(stMsg)}</span>${nowWx()}</div></div>`;
+const head = (title, mid = "", right = nowWx()) => `<div class="hd"><h1>${title}</h1><span class="dt">${fmtDay(today(), { weekday: "long", month: "short", day: "numeric" })}</span>${mid}<div class="rt"><span class="st ell${stKind === "err" ? " err" : ""}" id="st">${esc(stMsg)}</span>${right}</div></div>`;
+const segBar = (list, on, key) => `<div class="seg">${list.map(v => `<button data-seg="${key}" data-v="${v}" class="${v === on ? "on" : ""}">${v}</button>`).join("")}</div>`;
 const hsq = n => `<span class="hsq">${svg(TAB[n], 16)}</span>`;
 const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
 const sideBar = () => `<div class="brand"><img src="tablet-icon-180.png" alt=""><b>CucuBarri</b></div>${NAV.map(n => `<button class="nv${n === tab ? " on" : ""}" data-go="${n}"><span class="w">${svg(TAB[n], 24)}</span>${n}</button>`).join("")}`;
@@ -468,20 +599,99 @@ function homeScreen() {
     <div style="display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,1.1fr);gap:12px;min-height:0">${homeCal()}${homeWx()}${homeYoni()}</div>
     ${homeTasks()}</div>`;
 }
+/* ---------- Tasks: the web board's filter and Display (lifeSections.js ~468-525) over the CucuBarri cards ---------- */
+/* grp, ord, done, and props are the Display menu; tf is the filter, one list per property, where an empty list shows all. Kept on this iPad */
+const view = Object.assign({ tasks: "Board", grp: "Status", ord: "Manual", done: false, props: { Note: true, Timing: true, Owner: true }, tf: { status: [], time: [], owner: [] } }, (() => { try { return JSON.parse(store.get("tablet-tasks")) || {}; } catch (e) { return {}; } })());
+const keepView = () => store.set("tablet-tasks", JSON.stringify(view));
+/* edit is the card in the sheet ("new" for a new one), f the sheet's fields, and pop the open menu */
+const ts = { edit: null, r: null, f: null, pop: null };
+const FKEYS = [["status", "Status"], ["time", "Timing"], ["owner", "Owner"]];
+const fval = (k, r) => k === "status" ? r.st : k === "time" ? r.time : r.owner;
+const fopts = k => k === "status" ? STATS : k === "time" ? timeOrder() : OWNERS;
+const fname = (k, v) => k === "time" ? tLabel(v) : v;
+/* the cards that pass the filter and the done switch, in the picked order: Manual keeps the registry order */
+function shown() {
+  const r = cb.rows.filter(x => (view.done || x.st !== "Done") && FKEYS.every(([k]) => !view.tf[k].length || view.tf[k].includes(fval(k, x))));
+  if (view.ord === "Name") r.sort((a, b) => a.title.localeCompare(b.title));
+  return r;
+}
+/* the lanes of the picked grouping: every status (Done only while shown), every owner, or each timing that has cards, today always */
+function lanes(rows) {
+  const g = view.grp, of = x => g === "Status" ? x.st : g === "Owner" ? x.owner : x.time;
+  const keys = g === "Status" ? STATS.filter(s => s !== "Done" || view.done) : g === "Owner" ? OWNERS : timeOrder().filter(t => t === dayName() || rows.some(x => x.time === t));
+  return keys.map(k => ({ k, m: rows.filter(x => of(x) === k) }));
+}
+const laneHd = k => view.grp === "Status" ? `${sGlyph(k, 16)}<b>${k}</b>` : view.grp === "Owner" ? `${av(k)}<b>${k}</b>` : `<b${k === dayName() ? ' style="color:var(--done)"' : ""}>${tLabel(k)}</b>`;
+const P = k => view.props[k];
+const glyph = (r, s = 18) => r.st === "Done" ? `<span class="glb">${sGlyph("Done", s)}</span>` : `<button class="glb" data-done="${r.n}" aria-label="Check off">${sGlyph(r.st, s)}</button>`;
+const whenTxt = t => { const d = t !== dayName() && t !== "Next Week" && timeDate(t); return `${tLabel(t)}${d ? `<span class="sep">›</span>${d}` : ""}`; };
+const sel = r => ts.edit !== null && ts.r && ts.r.raw === r.raw ? " sel" : "";
+function lcard(r) {
+  const tm = P("Timing") && view.grp !== "Timing", ow = P("Owner") && view.grp !== "Owner";
+  return `<div class="lc${sel(r)}${r.st === "Done" ? " is-done" : ""}" data-edit="${r.n}" data-row="${r.n}">${tm || ow ? `<div class="lchd${r.time === dayName() && tm ? " today" : ""}"><span class="ell">${tm ? whenTxt(r.time) : ""}</span><span class="grow"></span>${ow ? av(r.owner) : ""}</div>` : ""}<div class="lct">${esc(r.title)}</div>${P("Note") && r.note ? `<div class="lcn ell">${esc(r.note)}</div>` : ""}<div class="lcf">${glyph(r, 16)}</div></div>`;
+}
+const addKey = k => `${view.grp}:${k}`;
+const boardView = () => `<div class="lbd scroll">${lanes(shown()).map(({ k, m }) => `<section class="lcol"><div class="lch">${laneHd(k)}<span class="num">${m.length}</span><span class="grow"></span><button class="tool" data-add="${esc(addKey(k))}" aria-label="New task">${svg(UI.plus, 18, 2.2)}</button></div><div class="lcl scroll">${m.map(lcard).join("")}<button class="addc" data-add="${esc(addKey(k))}">+ New task</button></div></section>`).join("")}</div>`;
+const lrow = r => `<div class="lr${sel(r)}${r.st === "Done" ? " is-done" : ""}" data-edit="${r.n}" data-row="${r.n}">${glyph(r)}<span class="lrt ell">${esc(r.title)}</span><span class="lrn ell grow">${P("Note") ? esc(r.note) : ""}</span>${P("Timing") && view.grp !== "Timing" ? `<span class="lrc${r.time === dayName() ? " today" : ""}">${tShort(r.time)}</span>` : ""}${P("Owner") && view.grp !== "Owner" ? av(r.owner) : ""}</div>`;
+const listView = () => `<div class="ll scroll">${lanes(shown()).filter(x => x.m.length).map(({ k, m }) => `<div class="band${view.grp === "Timing" && k === dayName() ? " today" : ""}">${laneHd(k)}<span class="num">${m.length}</span>${view.grp === "Timing" ? `<span>${timeDate(k)}</span>` : ""}<span class="grow"></span><button class="tool" data-add="${esc(addKey(k))}" aria-label="New task">${svg(UI.plus, 18, 2.2)}</button></div>${m.map(lrow).join("")}`).join("") || `<div class="s" style="padding:18px">${cb.rows.length ? "No tasks match the filter." : "No CucuBarri tasks yet."}</div>`}</div>`;
+/* + Filter, then a chip per filtered property whose cross clears it; the view switch and Display at the far end */
+const tasksBar = () => `<div class="tbar"><button class="tb ghost${ts.pop === "filter" ? " on" : ""}" data-pop="filter">+ Filter</button>${FKEYS.filter(([k]) => view.tf[k].length).map(([k, l]) => `<span class="fchip"><span class="k">${l}</span><span class="ell">${view.tf[k].map(v => fname(k, v)).join(", ")}</span><button data-fclr="${k}" aria-label="Clear the ${l} filter">${svg(UI.x, 16, 2.4)}</button></span>`).join("")}<span class="grow"></span>${segBar(["List", "Board"], view.tasks, "tasks")}<button class="tb${ts.pop === "display" ? " on" : ""}" data-pop="display">${svg(UI.display, 18, 2)}Display</button></div>`;
+function popMenu() {
+  if (!ts.pop) return "";
+  const menu = ts.pop === "filter"
+    ? `<div class="pop" style="left:22px;width:600px"><div class="fcols">${FKEYS.map(([k, l]) => `<div><div class="pop-h">${l}</div>${fopts(k).map(v => { const on = view.tf[k].includes(v); return `<button class="pi${on ? " on" : ""}" data-fpick="${k}" data-v="${esc(v)}">${box(on)}${k === "status" ? sGlyph(v, 16) : k === "owner" ? av(v) : ""}<span class="ell">${fname(k, v)}</span></button>`; }).join("")}</div>`).join("")}</div></div>`
+    : `<div class="pop" style="right:22px;width:360px"><div class="pop-h">Grouping</div>${segBar(["Status", "Owner", "Timing"], view.grp, "grp")}<div class="pop-h" style="margin-top:6px">Ordering</div>${segBar(["Manual", "Name"], view.ord, "ord")}
+      <button class="dsw${view.done ? " on" : ""}" style="margin-top:12px" data-shdone>Show done tasks<i></i></button>
+      <div class="pop-h">Properties</div><div class="opts">${Object.keys(view.props).map(k => `<button class="o${P(k) ? " on" : ""}" data-prop="${k}">${k}</button>`).join("")}</div></div>`;
+  return `<div class="popdim" data-popx></div>${menu}`;
+}
+function sheet() {
+  if (ts.edit === null) return "";
+  const f = ts.f, isNew = ts.edit === "new";
+  return `<div class="dim" data-close></div><div class="bs"><h3>${isNew ? "New task" : "Edit task"}<button data-close>Cancel</button></h3>
+    <label class="fl"><span>Name</span><input class="in" id="fName" value="${esc(f.title)}" placeholder="What needs doing" enterkeyhint="done"></label>
+    <label class="fl"><span>Note</span><input class="in" id="fNote" value="${esc(f.note)}" placeholder="Optional" enterkeyhint="done"></label>
+    <div class="fl"><span>Status</span><div class="opts">${STATS.map(o => `<button class="o${o === f.st ? " on" : ""}" data-fset="st" data-v="${o}">${sGlyph(o, 16)}&nbsp;&nbsp;${o}</button>`).join("")}</div></div>
+    <div class="fl"><span>Owner</span><div class="opts">${OWNERS.map(o => `<button class="o${o === f.owner ? " on" : ""}" data-fset="owner" data-v="${o}">${o}</button>`).join("")}</div></div>
+    <div class="fl"><span>Timing</span><div class="opts">${timeOrder().map(o => `<button class="o${o === f.time ? " on" : ""}" data-fset="time" data-v="${o}">${tLabel(o)}</button>`).join("")}</div></div>
+    <div class="fb">${isNew ? "" : `<button class="btn del" data-del>${svg(UI.trash, 18, 2)}Delete</button>`}<button class="btn" data-save>${isNew ? "Add" : "Save"}</button></div></div>`;
+}
+const toast = () => undoCard ? `<div class="toast"><span class="ell">Deleted "${esc(undoCard.title)}"</span><button data-undo>Undo</button></div>` : "";
+function tasksScreen() {
+  return head("Tasks", "", `<button class="sq" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 22, 2.4)}</button>`) + tasksBar() + `<div class="body">${view.tasks === "Board" ? boardView() : listView()}</div>${popMenu()}${sheet()}${toast()}`;
+}
+/* the sheet's typed text is kept before every redraw */
+function keepText() { const n = $("fName"), t = $("fNote"); if (n && ts.f) { ts.f.title = n.value; ts.f.note = t.value; } }
+function openSheet(r, add) {
+  ts.pop = null;
+  if (r) { ts.edit = r.n; ts.r = r; ts.f = { st: r.st, owner: r.owner, time: r.time, title: r.title, note: r.note }; }
+  else { const [g, k] = add.split(":"); ts.edit = "new"; ts.r = null; ts.f = { st: g === "Status" ? k : "Open", owner: g === "Owner" ? k : "MS", time: g === "Timing" ? k : dayName(), title: "", note: "" }; }
+  draw();
+  if (!r) setTimeout(() => { const n = $("fName"); if (n) n.focus(); }, 0);
+}
+function saveSheet() {
+  keepText();
+  const f = ts.f, r = ts.r, isNew = ts.edit === "new";
+  ts.edit = null; ts.r = null;
+  if (!cbEnc(f.title)) { draw(); return; }
+  if (isNew) cbAdd(f); else cbEdit(r, f);
+}
+
 /* the screens built in later stages */
 const soon = n => () => head(n) + `<div class="body"><section class="card"><div class="empty">${n} is on its way. Home shows its summary for now.</div></section></div>`;
 function setupScreen(msg) {
   return head("Connect") + `<div class="body"><form class="card setup" id="setup"><h3>Connect to MattOS</h3><p>${esc(msg || "Paste the GitHub token for the mattos-data repository once. It is kept only on this iPad.")}</p><input class="in" id="token" type="password" autocomplete="off" placeholder="Token" required><button class="btn" type="submit">Connect</button></form></div>`;
 }
-const SCREENS = { Home: homeScreen, Tasks: soon("Tasks"), Calendar: soon("Calendar"), Weather: soon("Weather"), Yoni: soon("Yoni") };
+const SCREENS = { Home: homeScreen, Tasks: tasksScreen, Calendar: soon("Calendar"), Weather: soon("Weather"), Yoni: soon("Yoni") };
 
 /* ---------- router and loading ---------- */
 let tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home", setupMsg = null;
 function draw() {
+  keepText();
   $("side").innerHTML = sideBar();
-  const sc = [...document.querySelectorAll("#main .scroll")].map(e => e.scrollTop);
+  const sc = [...document.querySelectorAll("#main .scroll")].map(e => [e.scrollTop, e.scrollLeft]);
   $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]();
-  document.querySelectorAll("#main .scroll").forEach((e, k) => { e.scrollTop = sc[k] || 0; }); /* a redraw keeps each list where it was */
+  document.querySelectorAll("#main .scroll").forEach((e, k) => { [e.scrollTop, e.scrollLeft] = sc[k] || [0, 0]; }); /* a redraw keeps each list where it was */
 }
 /* first from the copies kept on this iPad, so it opens at once, then from the newest files */
 function fromKept() {
@@ -508,14 +718,28 @@ async function loadAll() {
   if (bad && /token/i.test(bad.reason.message)) { setupMsg = bad.reason.message; draw(); return; }
   const at = [c, t, y].map(x => x.value && x.value.at).find(Boolean);
   status(bad ? bad.reason.message : at ? `Offline. Showing what was loaded ${at}.` : "Synced " + stamp().split(", ").pop(), bad || at ? "err" : "ok");
-  draw();
+  if (ts.edit === null) draw(); /* an open sheet is not redrawn under the keyboard */
 }
 
 document.addEventListener("click", ev => {
   const at = q => ev.target.closest(q);
   let x;
-  if ((x = at("[data-done]"))) { const n = +x.dataset.done; x.innerHTML = sGlyph("Done", 16); const row = x.closest("[data-row]"); if (row) row.classList.add("gone"); setTimeout(() => cbTick(n), 320); }
+  if (at("[data-popx]")) { ts.pop = null; draw(); }
+  else if ((x = at("[data-pop]"))) { ts.pop = ts.pop === x.dataset.pop ? null : x.dataset.pop; draw(); }
+  else if ((x = at("[data-fpick]"))) { const L = view.tf[x.dataset.fpick], v = x.dataset.v; L.includes(v) ? L.splice(L.indexOf(v), 1) : L.push(v); keepView(); draw(); }
+  else if ((x = at("[data-fclr]"))) { view.tf[x.dataset.fclr] = []; keepView(); draw(); }
+  else if (at("[data-shdone]")) { view.done = !view.done; keepView(); draw(); }
+  else if ((x = at("[data-prop]"))) { view.props[x.dataset.prop] = !view.props[x.dataset.prop]; keepView(); draw(); }
+  else if ((x = at("[data-seg]"))) { view[x.dataset.seg] = x.dataset.v; keepView(); draw(); }
+  else if ((x = at("[data-fset]"))) { ts.f[x.dataset.fset] = x.dataset.v; draw(); }
+  else if (at("[data-close]")) { ts.edit = null; ts.r = null; draw(); }
+  else if (at("[data-save]")) saveSheet();
+  else if (at("[data-del]")) { const r = ts.r; ts.edit = null; ts.r = null; if (r) cbDel(r); else draw(); }
+  else if (at("[data-undo]")) cbUndo();
+  else if ((x = at("[data-done]"))) { const n = +x.dataset.done; x.innerHTML = sGlyph("Done", +x.querySelector("svg").getAttribute("width")); const row = x.closest("[data-row]"); if (row) row.classList.add("gone"); setTimeout(() => cbTick(n), 320); }
   else if ((x = at("[data-yo]"))) yoTick(+x.dataset.yo);
+  else if ((x = at("[data-add]"))) openSheet(null, x.dataset.add);
+  else if ((x = at("[data-edit]"))) { const r = cb.rows[+x.dataset.edit]; if (r) openSheet(r); }
   else if ((x = at("[data-go]")) && !setupMsg) { if (x.dataset.go === tab && tab === "Home") loadAll(); location.hash = x.dataset.go; }
 });
 document.addEventListener("submit", ev => {
@@ -523,7 +747,9 @@ document.addEventListener("submit", ev => {
   if (ev.target.id !== "setup") return;
   store.set("token", $("token").value.trim()); setupMsg = null; draw(); loadAll();
 });
-addEventListener("hashchange", () => { tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home"; draw(); });
+addEventListener("hashchange", () => { tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home"; ts.edit = ts.r = ts.pop = null; draw(); });
+/* Return in the sheet saves it */
+document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target.closest && ev.target.closest(".bs")) { ev.preventDefault(); saveSheet(); } });
 /* the iPad sits on its dock: the files are read again every five minutes and whenever the app comes back to the front */
 setInterval(() => { if (!document.hidden) loadAll(); }, 5 * 60e3);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAll(); });
