@@ -14,7 +14,7 @@
 <title>MattOS</title>
 <script>
   /* CucuBarri, the family profile (index.html?profile=cucubarri): Calendar, Yoni, and Shopping only, with the tablet's name and icon.
-     The manifest goes, so the home screen keeps this address, profile included */
+     The manifest swaps to cucubarri.webmanifest, so the home-screen icon opens this profile */
   if (/[?&]profile=cucubarri\b/i.test(location.search)) {
     document.documentElement.classList.add("cb");
     document.title = "CucuBarri";
@@ -22,7 +22,7 @@
     document.querySelector('link[rel="apple-touch-icon"]').href = "tablet-icon-180.png";
     document.querySelector('link[rel="icon"]').href = "tablet-icon-180.png";
     document.querySelector('link[rel="manifest"]').remove();
-  }
+    document.querySelector('link[rel="manifest"]').href = "cucubarri.webmanifest";
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
