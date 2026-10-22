@@ -238,6 +238,46 @@
   .fb { display: flex; gap: 8px; }
   .fb .btn { padding: 11px 16px; font-weight: 600; }
 
+  /* ---------- Shopping, Tasks' fourth view (shoppingListMobileV3 option 2): one store section open at a time ---------- */
+  .seg .emo { font-size: 19px; }
+  .shtop { display: flex; gap: 8px; margin: 2px 0 8px; }
+  .shtop .seg { padding: 3px; border-radius: 11px; }
+  .shtop .seg button { height: 30px; line-height: 30px; padding: 0 10px; font-size: 13px; }
+  .shtop .seg.vw { flex: none; width: 150px; }
+  .sadd { display: flex; gap: 8px; margin-bottom: 4px; }
+  .sadd input { flex: 1; min-width: 0; height: 38px; padding: 0 12px; border-radius: 11px; background: var(--raised); border: 1px solid var(--rule); outline: none; font-size: 16px; }
+  .sadd button { flex: none; width: 38px; height: 38px; border-radius: 11px; background: var(--blue); color: #fff; display: grid; place-items: center; }
+  .scard { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 0 12px; margin-top: 8px; }
+  .scard.op { padding-bottom: 4px; }
+  .slg { display: flex; align-items: center; gap: 7px; width: 100%; height: 38px; font-size: 11.5px; font-weight: 700; color: var(--mut); text-transform: uppercase; letter-spacing: .05em; }
+  .slg .semj { font-size: 14px; }
+  .slg .sn { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; }
+  .scv { color: var(--mut); transition: transform .15s; }
+  .scard.op .scv, .ssec.op .scv { transform: rotate(90deg); }
+  .sprog { height: 4px; margin: -4px 0 6px; border-radius: 2px; background: var(--raised); overflow: hidden; }
+  .scard.op .sprog { margin-bottom: 2px; }
+  .sprog i { display: block; height: 100%; border-radius: 2px; background: var(--done); }
+  .scard.fin .slg { color: var(--done); }
+  .sls { margin-top: 6px; font-size: 9.5px; font-weight: 700; color: #5f6676; text-transform: uppercase; letter-spacing: .05em; }
+  .slr { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 34px; padding: 0 2px; border-bottom: 1px solid var(--line); }
+  .scard .slr:last-child, .sbody .slr:last-child { border-bottom: 0; }
+  .sck { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #5f6676; display: grid; place-items: center; color: #fff; }
+  .slr.got .sck, .slr.on .sck { background: var(--blue); border-color: var(--blue); }
+  .snm { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13.5px; }
+  .slr.got .snm { color: #5f6676; text-decoration: line-through; }
+  .sqty { font-size: 12px; color: var(--mut); white-space: nowrap; }
+  .slr.got .sqty { color: #5f6676; }
+  .rtag { font-size: 10px; font-weight: 600; line-height: 16px; color: #b79cf7; background: rgba(183, 156, 247, .12); border-radius: 6px; padding: 0 6px; white-space: nowrap; }
+  .ssec { margin-top: 8px; }
+  .ssh { display: flex; align-items: center; gap: 10px; width: 100%; height: 48px; padding: 0 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); font-size: 15px; font-weight: 600; color: #fff; }
+  .ssh .semj { font-size: 18px; }
+  .sbd { margin-left: auto; min-width: 24px; height: 22px; padding: 0 7px; border-radius: 11px; background: var(--blue); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+  .sbd.z { background: var(--raised); color: #5f6676; }
+  .ssec.op .ssh { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
+  .sbody { padding: 0 12px 6px; background: var(--card); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 12px 12px; }
+  .savebar .spg { flex: 1; align-self: center; font-size: 14px; color: var(--mut); }
+  .savebar .sv.shd { flex: none; padding: 0 18px; }
+
   /* ---------- Habits ---------- */
   /* one day's form, then the week as bars and as a grid by day. A day is a draft on this phone until Save is pressed */
   .scr.hbs { padding-bottom: 20px; }
@@ -845,8 +885,10 @@ function addIdeaLines(lines, d) {
 }
 const tk = { lines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks", cat: "All", menu: false, wide: null, sheet: "" };
 let tkBusy = 0, tkFail = false;
-function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); }
+function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); }
 function drawTasks() {
+  if (tk.view === "Shopping") { drawShop(); return; }
+  leaveHabits(); /* the Done shopping bar */
   const cats = ["All", ...Object.keys(TK_CATS)], inCat = x => tk.cat === "All" || x.cat === tk.cat, open = r => r.st !== "Done";
   const show = s => esc(s.replace(/<br\s*\/?>/gi, " ")), tick = n => svg(UI.check, n, 4);
   const count = v => (tk.view === "Ideas" ? tk.ideas : tk.rows.filter(open)).filter(x => v === "All" || x.cat === v).length;
@@ -872,19 +914,20 @@ function drawTasks() {
   $("fab").hidden = offline;
 }
 /* the switch at the top, as on Calendar; its buttons carry data-{kind}="{act}" with the view in data-a */
-const segBar = (views, on, kind, act, end = "") => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${on === v ? ' aria-current="true"' : ""}>${v}</button>`).join("")}</div>${end}</div>`;
-/* Tasks, Ideas, and Notes; Notes is its own screen, so its button opens it */
-const tkBar = (on, end = "") => segBar(["Tasks", "Ideas", "Notes"], on, "tk", "view", end);
+const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
+/* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
+const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
+const tkBar = (on, end = "") => segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
-  const [t, i, y] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE)]);
+  const [t, i, y, s] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null)]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
-  tk.lines = t.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); tkParse();
+  tk.lines = t.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
   drawTasks();
 }
 /* the change shows at once and is then saved on top of the newest file. If a save fails, the list is read again once nothing else is waiting */
 function tkSave(path, change, message) {
-  try { change(path === TASK_FILE ? tk.lines : path === IDEA_FILE ? tk.ilines : yo.lines); } catch (e) { /* the save below reports it */ }
+  try { change(path === TASK_FILE ? tk.lines : path === IDEA_FILE ? tk.ilines : path === SHOP_FILE ? sh.lines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
   if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
   tkBusy++;
@@ -998,8 +1041,116 @@ function tkAct(act, a, el) {
   else if (act === "opt" && el.dataset.k === "b") { el.classList.toggle("on"); el.setAttribute("aria-pressed", el.classList.contains("on")); }
   else if (act === "opt") el.parentNode.querySelectorAll(".o").forEach(b => { b.classList.toggle("on", b === el); b.setAttribute("aria-pressed", b === el); });
   else if (act === "cancel") closeSheet();
+  else if (act.startsWith("sh")) shAct(act, a);
 }
-function leaveTasks() { closeSheet(); tk.menu = false; }
+function leaveTasks() { closeSheet(); tk.menu = false; leaveHabits(); }
+
+/* ---------- Shopping: 26🛒-shoppingList/shoppingListRegistry.md; shRead, shSecs, shSet, shAdd, and shClear are the same in tablet.html ---------- */
+const SHOP_FILE = "26🛒-shoppingList/shoppingListRegistry.md";
+/* the Stores table gives each store's sections in walk order; the Catalog table has one row per item, and a change rewrites one cell or adds one line */
+function shRead(lines) {
+  const stores = [], items = [];
+  let head = null, kind = "", ihead = null, end = -1;
+  lines.forEach((line, i) => {
+    const t = line.replace(/\r$/, "").trim();
+    if (!t.startsWith("|")) { head = null; return; }
+    const c = t.split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { head = c; kind = c.includes("Item") ? "item" : c.includes("Store") ? "store" : ""; if (kind === "item") { ihead = c; end = i; } return; }
+    if (kind === "item") end = i;
+    if (/^:?-+:?$/.test(c[0])) return;
+    const cell = n => c[head.indexOf(n)] || "";
+    if (kind === "store" && cell("Store")) {
+      let s = stores.find(x => x.name === cell("Store"));
+      if (!s) stores.push(s = { name: cell("Store"), secs: [] });
+      s.secs.push({ em: cell("Emoji"), name: cell("Section"), subs: cell("Subcategories").split(",").map(x => x.trim()).filter(Boolean) });
+    } else if (kind === "item" && cell("Item")) {
+      const st = cell("Status").toLowerCase();
+      items.push({ i, name: cell("Item"), sub: cell("Subcategory") || "Other", st: st === "on" ? "On" : st === "got" ? "Got" : "", q: cell("Qty"), tag: cell("Recipe") });
+    }
+  });
+  return { stores, items, head: ihead, end };
+}
+/* a store's sections, with an Other section for subcategories it does not list; each subcategory carries its items, alphabetical */
+function shSecs(d, store) {
+  const s = d.stores.find(x => x.name === store) || d.stores[0];
+  if (!s) return [];
+  const known = new Set(s.secs.flatMap(x => x.subs)), other = [...new Set(d.items.map(x => x.sub).filter(k => !known.has(k)))];
+  return [...s.secs, ...(other.length ? [{ em: "🛒", name: "Other", subs: other }] : [])].map(x => ({ ...x, groups: x.subs.map(k => ({ k, items: d.items.filter(it => it.sub === k).sort((a, b) => a.name.localeCompare(b.name)) })) }));
+}
+/* one cell of an item's row, found again by its name */
+function shSet(lines, name, col, v) {
+  const t = shRead(lines), it = t.items.find(x => x.name === name), k = t.head ? t.head.indexOf(col) : -1;
+  if (!it || k < 0) throw new Error(`"${name}" was not found in the shopping list, so the change was not saved.`);
+  const cr = lines[it.i].endsWith("\r") ? "\r" : "", cells = lines[it.i].replace(/\r$/, "").split("|"), val = String(v).replace(/\|/g, "/").replace(/\s+/g, " ").trim();
+  cells[k + 1] = val ? ` ${val} ` : " ";
+  lines[it.i] = cells.join("|") + cr;
+  return it;
+}
+/* an item typed in: a catalog item goes on the list; a new one goes on it too, after the last item of its subcategory */
+function shAdd(lines, name, sub) {
+  const t = shRead(lines), it = t.items.find(x => x.name.toLowerCase() === name.toLowerCase());
+  if (it) return shSet(lines, it.name, "Status", "On");
+  if (!t.head) throw new Error("The catalog table was not found, so the item was not added.");
+  const same = t.items.filter(x => x.sub === sub), at = same.length ? same[same.length - 1].i : t.end, cells = { Item: name.replace(/\|/g, "/"), Subcategory: sub, Status: "On" };
+  lines.splice(at + 1, 0, `| ${t.head.map(h => cells[h] || "").join(" | ")} |`.replace(/ {2}\|/g, " |") + (lines[at].endsWith("\r") ? "\r" : ""));
+  return cells;
+}
+/* Done shopping: everything in the cart comes off the list */
+function shClear(lines) { const got = shRead(lines).items.filter(x => x.st === "Got"); got.forEach(x => shSet(lines, x.name, "Status", "")); return got; }
+
+/* one: the section open on the list ("" for none, null picks the first unfinished one) */
+const sh = { lines: [], d: shRead([]), store: store.get("shop-store"), cat: false, one: null, open: {} };
+const shStore = () => (sh.d.stores.find(x => x.name === sh.store) || sh.d.stores[0] || { name: "" }).name;
+function drawShop() {
+  const cur = shStore(), secs = shSecs(sh.d, cur), on = sh.d.items.filter(x => x.st), got = on.filter(x => x.st === "Got").length, tick = svg(UI.check, 11, 3.6);
+  const seg = (list, now, act, cls = "grow") => `<div class="seg ${cls}">${list.map(v => `<button type="button" class="${v === now ? "on" : ""}" data-tk="${act}" data-a="${esc(v)}">${esc(v)}</button>`).join("")}</div>`;
+  const top = `<div class="shtop">${seg(sh.d.stores.map(s => s.name), cur, "shstore")}${seg(["List", "Catalog"], sh.cat ? "Catalog" : "List", "shview", "vw")}</div>`;
+  const add = offline ? "" : `<form class="sadd" id="shadd"><input id="sh-x" placeholder="Add an item" autocomplete="off" enterkeyhint="done"><button type="submit" aria-label="Add">${svg(UI.plus, 20, 2.4)}</button></form>`;
+  let body;
+  if (!sh.d.stores.length) body = `<div class="empty">The shopping list file was not found.</div>`;
+  else if (sh.cat) body = secs.map(s => {
+    const n = s.groups.reduce((a, g) => a + g.items.filter(x => x.st).length, 0), op = sh.open[s.name];
+    return `<div class="ssec${op ? " op" : ""}"><button type="button" class="ssh" data-tk="shsec" data-a="${esc(s.name)}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sbd num${n ? "" : " z"}">${n}</span>${svg(UI.right, 16, 2.4, "scv")}</button>${op ? `<div class="sbody">${s.groups.filter(g => g.items.length).map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(x => `<button type="button" class="slr${x.st ? " on" : ""}" data-tk="shon" data-a="${esc(x.name)}"><span class="sck">${x.st ? tick : ""}</span><span class="snm">${esc(x.name)}</span></button>`).join("")}`).join("")}</div>` : ""}</div>`;
+  }).join("");
+  else {
+    const live = secs.map(s => { const groups = s.groups.map(g => ({ k: g.k, items: g.items.filter(x => x.st) })).filter(g => g.items.length), all = groups.flatMap(g => g.items), n = all.filter(x => x.st === "Got").length; return { ...s, groups, all, n, fin: n === all.length }; }).filter(s => s.all.length);
+    if (sh.one === null || (sh.one && !live.some(s => s.name === sh.one))) { const f = live.find(s => !s.fin); sh.one = f ? f.name : live.length ? "" : null; }
+    const row = x => `<button type="button" class="slr${x.st === "Got" ? " got" : ""}" data-tk="shgot" data-a="${esc(x.name)}"><span class="sck">${x.st === "Got" ? tick : ""}</span><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span>${x.q ? `<span class="sqty">${esc(x.q)}</span>` : ""}</button>`;
+    body = live.map(s => { const op = sh.one === s.name; return `<div class="scard${op ? " op" : ""}${s.fin ? " fin" : ""}"><button type="button" class="slg" data-tk="shone" data-a="${esc(s.name)}" aria-expanded="${op}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sn num">${s.fin ? `✓ All ${s.all.length}` : `${s.n} of ${s.all.length}`}</span>${svg(UI.right, 14, 2.4, "scv")}</button><div class="sprog"><i style="width:${s.n / s.all.length * 100}%"></i></div>${op ? s.groups.map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(row).join("")}`).join("") : ""}</div>`; }).join("")
+      || `<div class="empty">The list is empty. Add an item above, or pick from the Catalog.</div>`;
+  }
+  $("main").innerHTML = tkBar("Shopping") + top + (sh.cat ? "" : add) + body;
+  $("fab").hidden = true;
+  if (sh.cat || !on.length) { leaveHabits(); return; }
+  $("savebar").innerHTML = `<span class="spg num">${on.length - got} left</span><button type="button" class="sv shd${got && !offline ? "" : " off"}" data-tk="shdone">Done shopping${got ? ` (${got})` : ""}</button>`;
+  $("savebar").hidden = false; $("scr").classList.add("hbs");
+}
+function shSave(change, message) {
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  tkSave(SHOP_FILE, change, message);
+}
+function shAct(act, a) {
+  const it = sh.d.items.find(x => x.name === a);
+  if (act === "shstore") { sh.store = a; store.set("shop-store", a); sh.one = null; drawShop(); }
+  else if (act === "shview") { sh.cat = a === "Catalog"; $("scr").scrollTop = 0; drawShop(); }
+  else if (act === "shone") { sh.one = sh.one === a ? "" : a; drawShop(); }
+  else if (act === "shsec") { sh.open[a] = !sh.open[a]; drawShop(); }
+  else if (act === "shon" && it) shSave(lines => shSet(lines, a, "Status", it.st ? "" : "On"), `Phone: ${it.st ? "remove" : "add"} "${a}" ${it.st ? "from" : "to"} the shopping list`);
+  else if (act === "shgot" && it) {
+    const to = it.st === "Got" ? "On" : "Got";
+    /* checking off the last item of the open section opens the next unfinished one */
+    const s = shSecs(sh.d, shStore()).find(x => x.name === sh.one), rest = s ? s.groups.flatMap(g => g.items).filter(x => x.st && x.name !== a) : null;
+    if (to === "Got" && rest && rest.every(x => x.st === "Got")) sh.one = null;
+    shSave(lines => shSet(lines, a, "Status", to), `Phone: ${to === "Got" ? "got" : "unchecked"} "${a}"`);
+  }
+  else if (act === "shdone" && sh.d.items.some(x => x.st === "Got")) { sh.one = null; shSave(shClear, "Phone: done shopping"); }
+}
+function shAddTyped() {
+  const name = tkCell($("sh-x").value);
+  if (!name) return;
+  shSave(lines => shAdd(lines, name, "Other"), `Phone: add "${name}" to the shopping list`);
+  const x = $("sh-x"); if (x) x.focus();
+}
 
 /* ---------- Habits: one day's form at a time. The week in progress is a row per day in habitsRegistry.md, the file the desktop's
    This Week tab writes, so both show the same week. It stays open past its Sunday until Close Week adds it to habitHistoryRegistry.md as HabitFlow codes
@@ -1797,6 +1948,7 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("submit", e => {
   if (e.target.id === "tkform") { e.preventDefault(); saveSheet(); return; }
+  if (e.target.id === "shadd") { e.preventDefault(); shAddTyped(); return; }
   if (e.target.id !== "setup") return;
   e.preventDefault();
   store.set("token", $("s-token").value.trim()); store.set("owner", $("s-owner").value.trim()); store.set("repo", $("s-repo").value.trim());

@@ -304,6 +304,38 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .o.bug{position:absolute;right:5px;top:5px;height:34px;width:40px;padding:0;justify-content:center;font-size:17px;background:none;filter:grayscale(1);opacity:.45;font-family:var(--emoji)}
 .o.bug.on{background:var(--raised);filter:none;opacity:1}
 .btn{height:46px;line-height:46px;border-radius:12px;padding:0 18px;font-size:15px;font-weight:600;text-align:center;background:var(--blue);color:#fff}
+/* ---------- Shopping (shoppingListTabletV4 option 2): the list left, checked items stay in their group; the catalog right ---------- */
+.stwo{display:flex;gap:20px;height:100%}
+.slist{width:430px;flex:none;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.slist h2{margin:0 0 4px;font-size:18px;color:#fff;display:flex;justify-content:space-between;align-items:baseline}
+.slist h2 span{font-size:13px;font-weight:500;color:var(--mut)}
+.scat{flex:1;min-width:0}
+.slg{font-size:12.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 2px}
+.semj{font-family:var(--emoji)}
+.slg .semj{font-size:15px;margin-right:4px}
+.sls{display:flex;align-items:center;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 0}
+.slr{display:flex;align-items:center;gap:10px;min-height:46px;border-bottom:1px solid var(--line)}
+.slr .snm{flex:1;min-width:0;display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:15.5px}
+.slr.got .snm{color:var(--dim);text-decoration:line-through}
+.sck{width:22px;height:22px;border-radius:50%;border:2px solid var(--dim);flex:none;display:grid;place-items:center;color:#fff}
+.slr.got .sck,.srow.on .sck{background:var(--blue);border-color:var(--blue)}
+.slr input{width:96px;height:32px;font-size:13px;padding:0 9px;background:var(--raised);border:1px solid var(--rule);border-radius:10px}
+.sx{color:var(--dim);font-size:20px;width:28px;text-align:center}
+.rtag{font-size:11.5px;font-weight:600;color:#b79cf7;background:rgba(183,156,247,.12);border-radius:7px;padding:1px 7px;white-space:nowrap}
+.ssh{display:flex;align-items:center;gap:12px;width:100%;height:56px;padding:0 16px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:17px;font-weight:600;color:#fff}
+.ssh .semj{font-size:22px}
+.sbd{margin-left:auto;min-width:28px;height:26px;padding:0 9px;border-radius:13px;background:var(--blue);color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center}
+.sbd.z{background:var(--raised);color:var(--dim)}
+.scv{color:var(--mut);transition:transform .15s}
+.ssec.op .scv{transform:rotate(90deg)}
+.ssec + .ssec{margin-top:10px}
+.ssec.op .ssh{border-radius:14px 14px 0 0;border-bottom-color:transparent}
+.sbody{background:var(--card);border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;padding:0 16px 10px}
+.sbody .sls{font-size:12px;padding:12px 0 2px;margin:0}
+.sadd{margin-left:auto;text-transform:none;letter-spacing:0;color:var(--acc);font-weight:600;font-size:14px}
+.sbody .sls input{margin-left:auto;height:32px;width:200px;font-size:13.5px;text-transform:none;letter-spacing:0;font-weight:500;padding:0 10px;background:var(--raised);border:1px solid var(--rule);border-radius:10px}
+.srow{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;border-top:1px solid var(--line);font-size:15.5px}
+.sls + .srow{border-top:0}
 </style>
 </head>
 <body>
@@ -343,7 +375,8 @@ const SGLYPH = {
   Done: '<circle cx="7" cy="7" r="6.4" fill="#3fcf8e"/><path d="M4.4 7.1l1.8 1.8 3.4-3.6" fill="none" stroke="#06130d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
 };
 const sGlyph = (l, s = 18) => `<svg class="sgl" width="${s}" height="${s}" viewBox="0 0 14 14">${SGLYPH[l]}</svg>`;
-const NAV = ["Home", "Tasks", "Calendar", "Weather", "Yoni"];
+TAB.Shopping = `<path ${F} d="M1.5 3.5a1.2 1.2 0 0 1 1.2-1.2h1.6a1.6 1.6 0 0 1 1.55 1.2l.35 1.3h14.6a1.2 1.2 0 0 1 1.15 1.5l-1.9 7.2a2 2 0 0 1-1.95 1.5H8.4l.4 1.5h10a1.2 1.2 0 0 1 0 2.4H8.3a1.6 1.6 0 0 1-1.55-1.2L3.9 4.7H2.7a1.2 1.2 0 0 1-1.2-1.2z"/><circle ${F} cx="9" cy="20.5" r="1.8"/><circle ${F} cx="18" cy="20.5" r="1.8"/>`;
+const NAV = ["Home", "Tasks", "Shopping", "Calendar", "Weather", "Yoni"];
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -560,10 +593,65 @@ function yoRead(lines) {
 const yo = { lines: [], data: yoRead([]) };
 const yoCount = list => [list.filter(x => x.on).length, list.length];
 
+/* ---------- Shopping: 26🛒-shoppingList/shoppingListRegistry.md; shRead, shSecs, shSet, shAdd, and shClear are the same in index.html ---------- */
+const SHOP_FILE = "26🛒-shoppingList/shoppingListRegistry.md";
+/* the Stores table gives each store's sections in walk order; the Catalog table has one row per item, and a change rewrites one cell or adds one line */
+function shRead(lines) {
+  const stores = [], items = [];
+  let head = null, kind = "", ihead = null, end = -1;
+  lines.forEach((line, i) => {
+    const t = line.replace(/\r$/, "").trim();
+    if (!t.startsWith("|")) { head = null; return; }
+    const c = t.split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { head = c; kind = c.includes("Item") ? "item" : c.includes("Store") ? "store" : ""; if (kind === "item") { ihead = c; end = i; } return; }
+    if (kind === "item") end = i;
+    if (/^:?-+:?$/.test(c[0])) return;
+    const cell = n => c[head.indexOf(n)] || "";
+    if (kind === "store" && cell("Store")) {
+      let s = stores.find(x => x.name === cell("Store"));
+      if (!s) stores.push(s = { name: cell("Store"), secs: [] });
+      s.secs.push({ em: cell("Emoji"), name: cell("Section"), subs: cell("Subcategories").split(",").map(x => x.trim()).filter(Boolean) });
+    } else if (kind === "item" && cell("Item")) {
+      const st = cell("Status").toLowerCase();
+      items.push({ i, name: cell("Item"), sub: cell("Subcategory") || "Other", st: st === "on" ? "On" : st === "got" ? "Got" : "", q: cell("Qty"), tag: cell("Recipe") });
+    }
+  });
+  return { stores, items, head: ihead, end };
+}
+/* a store's sections, with an Other section for subcategories it does not list; each subcategory carries its items, alphabetical */
+function shSecs(d, store) {
+  const s = d.stores.find(x => x.name === store) || d.stores[0];
+  if (!s) return [];
+  const known = new Set(s.secs.flatMap(x => x.subs)), other = [...new Set(d.items.map(x => x.sub).filter(k => !known.has(k)))];
+  return [...s.secs, ...(other.length ? [{ em: "🛒", name: "Other", subs: other }] : [])].map(x => ({ ...x, groups: x.subs.map(k => ({ k, items: d.items.filter(it => it.sub === k).sort((a, b) => a.name.localeCompare(b.name)) })) }));
+}
+/* one cell of an item's row, found again by its name */
+function shSet(lines, name, col, v) {
+  const t = shRead(lines), it = t.items.find(x => x.name === name), k = t.head ? t.head.indexOf(col) : -1;
+  if (!it || k < 0) throw new Error(`"${name}" was not found in the shopping list, so the change was not saved.`);
+  const cr = lines[it.i].endsWith("\r") ? "\r" : "", cells = lines[it.i].replace(/\r$/, "").split("|"), val = String(v).replace(/\|/g, "/").replace(/\s+/g, " ").trim();
+  cells[k + 1] = val ? ` ${val} ` : " ";
+  lines[it.i] = cells.join("|") + cr;
+  return it;
+}
+/* an item typed in: a catalog item goes on the list; a new one goes on it too, after the last item of its subcategory */
+function shAdd(lines, name, sub) {
+  const t = shRead(lines), it = t.items.find(x => x.name.toLowerCase() === name.toLowerCase());
+  if (it) return shSet(lines, it.name, "Status", "On");
+  if (!t.head) throw new Error("The catalog table was not found, so the item was not added.");
+  const same = t.items.filter(x => x.sub === sub), at = same.length ? same[same.length - 1].i : t.end, cells = { Item: name.replace(/\|/g, "/"), Subcategory: sub, Status: "On" };
+  lines.splice(at + 1, 0, `| ${t.head.map(h => cells[h] || "").join(" | ")} |`.replace(/ {2}\|/g, " |") + (lines[at].endsWith("\r") ? "\r" : ""));
+  return cells;
+}
+/* Done shopping: everything in the cart comes off the list */
+function shClear(lines) { const got = shRead(lines).items.filter(x => x.st === "Got"); got.forEach(x => shSet(lines, x.name, "Status", "")); return got; }
+/* open: the catalog sections opened; adding: the subcategory whose Add item field is open */
+const sh = { lines: [], d: shRead([]), open: { Produce: true }, adding: null };
+
 /* ---------- saving: the change shows at once and is then saved on top of the newest file (the phone's tkSave, index.html ~886) ---------- */
 let busy = 0, failed = false;
-const LINES = { [CUCU_FILE]: () => cb.lines, [FATHER_FILE]: () => yo.lines };
-function parseAll() { const t = cbRead(cb.lines); cb.rows = t.rows; cb.col = t.col; yo.data = yoRead(yo.lines); }
+const LINES = { [CUCU_FILE]: () => cb.lines, [FATHER_FILE]: () => yo.lines, [SHOP_FILE]: () => sh.lines };
+function parseAll() { const t = cbRead(cb.lines); cb.rows = t.rows; cb.col = t.col; yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); }
 function save(path, change, message) {
   if (offline) { status("Offline. Changes are off until the connection is back.", "err"); draw(); return; }
   try { change(LINES[path]()); } catch (e) { /* the save below reports it */ }
@@ -748,7 +836,7 @@ function homeScreen() {
 }
 /* ---------- Tasks: the web board's filter and Display (lifeSections.js ~468-525) over the CucuBarri cards ---------- */
 /* grp, ord, done, and props are the Display menu; tf is the filter, one list per property, where an empty list shows all. Kept on this iPad */
-const view = Object.assign({ cal: "Week", calwx: false, yoni: "Routines", tasks: "Board", grp: "Status", ord: "Manual", done: false, props: { Note: true, Timing: true, Owner: true }, tf: { status: [], time: [], owner: [] } }, (() => { try { return JSON.parse(store.get("tablet-tasks")) || {}; } catch (e) { return {}; } })());
+const view = Object.assign({ shop: "", cal: "Week", calwx: false, yoni: "Routines", tasks: "Board", grp: "Status", ord: "Manual", done: false, props: { Note: true, Timing: true, Owner: true }, tf: { status: [], time: [], owner: [] } }, (() => { try { return JSON.parse(store.get("tablet-tasks")) || {}; } catch (e) { return {}; } })());
 const keepView = () => store.set("tablet-tasks", JSON.stringify(view));
 /* edit is the card in the sheet ("new" for a new one), f the sheet's fields, and pop the open menu */
 const ts = { edit: null, r: null, f: null, pop: null };
@@ -919,10 +1007,20 @@ function yoniScreen() {
   return head("Yoni", `<div style="margin-left:24px">${segBar(["Routines", "Packing", "Daycare"], v, "yoni")}</div>`) + `<div class="body">${inner}</div>`;
 }
 
+function shopScreen() {
+  const d = sh.d, cur = (d.stores.find(x => x.name === view.shop) || d.stores[0] || { name: "" }).name, secs = shSecs(d, cur), on = d.items.filter(x => x.st), left = on.filter(x => x.st !== "Got").length, tick = svg(UI.check, 12, 3.4);
+  const row = x => `<div class="slr${x.st === "Got" ? " got" : ""}"><button class="sck" data-shgot="${esc(x.name)}" aria-label="${esc(x.name)}: ${x.st === "Got" ? "in the cart" : "check off"}">${x.st === "Got" ? tick : ""}</button><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span><input data-shq="${esc(x.name)}" value="${esc(x.q)}" placeholder="Qty or note" enterkeyhint="done"><button class="sx" data-shon="${esc(x.name)}" aria-label="Remove ${esc(x.name)}">×</button></div>`;
+  const list = secs.map(s => { const subs = s.groups.map(g => { const m = g.items.filter(x => x.st); return m.length ? `<div class="sls">${esc(g.k)}</div>${m.map(row).join("")}` : ""; }).join(""); return subs ? `<div class="slg"><span class="semj">${s.em}</span>${esc(s.name)}</div>${subs}` : ""; }).join("");
+  const cat = secs.map(s => { const n = s.groups.reduce((a, g) => a + g.items.filter(x => x.st).length, 0), op = sh.open[s.name];
+    return `<div class="ssec${op ? " op" : ""}"><button class="ssh" data-shsec="${esc(s.name)}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sbd num${n ? "" : " z"}">${n}</span>${svg(UI.right, 18, 2.4).replace('class="ic"', 'class="ic scv"')}</button>${op ? `<div class="sbody">${s.groups.map(g => `<div class="sls">${esc(g.k)}${sh.adding === g.k ? `<input id="shIn" placeholder="New item in ${esc(g.k)}" enterkeyhint="done">` : `<button class="sadd" data-shadd="${esc(g.k)}">+ Add item</button>`}</div>${g.items.map(x => `<button class="srow${x.st ? " on" : ""}" data-shon="${esc(x.name)}"><span class="sck">${x.st ? tick : ""}</span><span class="grow">${esc(x.name)}</span></button>`).join("")}`).join("")}</div>` : ""}</div>`; }).join("");
+  const body = d.stores.length ? `<div class="stwo"><div class="slist scroll"><h2>On the list<span class="num">${on.length ? `${left} of ${on.length} left` : ""}</span></h2>${list || '<div class="empty">Nothing on the list. Tap an item in the catalog to add it.</div>'}</div><div class="scat scroll">${cat}</div></div>` : '<div class="empty">The shopping list file was not found.</div>';
+  return head("Shopping List", d.stores.length > 1 ? `<div style="margin-left:24px">${segBar(d.stores.map(x => x.name), cur, "shop")}</div>` : "") + `<div class="body">${body}</div>`;
+}
+
 function setupScreen(msg) {
   return head("Connect") + `<div class="body"><form class="card setup" id="setup"><h3>Connect to MattOS</h3><p>${esc(msg || "Paste the GitHub token for the mattos-data repository once. It is kept only on this iPad.")}</p><input class="in" id="token" type="password" autocomplete="off" placeholder="Token" required><button class="btn" type="submit">Connect</button></form></div>`;
 }
-const SCREENS = { Home: homeScreen, Tasks: tasksScreen, Calendar: calendarScreen, Weather: weatherScreen, Yoni: yoniScreen };
+const SCREENS = { Home: homeScreen, Tasks: tasksScreen, Shopping: shopScreen, Calendar: calendarScreen, Weather: weatherScreen, Yoni: yoniScreen };
 
 /* ---------- router and loading ---------- */
 let tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home", setupMsg = null;
@@ -931,7 +1029,8 @@ function draw() {
   keepText();
   $("side").innerHTML = sideBar();
   const sc = [...document.querySelectorAll("#main .scroll")].map(e => [e.scrollTop, e.scrollLeft]);
-  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]() + `<button class="fab" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 26, 2.4)}</button>${sheet()}${toast()}`;
+  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]() + (tab === "Shopping" ? "" : `<button class="fab" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 26, 2.4)}</button>`) + `${sheet()}${toast()}`;
+  const si = $("shIn"); if (si) si.focus();
   document.querySelectorAll("#main .scroll").forEach((e, k) => { [e.scrollTop, e.scrollLeft] = sc[k] || [0, 0]; }); /* a redraw keeps each list where it was */
 }
 /* first from the copies kept on this iPad, so it opens at once, then from the newest files */
@@ -940,6 +1039,7 @@ function fromKept() {
   if (c) cal = parseCalendar(c.text);
   if (t) cb.lines = t.text.split("\n");
   if (y) yo.lines = y.text.split("\n");
+  const s = kept(SHOP_FILE); if (s) sh.lines = s.text.split("\n");
   keptWeather(); parseAll();
 }
 let loading = false;
@@ -948,9 +1048,10 @@ async function loadAll() {
   if (loading || busy) return;
   loading = true;
   status("Updating…");
-  const [c, t, y] = await Promise.allSettled([readFile(CAL_FILE), readFile(CUCU_FILE), readFile(FATHER_FILE), loadWeather()]);
+  const [c, t, y, s] = await Promise.allSettled([readFile(CAL_FILE), readFile(CUCU_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE), loadWeather()]);
   loading = false;
   if (busy) return; /* a change made while loading is not drawn over */
+  if (s.status === "fulfilled") sh.lines = s.value.text.split("\n");
   if (c.status === "fulfilled") cal = parseCalendar(c.value.text);
   if (t.status === "fulfilled") cb.lines = t.value.text.split("\n");
   if (y.status === "fulfilled") yo.lines = y.value.text.split("\n");
@@ -959,7 +1060,7 @@ async function loadAll() {
   if (bad && /token/i.test(bad.reason.message)) { setupMsg = bad.reason.message; draw(); return; }
   const at = [c, t, y].map(x => x.value && x.value.at).find(Boolean);
   status(bad ? bad.reason.message : at ? `Offline. Showing what was loaded ${at}.` : "Synced " + stamp().split(", ").pop(), bad || at ? "err" : "ok");
-  if (ts.edit === null) draw(); /* an open sheet is not redrawn under the keyboard */
+  if (ts.edit === null && !(document.activeElement && document.activeElement.matches("[data-shq], #shIn"))) draw(); /* an open sheet or a field being typed in is not redrawn under the keyboard */
 }
 
 /* ---------- drag and drop on Tasks: a long press lifts a card or row; dropping it in another lane changes that property ---------- */
@@ -1043,7 +1144,13 @@ document.addEventListener("click", ev => {
   let x;
   /* an open calendar tile closes on any tap outside it */
   if (cs.cwx && tab === "Calendar" && !at("[data-cwx]") && !at(".wxp") && !at("[data-calwx]")) { cs.cwx = null; if (!at("button")) { draw(); return; } }
+  /* an open Add item field closes on any tap outside it */
+  if (sh.adding !== null && !at("#shIn") && !at("[data-shadd]")) { sh.adding = null; if (!at("button")) { draw(); return; } }
   if (at("[data-popx]")) { ts.pop = null; draw(); }
+  else if ((x = at("[data-shgot]"))) { const n = x.dataset.shgot, it = sh.d.items.find(i => i.name === n); if (it) save(SHOP_FILE, lines => shSet(lines, n, "Status", it.st === "Got" ? "On" : "Got"), `Tablet: ${it.st === "Got" ? "unchecked" : "got"} "${n}"`); }
+  else if ((x = at("[data-shon]"))) { const n = x.dataset.shon, it = sh.d.items.find(i => i.name === n); if (it) save(SHOP_FILE, lines => shSet(lines, n, "Status", it.st ? "" : "On"), `Tablet: ${it.st ? "remove" : "add"} "${n}" ${it.st ? "from" : "to"} the shopping list`); }
+  else if ((x = at("[data-shsec]"))) { sh.open[x.dataset.shsec] = !sh.open[x.dataset.shsec]; draw(); }
+  else if ((x = at("[data-shadd]"))) { sh.adding = x.dataset.shadd; draw(); }
   else if (at("[data-calwx]")) { view.calwx = !view.calwx; cs.cwx = null; keepView(); draw(); }
   else if ((x = at("[data-cwx]"))) { cs.cwx = cs.cwx === x.dataset.cwx ? null : x.dataset.cwx; draw(); }
   else if ((x = at("[data-wk]"))) { cs.wk = Math.max(0, Math.min(3, +x.dataset.wk)); cs.cwx = null; draw(); }
@@ -1076,6 +1183,18 @@ document.addEventListener("submit", ev => {
 addEventListener("hashchange", () => { tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home"; ts.edit = ts.r = ts.pop = cs.cwx = null; draw(); });
 /* Return in the sheet saves it */
 document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target.closest && ev.target.closest(".bs")) { ev.preventDefault(); saveSheet(); } });
+/* Shopping: Return in an Add item field adds the item to its subcategory and the list; Return in a Qty field saves it */
+document.addEventListener("keydown", ev => {
+  const t = ev.target;
+  if (t.id === "shIn" && ev.key === "Escape") { sh.adding = null; draw(); }
+  else if (t.id === "shIn" && ev.key === "Enter") { ev.preventDefault(); const n = cbEnc(t.value), k = sh.adding; sh.adding = null; if (n) save(SHOP_FILE, lines => shAdd(lines, n, k), `Tablet: add "${n}" to the shopping list`); else draw(); }
+  else if (t.dataset && t.dataset.shq !== undefined && ev.key === "Enter") { ev.preventDefault(); t.blur(); }
+});
+document.addEventListener("change", ev => {
+  const n = ev.target.dataset && ev.target.dataset.shq, it = n && sh.d.items.find(i => i.name === n);
+  const v = ev.target.value;
+  if (it && cbEnc(v) !== it.q) save(SHOP_FILE, lines => shSet(lines, n, "Qty", v), `Tablet: "${n}" quantity`);
+});
 /* the iPad sits on its dock: the files are read again every five minutes and whenever the app comes back to the front */
 setInterval(() => { if (!document.hidden) loadAll(); }, 5 * 60e3);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAll(); });
