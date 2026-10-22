@@ -651,10 +651,12 @@ function shAdd(lines, name, sub) {
 }
 /* an item swiped away on the tablet comes out of the catalog */
 function shDel(lines, name) { const it = shRead(lines).items.find(x => x.name === name); if (!it) throw new Error(`"${name}" was not found in the shopping list, so it was not deleted.`); lines.splice(it.i, 1); return it; }
+/* an item renamed on the tablet keeps its row; a name already in the catalog is refused */
+function shRename(lines, name, to) { if (shRead(lines).items.some(x => x.name !== name && x.name.toLowerCase() === to.toLowerCase())) throw new Error(`"${to}" is already in the catalog, so "${name}" was not renamed.`); return shSet(lines, name, "Item", to); }
 /* Done shopping: everything in the cart comes off the list */
 function shClear(lines) { const got = shRead(lines).items.filter(x => x.st === "Got"); got.forEach(x => shSet(lines, x.name, "Status", "")); return got; }
-/* open: the catalog sections opened; adding: the subcategory whose Add item field is open */
-const sh = { lines: [], d: shRead([]), open: { Produce: true }, adding: null, swiped: null };
+/* open: the catalog sections opened; adding: the subcategory whose Add item field is open; edit: the item a long press opened, with its typed name */
+const sh = { lines: [], d: shRead([]), open: { Produce: true }, adding: null, swiped: null, edit: null };
 
 /* ---------- saving: the change shows at once and is then saved on top of the newest file (the phone's tkSave, index.html ~886) ---------- */
 let busy = 0, failed = false;
@@ -899,12 +901,24 @@ function sheet() {
     <div class="fl"><span>Timing</span><div class="opts">${timeOrder().map(o => `<button class="o${o === f.time ? " on" : ""}" data-fset="time" data-v="${o}">${tLabel(o)}</button>`).join("")}</div></div>
     <div class="fb">${isNew ? "" : `<button class="btn del" data-del>${svg(UI.trash, 18, 2)}Delete</button>`}<button class="btn" data-save>${isNew ? "Add" : "Save"}</button></div></div>`;
 }
+/* a catalog item held down opens this sheet to rename or delete it */
+function shSheet() {
+  if (!sh.edit) return "";
+  return `<div class="dim" data-close></div><div class="bs"><h3>Edit item<button data-close>Cancel</button></h3>
+    <label class="fl"><span>Name</span><input class="in" id="shName" value="${esc(sh.edit.v)}" placeholder="Item name" enterkeyhint="done"></label>
+    <div class="fb"><button class="btn del" data-shdel="${esc(sh.edit.name)}">${svg(UI.trash, 18, 2)}Delete</button><button class="btn" data-shsave>Save</button></div></div>`;
+}
+function shSave() {
+  const e = sh.edit, n = cbEnc($("shName").value);
+  sh.edit = null;
+  if (n && n !== e.name) save(SHOP_FILE, lines => shRename(lines, e.name, n), `Tablet: renamed "${e.name}" to "${n}" in the shopping list`); else draw();
+}
 const toast = () => undoCard ? `<div class="toast"><span class="ell">Deleted "${esc(undoCard.title)}"</span><button data-undo>Undo</button></div>` : "";
 function tasksScreen() {
   return head("Tasks") + tasksBar() + `<div class="body">${view.tasks === "Board" ? boardView() : listView()}</div>${popMenu()}`;
 }
 /* the sheet's typed text is kept before every redraw */
-function keepText() { const n = $("fName"), t = $("fNote"); if (n && ts.f) { ts.f.title = n.value; ts.f.note = t.value; } }
+function keepText() { const n = $("fName"), t = $("fNote"), s = $("shName"); if (n && ts.f) { ts.f.title = n.value; ts.f.note = t.value; } if (s && sh.edit) sh.edit.v = s.value; }
 function openSheet(r, add) {
   ts.pop = null;
   if (r) { ts.edit = r.n; ts.r = r; ts.f = { st: r.st, owner: r.owner, time: r.time, title: r.title, note: r.note }; }
@@ -1037,7 +1051,7 @@ function draw() {
   keepText();
   $("side").innerHTML = sideBar();
   const sc = [...document.querySelectorAll("#main .scroll")].map(e => [e.scrollTop, e.scrollLeft]);
-  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]() + (tab === "Shopping" ? "" : `<button class="fab" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 26, 2.4)}</button>`) + `${sheet()}${toast()}`;
+  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]() + (tab === "Shopping" ? "" : `<button class="fab" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 26, 2.4)}</button>`) + `${sheet()}${shSheet()}${toast()}`;
   const si = $("shIn"); if (si) si.focus();
   document.querySelectorAll("#main .scroll").forEach((e, k) => { [e.scrollTop, e.scrollLeft] = sc[k] || [0, 0]; }); /* a redraw keeps each list where it was */
 }
@@ -1143,28 +1157,32 @@ document.addEventListener("pointermove", ev => {
 });
 document.addEventListener("pointerup", ev => { if (dg && ev.pointerId === dg.id) dragStop(true); });
 document.addEventListener("pointercancel", ev => { if (dg && ev.pointerId === dg.id) dragStop(dg.on); });
-/* a catalog row follows the finger to the right; past 50px it stays open on Delete */
+/* a catalog row follows the finger to the right; past 50px it stays open on Delete; held still for half a second, it opens the Edit item sheet */
 let sw = null;
 document.addEventListener("pointerdown", ev => {
-  const el = tab === "Shopping" && !offline && ev.target.closest("[data-shsw]");
+  const el = tab === "Shopping" && !offline && !sh.edit && ev.target.closest("[data-shsw]");
+  if (sw) clearTimeout(sw.timer);
   sw = el ? { el, id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, dx: 0, open: sh.swiped === el.dataset.shsw } : null;
+  if (sw) { const p = sw; p.timer = setTimeout(() => { if (sw !== p || p.on) return; sw = null; dragEnd = Date.now(); sh.swiped = null; sh.edit = { name: el.dataset.shsw, v: el.dataset.shsw }; draw(); }, 500); }
 });
 document.addEventListener("pointermove", ev => {
   const p = sw;
   if (!p || ev.pointerId !== p.id) return;
   p.dx = ev.clientX - p.x0;
+  if (Math.hypot(p.dx, ev.clientY - p.y0) > 8) clearTimeout(p.timer);
   if (!p.on && Math.abs(p.dx) > 10 && Math.abs(p.dx) > Math.abs(ev.clientY - p.y0)) { p.on = true; p.el.style.transition = "none"; }
   if (p.on) p.el.style.transform = `translateX(${Math.max(0, Math.min(120, (p.open ? 96 : 0) + p.dx))}px)`;
 });
 document.addEventListener("pointerup", ev => {
   const p = sw;
   sw = null;
+  if (p) clearTimeout(p.timer);
   if (!p || !p.on || ev.pointerId !== p.id) return;
   dragEnd = Date.now();
   sh.swiped = (p.open ? 96 : 0) + p.dx > 50 ? p.el.dataset.shsw : null;
   draw();
 });
-document.addEventListener("pointercancel", () => { if (sw && sw.on) draw(); sw = null; });
+document.addEventListener("pointercancel", () => { if (sw) clearTimeout(sw.timer); if (sw && sw.on) draw(); sw = null; });
 /* once a card is lifted, the finger moves it instead of scrolling */
 document.addEventListener("touchmove", ev => { if (dg && dg.on) ev.preventDefault(); }, { passive: false });
 
@@ -1179,7 +1197,7 @@ document.addEventListener("click", ev => {
   /* an open Delete closes on any other tap */
   if (sh.swiped !== null && !at("[data-shdel]")) { sh.swiped = null; draw(); return; }
   if (at("[data-popx]")) { ts.pop = null; draw(); }
-  else if ((x = at("[data-shdel]"))) { const n = x.dataset.shdel; sh.swiped = null; save(SHOP_FILE, lines => shDel(lines, n), `Tablet: deleted "${n}" from the shopping list`); }
+  else if ((x = at("[data-shdel]"))) { const n = x.dataset.shdel; sh.swiped = null; sh.edit = null; save(SHOP_FILE, lines => shDel(lines, n), `Tablet: deleted "${n}" from the shopping list`); }
   else if ((x = at("[data-shgot]"))) { const n = x.dataset.shgot, it = sh.d.items.find(i => i.name === n); if (it) save(SHOP_FILE, lines => shSet(lines, n, "Status", it.st === "Got" ? "On" : "Got"), `Tablet: ${it.st === "Got" ? "unchecked" : "got"} "${n}"`); }
   else if ((x = at("[data-shon]"))) { const n = x.dataset.shon, it = sh.d.items.find(i => i.name === n); if (it) save(SHOP_FILE, lines => shSet(lines, n, "Status", it.st ? "" : "On"), `Tablet: ${it.st ? "remove" : "add"} "${n}" ${it.st ? "from" : "to"} the shopping list`); }
   else if ((x = at("[data-shsec]"))) { sh.open[x.dataset.shsec] = !sh.open[x.dataset.shsec]; draw(); }
@@ -1198,7 +1216,8 @@ document.addEventListener("click", ev => {
   else if ((x = at("[data-fset]"))) { ts.f[x.dataset.fset] = x.dataset.v; draw(); }
   /* the Bug switch flips in place, so the keyboard stays up */
   else if ((x = at("[data-bug]"))) { ev.preventDefault(); ts.f.bug = !ts.f.bug; x.classList.toggle("on", ts.f.bug); x.setAttribute("aria-pressed", ts.f.bug); }
-  else if (at("[data-close]")) { ts.edit = null; ts.r = null; draw(); }
+  else if (at("[data-shsave]")) shSave();
+  else if (at("[data-close]")) { ts.edit = null; ts.r = null; sh.edit = null; draw(); }
   else if (at("[data-save]")) saveSheet();
   else if (at("[data-del]")) { const r = ts.r; ts.edit = null; ts.r = null; if (r) cbDel(r); else draw(); }
   else if (at("[data-undo]")) cbUndo();
@@ -1215,7 +1234,7 @@ document.addEventListener("submit", ev => {
 });
 addEventListener("hashchange", () => { tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home"; ts.edit = ts.r = ts.pop = cs.cwx = null; draw(); });
 /* Return in the sheet saves it */
-document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target.closest && ev.target.closest(".bs")) { ev.preventDefault(); saveSheet(); } });
+document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target.closest && ev.target.closest(".bs")) { ev.preventDefault(); if (sh.edit) shSave(); else saveSheet(); } });
 /* Shopping: Return in an Add item field adds the item to its subcategory and the list; Return in a Qty field saves it */
 document.addEventListener("keydown", ev => {
   const t = ev.target;
