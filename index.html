@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" href="icon-192-v5.png">
 <title>MattOS</title>
 <script>
-  /* CucuBarri, the family profile (index.html?profile=cucubarri): Calendar, Yoni, and Shopping only, with the tablet's name and icon.
+  /* CucuBarri, the family profile (index.html?profile=cucubarri): Home, Calendar, the CucuBarri board's tasks, Shopping, and Yoni, with the tablet's name and icon.
      The manifest swaps to cucubarri.webmanifest, so the home-screen icon opens this profile */
   if (/[?&]profile=cucubarri\b/i.test(location.search)) {
     document.documentElement.classList.add("cb");
@@ -53,7 +53,6 @@
   .hd { flex: none; background: var(--side); color: #fff; padding: calc(env(safe-area-inset-top) + 10px) 16px 12px; border-bottom: 1px solid var(--line); }
   .ws { display: flex; align-items: center; gap: 10px; }
   .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: block; }
-  .cb #fab { display: none; } /* CucuBarri adds no tasks */
   .ws b { font-size: 19px; font-weight: 600; flex: 1; letter-spacing: -.01em; }
   .av { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--mut); display: grid; place-items: center; position: relative; cursor: pointer; }  .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
   .scr::-webkit-scrollbar { display: none; }
@@ -462,6 +461,24 @@
   .rb .tl .tr + .dh { padding-top: 14px; }
   .rb .tr { margin-left: 0; }
   .row { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--mut); }
+  /* CucuBarri's Home: tiles under the same top, from cucuBarriPhoneHomeV2.html option 2. A tile opens its tab */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .tile { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 12px; min-height: 132px; min-width: 0; display: flex; flex-direction: column; gap: 6px; --cut: var(--card); }
+  .tile.wide { grid-column: span 2; min-height: 0; }
+  .th { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+  .th .n { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--mut); }
+  .kpi { font-size: 30px; line-height: 34px; font-weight: 700; color: var(--hi); }
+  .kpi small { font-size: 13px; font-weight: 500; color: var(--mut); }
+  .tile .ln { font-size: 13.5px; line-height: 19px; }
+  .tile .ln.mut, .tile .row { color: var(--mut); }
+  .tile .ge { font-size: 16px; letter-spacing: 5px; }
+  .tile .ge .off { filter: grayscale(1); opacity: .35; }
+  .tsg { display: flex; gap: 4px; margin-top: auto; }
+  .tsg i { flex: 1; height: 6px; border-radius: 3px; background: var(--raised); }
+  .tsg i.on { background: var(--done); } .tsg i.half { background: var(--blue); }
+  .tile .tl { --cl: 0px; }
+  .tile .tr { margin-left: 0; }
+  .tile .tr:last-child::after { display: none; }
   .row .meta { font-size: 13px; white-space: nowrap; }
 
   /* ---------- Settings ---------- */
@@ -518,7 +535,7 @@ const TAB = {
 TAB.Shopping = `<path ${K(2.6)} d="M2 3.5h3l.8 3"/><path ${FS} d="M5.8 6.5h15.4l-2 8.5H7.6z"/><circle ${F} cx="9" cy="19.6" r="1.9"/><circle ${F} cx="17.6" cy="19.6" r="1.9"/>`;
 /* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home. CucuBarri's Shopping tab is Tasks held on its Shopping view */
 const CB = document.documentElement.classList.contains("cb");
-const TAB_BAR = CB ? ["Yoni", "Shopping", "Calendar"] : ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
+const TAB_BAR = CB ? ["Home", "Calendar", "Tasks", "Shopping", "Yoni"] : ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
 const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`,bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
@@ -843,7 +860,8 @@ async function loadCalendar() {
 }
 
 /* ---------- Tasks: add, check off, and move to another day. Row order is priority, so the phone never reorders, edits or deletes ---------- */
-const TASK_FILE = "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
+/* CucuBarri's tasks are the CucuBarri board's, less those owned by MS alone; a new one is BB's */
+const TASK_FILE = CB ? "11🏖️-weekend/cucuBarriRegistry.md" : "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
 const TK_CATS = { Habits: "🥕", Family: "👪", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
 const TK_TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
 const TK_STATUS = ["Open", "WIP", "Blocked", "Done"];
@@ -864,7 +882,7 @@ function tkRead(lines) {
     if (!head) { if (c.includes("Status") && c.includes("Task")) { head = c; end = i; } return; }
     end = i;
     const cell = n => c[head.indexOf(n)] || "";
-    if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note"))) return;
+    if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note")) || (CB && cell("Owner") === "MS")) return;
     rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell("Timing")), title: cell("Task"), note: cell("Note") });
   });
   return { head, col: head ? head.indexOf("Status") : -1, end, rows };
@@ -902,7 +920,6 @@ const tk = { lines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks",
 let tkBusy = 0, tkFail = false;
 function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); }
 function drawTasks() {
-  if (CB) tk.view = "Shopping";
   if (tk.view === "Shopping") { drawShop(); return; }
   leaveHabits(); /* the Done shopping bar */
   const cats = ["All", ...Object.keys(TK_CATS)], inCat = x => tk.cat === "All" || x.cat === tk.cat, open = r => r.st !== "Done";
@@ -991,7 +1008,7 @@ function openSheet() {
   const o = (k, v, label, on) => `<button type="button" class="o${on ? " on" : ""}" data-tk="opt" data-k="${k}" data-a="${v}" aria-pressed="${on}">${label}</button>`;
   tk.sheet = idea ? "Idea" : "Task"; tk.menu = false;
   $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tk.sheet}</h3>
-    <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${idea ? "" : " bugpad"}" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done">${idea ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
+    <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${idea || CB ? "" : " bugpad"}" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done">${idea || CB ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
     ${idea ? "" : `<div class="fl"><span>Timing</span><div class="opts">${TK_TIMES.map(t => o("t", t, t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3), t === day)).join("")}</div></div>`}
     <div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>
     <label class="fl"><span>Note</span><input class="in" id="tk-n" placeholder="Add a note…" autocomplete="off" enterkeyhint="done"></label>
@@ -1010,7 +1027,7 @@ function saveSheet() {
     if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
     const same = t.rows.filter(r => r.time === time), at = same.length ? same[same.length - 1].i : t.end;
     /* Family is written with the emoji the registry already uses; the phone shows 👪, which an iPhone draws as one figure */
-    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note };
+    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note, ...(CB ? { Owner: "BB", Added: today() } : {}) };
     lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
     return cells;
   }, `Phone: new task "${title}"`);
@@ -1704,7 +1721,7 @@ function drawHome() {
   const wo = woToday(home.workout);
   const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
   const woChip = hChip("fitness", wo ? wo.what : "No workout", wo ? wo.where : "", "Today's workout");
-  const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
+  const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${CB ? "" : woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
   /* Yoni: a row for today's goals and one per part of the day, its ring filling blue as steps are done and green with a check once all are */
   const ring = 2 * Math.PI * 8, ok = c => { const f = c[1] ? c[0] / c[1] : 0; return f >= 1 ? `<span class="rk on">${svg(UI.check, 11, 4)}</span>` : !f ? `<span class="rk"></span>` : `<span class="rk arc"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="none" stroke="#3a4150" stroke-width="1.5"/><circle cx="9" cy="9" r="8" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-dasharray="${ring * f} ${ring}" transform="rotate(-90 9 9)" stroke-linecap="round"/></svg></span>`; };
   const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
@@ -1712,21 +1729,43 @@ function drawHome() {
   const yr = (name, c, body, cls = "") => `<div class="yr${full(c) ? " on" : ""}${cls}"><span class="nm">${name}</span><div class="grow">${body}</div><span class="val num">${c[0]}/${c[1]}</span>${ok(c)}</div>`;
   const yoni = yr("Goals", g, `<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span>`)
     + YO_PARTS.map((p, i) => yr(p === "Evening" ? "Night" : p, pc[i], `<div class="hbar"><i style="width:${pc[i][1] ? pc[i][0] / pc[i][1] * 100 : 0}%"></i></div>`, p === now && !full(pc[i]) ? " now" : "")).join("");
-  /* Habits: the week's bars, each with its emoji in colour once the week's goal is met */
-  const H = hbNow(), saved = hbFiled(td).st === "saved";
-  const HE = { water: "💧", habits: "✅", food: "🥗", fitness: "💪🏻", mental: "🧠" };
-  const bars = H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
   const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
+  if (CB) { cbHome(top, g, pc, full, now, grps[0], open, tasks, next); return; }
+  /* Habits: the week's bars, each with its emoji in colour once the week's goal is met */
+  const H = hbNow(), saved = hbFiled(td).st === "saved";
+  const HE = { water: "💧", habits: "✅", food: "🥗", fitness: "💪🏻", mental: "🧠" };
+  const bars = H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
   $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet, yoni)}${sec("Habits", saved, bars)}${sec("Tasks", false, tasks)}${sec("Calendar", false, next, "Next Up")}${sec("Notes", false, list)}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
+/* CucuBarri's Home: a Yoni tile and a Shopping tile side by side, then today's tasks and Next Up across */
+function cbHome(top, g, pc, full, now, grp, open, tasks, next) {
+  const side = $("wk") ? $("wk").scrollLeft : 0, hq = k => `<span class="hsq">${svg(TAB[k], 15)}</span>`, all = [g, ...pc];
+  const done = all.reduce((a, x) => a + x[0], 0), of = all.reduce((a, x) => a + x[1], 0), left = sh.d.items.filter(x => x.st === "On");
+  const yt = `<div class="tile" data-go="Yoni"><div class="th">${hq("Yoni")}Yoni<span class="n">${now === "Evening" ? "Night" : now}</span></div><div class="kpi num">${done}<small> / ${of} done</small></div><div class="ln ge ell">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</div><div class="tsg">${pc.map(x => `<i class="${full(x) ? "on" : x[0] ? "half" : ""}"></i>`).join("")}</div></div>`;
+  const st = `<div class="tile" data-go="Shopping"><div class="th">${hq("Shopping")}Shopping</div><div class="kpi num">${left.length}<small> left</small></div>${left.slice(0, 3).map((x, i) => `<div class="ln ell${i === 2 ? " mut" : ""}">${esc(x.name)}</div>`).join("") || `<div class="ln mut">Nothing on the list</div>`}</div>`;
+  const tt = `<div class="tile wide" data-go="Tasks"><div class="th">${hq("Tasks")}My Tasks<span class="n num">${grp ? `${grp}, ${open.filter(r => r.time === grp).length} open` : "All done"}</span></div>${grp ? tasks.replace(/<div class="dh">.*?<\/div>/, "") : `<div class="row">No open tasks</div>`}</div>`;
+  const nt = `<div class="tile wide" data-go="Next Up"><div class="th">${hq("Calendar")}Next Up</div>${next}</div>`;
+  $("main").innerHTML = `${top}<div class="tiles">${yt}${st}${tt}${nt}</div>`;
+  if ($("wk")) $("wk").scrollLeft = side;
+  $("fab").hidden = offline;
+}
 async function loadHome() {
+  if (CB) {
+    const [c, t, y, s] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), loadWeather()]);
+    if (tab !== "Home") return;
+    cal = parseCalendar(c.text);
+    if (!tkBusy) { tk.lines = t.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); tkParse(); }
+    status(c.at ? `Offline. Showing what was loaded ${c.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), c.at ? "err" : "ok");
+    drawHome();
+    return;
+  }
   /* a missing workout file only leaves the workout chip empty */
   const [c, t, f, h, n, y, w] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(HABIT_FILE), readFile(HISTORY_FILE), readFile(NOTES_FILE), readFile(FATHER_FILE), readFile(WORKOUT_FILE).catch(() => ({ text: home.workout })), loadWeather()]);
   if (tab !== "Home") return;
@@ -1739,7 +1778,7 @@ async function loadHome() {
 }
 /* a row on Home opens its tab: Today and Next Up are the two views of Calendar */
 function homeGo(to) {
-  if (to === "Tasks") tk.view = to;
+  if (to === "Tasks" && !CB) tk.view = to;
   else if (to === "Today" || to === "Next Up") { calView = to; to = "Calendar"; }
   go(to);
 }
@@ -1748,15 +1787,17 @@ function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view 
 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
 const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
-const START = CB ? "Yoni" : "Home";
+const START = "Home";
+/* the tab to reload: on CucuBarri, Tasks held on its Shopping view is the Shopping tab */
+const here = () => CB && tab === "Tasks" && tk.view === "Shopping" ? "Shopping" : tab;
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
 async function go(name) {
   leave();
-  if (CB && name === "Shopping") name = "Tasks";
-  tab = SCREENS[name] && (!CB || ["Yoni", "Tasks", "Calendar"].includes(name)) ? name : START;
-  history.replaceState(null, "", location.search + "#" + tab.toLowerCase());
-  const lit = CB && tab === "Tasks" ? "Shopping" : tab === "Notes" ? "Tasks" : tab;
+  if (CB && (name === "Shopping" || name === "Tasks")) { tk.view = name; name = "Tasks"; }
+  tab = SCREENS[name] && (!CB || ["Home", "Yoni", "Tasks", "Calendar"].includes(name)) ? name : START;
+  const lit = CB ? here() : tab === "Notes" ? "Tasks" : tab;
+  history.replaceState(null, "", location.search + "#" + (CB ? lit : tab).toLowerCase());
   $("tabs").innerHTML = TAB_BAR.map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
   $("fab").hidden = true; $("scr").scrollTop = 0;
   if (!cfg().token) return showSetup();
@@ -1979,13 +2020,13 @@ document.addEventListener("submit", e => {
   if (e.target.id !== "setup") return;
   e.preventDefault();
   store.set("token", $("s-token").value.trim()); store.set("owner", $("s-owner").value.trim()); store.set("repo", $("s-repo").value.trim());
-  go(tab);
+  go(here());
 });
 /* save before the phone puts the page away; reload when it comes back */
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) { if (dirty()) { clearTimeout(saveTimer); upsertOpenNote(); } }
   else if (tab === "Habits" && !$("setup") && cfg().token) loadHabits().catch(() => {}); /* in place, so a half-filled form keeps its position */
-  else if (!openId && !$("setup") && !tk.sheet && cfg().token) go(tab);
+  else if (!openId && !$("setup") && !tk.sheet && cfg().token) go(here());
 });
 function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
