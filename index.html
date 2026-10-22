@@ -12,6 +12,18 @@
 <link rel="apple-touch-icon" href="icon-180-v5.png">
 <link rel="icon" type="image/png" href="icon-192-v5.png">
 <title>MattOS</title>
+<script>
+  /* CucuBarri, the family profile (index.html?profile=cucubarri): Calendar, Yoni, and Shopping only, with the tablet's name and icon.
+     The manifest goes, so the home screen keeps this address, profile included */
+  if (/[?&]profile=cucubarri\b/i.test(location.search)) {
+    document.documentElement.classList.add("cb");
+    document.title = "CucuBarri";
+    document.querySelector('meta[name="apple-mobile-web-app-title"]').content = "CucuBarri";
+    document.querySelector('link[rel="apple-touch-icon"]').href = "tablet-icon-180.png";
+    document.querySelector('link[rel="icon"]').href = "tablet-icon-180.png";
+    document.querySelector('link[rel="manifest"]').remove();
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -41,6 +53,7 @@
   .hd { flex: none; background: var(--side); color: #fff; padding: calc(env(safe-area-inset-top) + 10px) 16px 12px; border-bottom: 1px solid var(--line); }
   .ws { display: flex; align-items: center; gap: 10px; }
   .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: block; }
+  .cb #fab { display: none; } /* CucuBarri adds no tasks */
   .ws b { font-size: 19px; font-weight: 600; flex: 1; letter-spacing: -.01em; }
   .av { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--mut); display: grid; place-items: center; position: relative; cursor: pointer; }  .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
   .scr::-webkit-scrollbar { display: none; }
@@ -478,7 +491,7 @@
 </style>
 </head>
 <body>
-<header class="hd"><div class="ws"><img class="logo" src="icon.svg" alt=""><b>MattOS</b><button class="av" type="button" id="settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div></header>
+<header class="hd"><div class="ws"><img class="logo" id="hdlogo" src="icon.svg" alt=""><b id="hdname">MattOS</b><button class="av" type="button" id="settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div></header>
 <main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
 <div class="savebar" id="savebar" hidden></div>
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
@@ -502,8 +515,10 @@ const TAB = {
   Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`,
   Yoni: `<circle ${F} cx="12" cy="13.5" r="8.3"/><circle ${F} cx="3.6" cy="13.8" r="1.9"/><circle ${F} cx="20.4" cy="13.8" r="1.9"/><path ${K(2.4)} d="M12 5.4c-.9-2.3 1.4-3.7 3.2-2.3"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M8.9 12.6h.01M15.1 12.6h.01"/><path ${C} d="M9.6 16.4c1.4 1.3 3.4 1.3 4.8 0"/>`
 };
-/* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home */
-const TAB_BAR = ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
+TAB.Shopping = `<path ${K(2.6)} d="M2 3.5h3l.8 3"/><path ${FS} d="M5.8 6.5h15.4l-2 8.5H7.6z"/><circle ${F} cx="9" cy="19.6" r="1.9"/><circle ${F} cx="17.6" cy="19.6" r="1.9"/>`;
+/* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home. CucuBarri's Shopping tab is Tasks held on its Shopping view */
+const CB = document.documentElement.classList.contains("cb");
+const TAB_BAR = CB ? ["Yoni", "Shopping", "Calendar"] : ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
 const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`,bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
@@ -887,6 +902,7 @@ const tk = { lines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks",
 let tkBusy = 0, tkFail = false;
 function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); }
 function drawTasks() {
+  if (CB) tk.view = "Shopping";
   if (tk.view === "Shopping") { drawShop(); return; }
   leaveHabits(); /* the Done shopping bar */
   const cats = ["All", ...Object.keys(TK_CATS)], inCat = x => tk.cat === "All" || x.cat === tk.cat, open = r => r.st !== "Done";
@@ -917,7 +933,7 @@ function drawTasks() {
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
 /* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
 const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
-const tkBar = (on, end = "") => segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
+const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
   const [t, i, y, s] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null)]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
@@ -1722,14 +1738,15 @@ function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view 
 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
 const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
-const START = "Home";
+const START = CB ? "Yoni" : "Home";
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
 async function go(name) {
   leave();
-  tab = SCREENS[name] ? name : START;
-  history.replaceState(null, "", "#" + tab.toLowerCase());
-  const lit = tab === "Notes" ? "Tasks" : tab;
+  if (CB && name === "Shopping") name = "Tasks";
+  tab = SCREENS[name] && (!CB || ["Yoni", "Tasks", "Calendar"].includes(name)) ? name : START;
+  history.replaceState(null, "", location.search + "#" + tab.toLowerCase());
+  const lit = CB && tab === "Tasks" ? "Shopping" : tab === "Notes" ? "Tasks" : tab;
   $("tabs").innerHTML = TAB_BAR.map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
   $("fab").hidden = true; $("scr").scrollTop = 0;
   if (!cfg().token) return showSetup();
@@ -1967,6 +1984,7 @@ function toast(msg) {
 /* sw.js keeps a copy of the app so that it opens with no signal */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 $("fab").innerHTML = svg(UI.plus, 24, 2.6);
+if (CB) { $("hdname").textContent = "CucuBarri"; $("hdlogo").src = "tablet-icon-180.png"; }
 go(Object.keys(TAB).find(n => n.toLowerCase() === location.hash.slice(1)) || START);
 </script>
 </body>
