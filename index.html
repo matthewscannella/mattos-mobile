@@ -1116,7 +1116,17 @@ function shClear(lines) { const got = shRead(lines).items.filter(x => x.st === "
 
 /* one: the section open on the list ("" for none, null picks the first unfinished one) */
 const sh = { lines: [], d: shRead([]), store: store.get("shop-store"), cat: false, one: null, open: {} };
-const shStore = () => (sh.d.stores.find(x => x.name === sh.store) || sh.d.stores[0] || { name: "" }).name;
+/* while Shopping is open, the list is read again every 10 seconds, so two phones shopping together see each other's ticks.
+   Skipped while a change is saving or an item is being typed */
+setInterval(async () => {
+  if (document.hidden || tab !== "Tasks" || tk.view !== "Shopping" || tkBusy || offline || $("setup") || document.activeElement === $("sh-x")) return;
+  try {
+    const s = await fetchFile(SHOP_FILE), text = sh.lines.join("\n");
+    if (s.text === text || tab !== "Tasks" || tk.view !== "Shopping" || tkBusy || document.activeElement === $("sh-x")) return;
+    sh.lines = s.text.split("\n"); sh.d = shRead(sh.lines); drawShop();
+  } catch (e) { /* the next tick tries again */ }
+}, 10000);
+const shStore = () =>(sh.d.stores.find(x => x.name === sh.store) || sh.d.stores[0] || { name: "" }).name;
 function drawShop() {
   const cur = shStore(), secs = shSecs(sh.d, cur), on = sh.d.items.filter(x => x.st), got = on.filter(x => x.st === "Got").length, tick = svg(UI.check, 11, 3.6);
   const seg = (list, now, act, cls = "grow") => `<div class="seg ${cls}">${list.map(v => `<button type="button" class="${v === now ? "on" : ""}" data-tk="${act}" data-a="${esc(v)}">${esc(v)}</button>`).join("")}</div>`;
