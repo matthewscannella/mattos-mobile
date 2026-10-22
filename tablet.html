@@ -617,19 +617,10 @@ function cbAdd(f) {
     return true;
   }, `Tablet: add "${cells.Task}"`);
 }
-/* a bug goes to the MattOS task list as a 🐞 task, where "fix bugs" finds it; that file is not shown here, so it is only saved */
-const TASK_FILE = "02📋-tasks/taskRegistry.md";
+/* a bug is a CucuBarri card with a 🐞 in front, so whoever added it sees it land on the list */
 function bugAdd(f) {
-  const t0 = cbEnc(f.title), cells = { ...cbCells(f), Status: "Open", Task: t0.startsWith("🐞") ? t0 : "🐞 " + t0, Category: "🧑🏻‍👩🏻‍🧒🏻 Family", Added: today() };
-  if (offline) { status("Offline. Changes are off until the connection is back.", "err"); draw(); return; }
-  draw();
-  commitFile(TASK_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
-    const t = cbRead(lines);
-    if (!t.head) throw new Error("The MattOS task table was not found, so the bug was not saved.");
-    const at = t.rows.length ? t.rows[t.rows.length - 1].i + 1 : t.hi + 2;
-    lines.splice(at, 0, `| ${t.head.map(h => cells[h] || "").join(" | ")} |`.replace(/ {2}\|/g, " |") + cbEol(lines, t.hi));
-    return true;
-  }, `Tablet: bug "${cells.Task}"`).then(() => { if (stKind === "ok") status(`Bug added to MattOS tasks.`, "ok"); });
+  const t0 = cbEnc(f.title);
+  cbAdd({ ...f, title: t0.startsWith("🐞") ? t0 : "🐞 " + t0 });
 }
 /* a deleted card is kept for Undo with the card above it, so it goes back in the same place */
 let undoCard = null, toastT = 0;
