@@ -21,7 +21,7 @@
 :root{--side:#0f1218;--body:#0a0c11;--tx:#e7e9ee;--hi:#fff;--mut:#8b93a3;--dim:#5f6676;--line:#1c202a;--rule:#232733;--card:#13161d;--raised:#1b202b;--acc:#8dabf9;--blue:#3b6ef5;--done:#3fcf8e;--flag:#f97066;--emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--side);overscroll-behavior:none}
-body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:21px;color:var(--tx);-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:21px;color:var(--tx);-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 button{all:unset;box-sizing:border-box;cursor:pointer}
 input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-select:text}
 .ic{flex:none;display:block}
@@ -165,7 +165,10 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .addc{justify-self:start;padding:8px 10px;border-radius:8px;font-size:13.5px;color:var(--dim)}
 .ll{height:100%;border:1px solid var(--rule);border-radius:16px;background:var(--body)}
 .band{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;height:42px;padding:0 10px 0 16px;background:var(--card);border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}
-.ll .band:not(:first-child){border-top:1px solid var(--line)}
+.lgrp+.lgrp .band{border-top:1px solid var(--line)}
+/* drag and drop: a long press lifts a card or row; the dashed box shows where it will land */
+.dghost{position:fixed;left:0;top:0;z-index:9;pointer-events:none;margin:0;background:var(--card);border:1px solid var(--blue);border-radius:11px;box-shadow:0 18px 40px rgba(0,0,0,.55);opacity:.96;--avr:var(--card)}
+.dph{flex:none;border:1.5px dashed var(--blue);border-radius:11px;background:rgba(59,110,245,.08)}
 .band b{font-size:14px;font-weight:500;color:var(--hi)}
 .band.today b{color:var(--done)}
 .lr{display:flex;align-items:center;gap:14px;height:50px;padding:0 16px 0 18px;border-bottom:1px solid var(--line);border-left:2px solid transparent;transition:opacity .3s;--avr:var(--body)}
@@ -189,7 +192,103 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .toast span{flex:1}
 .toast button{color:var(--acc);font-weight:600;padding:4px 6px}
 
-/* the one-time token card, and the screens still to come */
+/* Calendar: the header's week buttons, then the mockup's Day timeline and the web app's week grid (mattOs.css ~501-512, ~846-872) */
+.nb{flex:none;width:42px;height:42px;border-radius:12px;background:var(--card);border:1px solid var(--rule);display:grid;place-items:center;color:var(--tx)}
+.nb.off{opacity:.3;pointer-events:none}
+.tdy{height:42px;line-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--rule);font-size:14px;font-weight:600;color:var(--acc)}
+.tdy.off{visibility:hidden}
+.tl{position:relative;margin-left:52px}
+.tl .hr{position:absolute;left:-52px;right:0;height:1px;background:var(--line);font-size:11.5px;color:var(--mut)}
+.tl .hr span{position:absolute;left:0;top:-8px;width:44px;text-align:right}
+.tl .nw{position:absolute;left:-6px;right:0;height:2px;background:var(--flag);z-index:2}
+.tl .nw::before{content:"";position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--flag)}
+.blk{position:absolute;left:8px;right:8px;z-index:1;border-radius:10px;padding:6px 10px;background:rgba(59,110,245,.18);border-left:4px solid var(--blue);font-size:13px;line-height:17px;color:var(--mut);overflow:hidden}
+.blk b{display:block;font-size:14.5px;line-height:19px;color:#fff;font-weight:600}
+.blk.past{opacity:.5}
+.cgw{position:relative;height:100%}
+.cg{display:grid;grid-template-columns:64px repeat(7,minmax(0,1fr));grid-template-rows:44px auto auto;background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden;--cut:var(--card)}
+.cgh{display:flex;align-items:baseline;gap:7px;padding:0 10px;line-height:43px;border-bottom:1px solid var(--rule);border-left:1px solid var(--line);font-size:13px;color:var(--mut)}
+.cgh b{font-size:19px;font-weight:600;color:var(--tx)}
+.cgh.td{background:rgba(59,110,245,.14);box-shadow:inset 0 -2px 0 var(--blue);color:var(--acc)}
+.cgh.td b{color:var(--acc)}
+.cgh.we,.dcol.we{background-color:rgba(255,255,255,.025)}
+.adl{font-size:11px;line-height:31px;color:var(--mut);padding-right:8px;text-align:right;border-bottom:1px solid var(--rule)}
+.adr{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;min-height:32px;padding:4px;border-bottom:1px solid var(--rule);border-left:1px solid var(--rule)}
+.adev{font-size:12px;line-height:22px;font-weight:500;padding:0 8px;border-radius:6px;background:rgba(59,110,245,.18);color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrs{position:relative}
+.hrs span{position:absolute;right:8px;font-size:11px;line-height:14px;color:var(--mut)}
+.hrs em{position:absolute;left:0;width:22px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);font-style:normal;font-size:10.5px;color:var(--mut);border-right:1px solid var(--rule)}
+.dcol{position:relative;border-left:1px solid var(--line);background-image:linear-gradient(var(--line) 1px,transparent 1px)}
+.dcol.td{background-color:rgba(59,110,245,.07)}
+.bline{position:absolute;left:0;right:0;height:1px;background:#3a4152;pointer-events:none}
+.cev{position:absolute;left:4px;right:4px;z-index:1;display:grid;align-content:start;border-radius:7px;padding:4px 7px;background:#1a2440;border-left:3px solid var(--blue);font-size:12px;line-height:15px;color:var(--mut);overflow:hidden}
+.cev b{font-size:12.5px;line-height:16px;font-weight:600;color:var(--tx);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:clip}
+.cev.half,.blk.half{right:calc(50% + 2px)}
+.cev.past{opacity:.5}
+.cnow{position:absolute;left:0;right:0;height:2px;background:var(--flag);z-index:2}
+/* the weather layer: one tile per block, filled green by its score; tapping one opens its hours */
+.pwx{position:absolute;left:4px;right:4px;display:grid;align-content:start;justify-items:start;gap:3px;border-radius:8px;padding:6px 8px;border:1px solid transparent;background:rgba(255,255,255,.02);font-size:12px;line-height:15px;color:var(--mut);--cut:var(--card)}
+.pwx.half{left:calc(50% + 2px)}
+.pwx b{font-size:13px;font-weight:600;white-space:nowrap}
+.pwx .ic{opacity:.45}
+.pwx.on{background:color-mix(in srgb,var(--done) var(--a),var(--card));border-color:color-mix(in srgb,var(--done) var(--b),var(--rule));color:#d3f5e5}
+.pwx.on .ic{opacity:1}
+.pwx.hot{color:#fff}
+.pwx.sel{border-color:var(--hi);z-index:3}
+.tl .pwx{left:8px;right:8px}
+.tl .pwx.half{left:calc(50% + 4px)}
+.wxp{position:absolute;z-index:4;width:330px;background:var(--side);border:1px solid #3a4152;border-radius:14px;padding:12px 14px 8px;box-shadow:0 18px 44px rgba(0,0,0,.6);--cut:var(--side)}
+.wxp .pwr{--cut:var(--side)}
+
+/* Weather: the now card, and Next 7 Days with the picked block's hours beside it */
+.tag{display:inline-block;height:18px;line-height:18px;padding:0 7px;border-radius:9px;font-size:11px;font-weight:600;background:rgba(63,207,142,.16);color:var(--done)}
+.h2{display:flex;justify-content:space-between;align-items:baseline;padding:2px 2px 10px;font-size:14px;font-weight:600;color:var(--tx)}
+.h2 span{font-weight:400;font-size:12.5px;color:var(--mut)}
+.wxw{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:start}
+.hps{display:grid;grid-template-columns:minmax(0,1fr) auto repeat(6,minmax(0,1fr));gap:10px;align-items:start}
+.hp svg{color:var(--tx)}
+.sg.on{position:relative;z-index:1;outline:2px solid var(--hi);outline-offset:0}
+.ext{display:grid;gap:2px;font-size:12px;color:var(--tx)}
+.ext span{height:var(--h,64px);display:flex;align-items:center;gap:5px;white-space:nowrap;--cut:var(--card)}
+.inl{padding-left:20px;border-left:1px dashed var(--rule);min-height:200px}
+.pwh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.pwr{display:grid;grid-template-columns:48px 20px 36px 40px minmax(0,1fr) 20px;gap:10px;align-items:center;font-size:13px;line-height:34px;color:var(--tx);--cut:var(--card)}
+.pwr svg{color:var(--tx)}
+.pwr i{height:6px;border-radius:3px;background:var(--raised);overflow:hidden}
+.pwr u{display:block;height:100%;background:var(--done)}
+.pwr span:last-child{text-align:right}
+.pwr.good span:last-child{color:var(--done);font-weight:600}
+.pwr.past{opacity:.4}
+.pill{height:22px;line-height:22px;padding:0 8px;border-radius:11px;background:var(--raised);font-size:11.5px;font-weight:600;color:var(--tx);white-space:nowrap}
+.pill.good{background:rgba(63,207,142,.16);color:var(--done)}
+
+/* Yoni: goal rings, a card per part of the day, the packing groups, and the daycare lists */
+.rings{display:grid;gap:4px}
+.rg{display:flex;align-items:center;gap:12px;padding:4px 8px}
+.rg .ro{flex:none;width:52px;height:52px;border-radius:50%;border:1px solid var(--rule);display:grid;place-items:center;font-size:22px;position:relative;font-family:var(--emoji)}
+.rg b{display:block;font-size:14.5px;line-height:18px;font-weight:600}
+.rg i{display:block;font-style:normal;font-size:12.5px;line-height:16px;color:var(--mut)}
+.rg.on .ro{border-color:rgba(63,207,142,.45);background:rgba(63,207,142,.12)}
+.rg.on .ro::after{content:"";position:absolute;right:-4px;bottom:-3px;width:16px;height:16px;border-radius:50%;background:var(--done) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0c11' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7'/%3E%3C/svg%3E") center/10px no-repeat;box-shadow:0 0 0 2px var(--card)}
+.rg.on b{color:var(--done)}
+.ach{display:grid;grid-template-columns:1fr auto;row-gap:8px;align-items:center;padding:2px 0 10px;font-size:16px;font-weight:600;color:#fff}
+.ach .nmr{display:flex;align-items:center;gap:8px}
+.ach .ct{font-size:13px;font-weight:400;color:var(--mut)}
+.ybar{grid-column:1/-1;height:5px;border-radius:3px;background:var(--raised);overflow:hidden}
+.ybar i{display:block;height:100%;border-radius:3px;background:var(--done)}
+.part.now{border-color:rgba(59,110,245,.55)}
+.pks{display:flex;align-items:center;gap:12px}
+.pks .ring{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:radial-gradient(var(--card) 58%,transparent 60%),conic-gradient(var(--done) var(--p),var(--raised) 0)}
+.pks b{display:block;font-size:16px;line-height:20px;font-weight:600;color:#fff}
+.clr{font-size:14px;font-weight:600;color:var(--acc);padding:6px 4px 6px 12px}
+.clr.off{opacity:.35;pointer-events:none}
+.dc{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+.ach+.dc{border-top:0}
+.dc b{font-size:15px;line-height:20px;font-weight:600;color:var(--tx)}
+.dc .s{grid-column:1/2}
+.dc .pill{grid-row:1/3;grid-column:2;align-self:center}
+
+/* the one-time token card */
 .setup{max-width:520px;display:grid;gap:14px}
 .setup h3{margin:0;font-size:18px;font-weight:600;color:#fff}
 .setup p{margin:0;color:var(--mut)}
@@ -223,7 +322,7 @@ const TAB = {
   Yoni: `<circle ${F} cx="12" cy="13.5" r="8.3"/><circle ${F} cx="3.6" cy="13.8" r="1.9"/><circle ${F} cx="20.4" cy="13.8" r="1.9"/><path ${K(2.4)} d="M12 5.4c-.9-2.3 1.4-3.7 3.2-2.3"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M8.9 12.6h.01M15.1 12.6h.01"/><path ${C} d="M9.6 16.4c1.4 1.3 3.4 1.3 4.8 0"/>`
 };
 const UI = {
-  check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, plus: `<path d="M12 5v14M5 12h14"/>`, x: `<path d="M6 6l12 12M18 6 6 18"/>`,
+  check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, plus: `<path d="M12 5v14M5 12h14"/>`, x: `<path d="M6 6l12 12M18 6 6 18"/>`,
   display: `<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>`,
   trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`
 };
@@ -335,17 +434,17 @@ const wxScore = (feel, p, code) => 100
   * (code <= 2 ? 1 : code === 3 ? .9 : code <= 48 ? .7 : code <= 55 ? .4 : code >= 71 && code <= 77 ? .35 : 0);
 const wx10 = s => Math.round(s / 10);
 const wxFill = s => s < 65 ? 0 : .22 + .78 * Math.pow((s - 65) / 35, 1.4);
-let W = null, wxLive = false;
+let W = null, wxLive = false, wxAt = "";
 async function loadWeather() {
   const covers = j => j && j.current && j.hourly && j.daily && j.daily.time.includes(today());
   try {
     const j = await (await fetch(WX_URL, { cache: "no-store" })).json();
     if (!covers(j)) throw new Error("no forecast");
-    W = j; wxLive = true;
-    store.set("weather", JSON.stringify({ j, at: stamp() }));
+    W = j; wxLive = true; wxAt = stamp();
+    store.set("weather", JSON.stringify({ j, at: wxAt }));
   } catch (e) { keptWeather(); }
 }
-function keptWeather() { let k = null; try { k = JSON.parse(store.get("weather")); } catch (x) { /* nothing kept */ } wxLive = false; W = k && k.j && k.j.daily && k.j.daily.time.includes(today()) ? k.j : null; }
+function keptWeather() { let k = null; try { k = JSON.parse(store.get("weather")); } catch (x) { /* nothing kept */ } wxLive = false; W = k && k.j && k.j.daily && k.j.daily.time.includes(today()) ? k.j : null; wxAt = W ? k.at : ""; }
 const wxNowKey = () => `${today()}T${p2(new Date().getHours())}`;
 const wxDay = s => { const d = W.daily, i = d.time.indexOf(s); return i < 0 || d.temperature_2m_max[i] == null ? null : { code: d.weather_code[i], hi: Math.round(d.temperature_2m_max[i]), lo: Math.round(d.temperature_2m_min[i]), p: d.precipitation_probability_max[i] ?? 0 }; };
 function wxHoursAt(i0, n) {
@@ -430,7 +529,7 @@ const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) re
 const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
 const yoNow = () => { const h = +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening"; };
 function yoRead(lines) {
-  const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], all: [] };
+  const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], care: {}, all: [] };
   let h = "", head = null;
   lines.forEach((line, i) => {
     const raw = line.replace(/\r$/, "").trim();
@@ -440,6 +539,8 @@ function yoRead(lines) {
     if (!head) { head = c; return; }
     if (/^:?-+:?$/.test(c[0])) return;
     const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^Packing: (.+)$/);
+    const dc = h.match(/^Daycare: (.+)$/);
+    if (dc) { if (cell("Item")) (out.care[dc[1]] = out.care[dc[1]] || []).push({ text: cell("Item"), count: cell("Count"), det: cell("Details") }); return; }
     if (h !== "Daily Goals" && !part && !pk) return;
     const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), room: cell("Room"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[1] : "" };
     if (!it.text) return;
@@ -538,15 +639,49 @@ function yoTick(i) {
     return hit;
   }, `Tablet: ${to ? "check" : "uncheck"} "${it.text}"`);
 }
+/* Clear empties every packing item's Done cell, as the desktop's Clear checks does */
+function yoClear() {
+  save(FATHER_FILE, lines => {
+    yoRead(lines).packs.forEach(it => { const cells = lines[it.i].split("|"); if (cells[cells.length - 2].trim()) { cells[cells.length - 2] = " "; lines[it.i] = cells.join("|"); } });
+    return true;
+  }, "Tablet: clear packing");
+}
+/* a dropped card takes the lane's status, owner, or timing, and in Manual order moves to just above "before" (or below "after") in the file */
+const GCOL = { Status: "Status", Owner: "Owner", Timing: "Timing" };
+const laneOf = r => view.grp === "Status" ? r.st : view.grp === "Owner" ? r.owner : r.time;
+function cbMove(r, lane, before, after) {
+  const col = GCOL[view.grp], v = col === "Owner" && lane === "Both" ? "" : lane, set = lane !== laneOf(r), ref = before || after;
+  save(CUCU_FILE, lines => {
+    const { t, hit } = cbFind(lines, r);
+    if (set && t.head.includes(col)) setCell(lines, hit.i, t.head.indexOf(col) + 1, v);
+    if (ref) {
+      const line = lines.splice(hit.i, 1)[0], at = cbRead(lines).rows.find(x => x.raw === ref.raw);
+      if (at) lines.splice(before ? at.i : at.i + 1, 0, line); else lines.splice(hit.i, 0, line);
+    }
+    return hit;
+  }, `Tablet: move "${r.title}"${set ? ` to ${lane}` : ""}`);
+}
 
 /* ---------- shared pieces ---------- */
 /* the sky now, with the moon after dark as the hour strip shows it */
 const wxNowIcon = n => { const h = wxFromNow(1)[0]; return wxHourIcon({ code: n.code, day: h ? h.day : true }); };
 const nowWx = () => { const n = wxNow(); return n ? `<div class="nowx">${wxIco(wxNowIcon(n), 22)}<span class="num">${n.temp}°</span></div>` : ""; };
-const head = (title, mid = "", right = nowWx()) => `<div class="hd"><h1>${title}</h1><span class="dt">${fmtDay(today(), { weekday: "long", month: "short", day: "numeric" })}</span>${mid}<div class="rt"><span class="st ell${stKind === "err" ? " err" : ""}" id="st">${esc(stMsg)}</span>${right}</div></div>`;
+const head = (title, mid = "", right = nowWx(), date = fmtDay(today(), { weekday: "long", month: "short", day: "numeric" })) => `<div class="hd"><h1>${title}</h1><span class="dt">${date}</span>${mid}<div class="rt"><span class="st ell${stKind === "err" ? " err" : ""}" id="st">${esc(stMsg)}</span>${right}</div></div>`;
 const segBar = (list, on, key) => `<div class="seg">${list.map(v => `<button data-seg="${key}" data-v="${v}" class="${v === on ? "on" : ""}">${v}</button>`).join("")}</div>`;
 const hsq = n => `<span class="hsq">${svg(TAB[n], 16)}</span>`;
 const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
+/* weather pieces shared by Home, Calendar, and Weather. cs holds what is open: the week shown, the calendar tile, and the Weather screen's block, each "YYYY-MM-DD,block" */
+const cs = { wk: 0, cwx: null, wx: null };
+const hourStrip = n => `<div class="wk" style="grid-template-columns:repeat(${n},1fr)">${wxFromNow(n).map((x, k) => `<div class="wc${k ? "" : " on"}"><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 22)}<span class="num">${x.p}%</span></div>`).join("")}</div>`;
+const wxDays = () => W ? Array.from({ length: 7 }, (_, i) => addDays(today(), i)).filter(wxDay) : [];
+const segs = (s, small) => `<div class="hpp">${WX_BLOCKS.map((b, j) => { const B = wxBlock(s, b), k = `${s},${j}`; return B ? `<button class="sg num${B.score < 65 ? " lo" : ""}${!small && cs.wx === k ? " on" : ""}" data-wx="${k}" style="--a:${Math.round(wxFill(B.score) * 95)}%">${wx10(B.score)}</button>` : '<span class="sg gone"></span>'; }).join("")}</div>`;
+/* a block's heading and its four hours, each with its score out of 10 */
+function wxHead(k) {
+  const [s, j] = k.split(","), b = WX_BLOCKS[+j], B = W && wxBlock(s, b);
+  if (!B) return '<span class="s">This block is over.</span>';
+  const rows = wxHours(s, b.from, b.to).map(x => `<div class="pwr num${x.score >= 65 ? " good" : ""}${x.past ? " past" : ""}"><span>${hr12(x.h)}</span>${wxIco(wxHourIcon(x), 18)}<span>${x.temp}°</span><span>${x.p}%</span><i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`).join("");
+  return `<div class="pwh"><span class="s num"><b style="color:var(--tx)">${s === today() ? "Today" : fmtDay(s, { weekday: "long" })} · ${b.label}</b><br>${B.lo} to ${B.hi}°, rain ${B.p}%</span><span class="pill${B.score >= 65 ? " good" : ""} num">Score ${wx10(B.score)}</span></div>${rows}`;
+}
 const sideBar = () => `<div class="brand"><img src="tablet-icon-180.png" alt=""><b>CucuBarri</b></div>${NAV.map(n => `<button class="nv${n === tab ? " on" : ""}" data-go="${n}"><span class="w">${svg(TAB[n], 24)}</span>${n}</button>`).join("")}`;
 
 /* ---------- Home: today's calendar, the weather, Yoni's part of the day, and the open tasks by owner ---------- */
@@ -561,13 +696,11 @@ function homeCal() {
 function homeWx() {
   const n = wxNow(), d = W && wxDay(today());
   if (!n || !d) return `<section class="card" data-go="Weather"><div class="ch">${hsq("Weather")}Weather<span class="s">Hoboken</span></div><div class="empty">Weather is unavailable right now.</div></section>`;
-  const strip = `<div class="wk" style="grid-template-columns:repeat(5,1fr)">${wxFromNow(5).map((x, k) => `<div class="wc${k ? "" : " on"}"><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 22)}<span class="num">${x.p}%</span></div>`).join("")}</div>`;
-  const days = Array.from({ length: 7 }, (_, i) => addDays(today(), i)).filter(wxDay);
-  const pills = days.map((x, k) => `<div class="hp${k ? "" : " td"}" style="--h:26px;--f:12px"><div class="hpp">${WX_BLOCKS.map(b => { const B = wxBlock(x, b); return B ? `<span class="sg num${B.score < 65 ? " lo" : ""}" style="--a:${Math.round(wxFill(B.score) * 95)}%">${wx10(B.score)}</span>` : '<span class="sg gone"></span>'; }).join("")}</div><b style="font-size:12px;margin-top:2px">${k ? fmtDay(x, { weekday: "short" }) : "Tdy"}</b></div>`).join("");
+  const pills = wxDays().map((x, k) => `<div class="hp${k ? "" : " td"}" style="--h:26px;--f:12px">${segs(x, true)}<b style="font-size:12px;margin-top:2px">${k ? fmtDay(x, { weekday: "short" }) : "Tdy"}</b></div>`).join("");
   return `<section class="card" style="min-height:0" data-go="Weather"><div class="ch">${hsq("Weather")}Weather<span class="s">Hoboken</span></div>
     <div class="wxl">${wxIco(wxNowIcon(n), 40)}<span class="v num">${n.temp}°</span><div class="grow"><div class="t1 ell">${wxLabel(n.code)}</div><div class="s num">H ${d.hi}° L ${d.lo}°</div></div></div>
-    <div style="margin:10px -6px 0">${strip}</div>
-    <div class="sub" style="margin-top:8px">Next 7 Days<span class="n">Outdoor score</span></div>
+    <div style="margin:10px -6px 0">${hourStrip(5)}</div>
+    <div class="sub" style="margin-top:8px">Next 7 Days<span class="n">Tap a score</span></div>
     <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px">${pills}</div></section>`;
 }
 /* the part of the day it is now: a round row per step, rows with a Room under a header for their time and room, then the part's tasks */
@@ -601,7 +734,7 @@ function homeScreen() {
 }
 /* ---------- Tasks: the web board's filter and Display (lifeSections.js ~468-525) over the CucuBarri cards ---------- */
 /* grp, ord, done, and props are the Display menu; tf is the filter, one list per property, where an empty list shows all. Kept on this iPad */
-const view = Object.assign({ tasks: "Board", grp: "Status", ord: "Manual", done: false, props: { Note: true, Timing: true, Owner: true }, tf: { status: [], time: [], owner: [] } }, (() => { try { return JSON.parse(store.get("tablet-tasks")) || {}; } catch (e) { return {}; } })());
+const view = Object.assign({ cal: "Week", calwx: false, yoni: "Routines", tasks: "Board", grp: "Status", ord: "Manual", done: false, props: { Note: true, Timing: true, Owner: true }, tf: { status: [], time: [], owner: [] } }, (() => { try { return JSON.parse(store.get("tablet-tasks")) || {}; } catch (e) { return {}; } })());
 const keepView = () => store.set("tablet-tasks", JSON.stringify(view));
 /* edit is the card in the sheet ("new" for a new one), f the sheet's fields, and pop the open menu */
 const ts = { edit: null, r: null, f: null, pop: null };
@@ -631,9 +764,9 @@ function lcard(r) {
   return `<div class="lc${sel(r)}${r.st === "Done" ? " is-done" : ""}" data-edit="${r.n}" data-row="${r.n}">${tm || ow ? `<div class="lchd${r.time === dayName() && tm ? " today" : ""}"><span class="ell">${tm ? whenTxt(r.time) : ""}</span><span class="grow"></span>${ow ? av(r.owner) : ""}</div>` : ""}<div class="lct">${esc(r.title)}</div>${P("Note") && r.note ? `<div class="lcn ell">${esc(r.note)}</div>` : ""}<div class="lcf">${glyph(r, 16)}</div></div>`;
 }
 const addKey = k => `${view.grp}:${k}`;
-const boardView = () => `<div class="lbd scroll">${lanes(shown()).map(({ k, m }) => `<section class="lcol"><div class="lch">${laneHd(k)}<span class="num">${m.length}</span><span class="grow"></span><button class="tool" data-add="${esc(addKey(k))}" aria-label="New task">${svg(UI.plus, 18, 2.2)}</button></div><div class="lcl scroll">${m.map(lcard).join("")}<button class="addc" data-add="${esc(addKey(k))}">+ New task</button></div></section>`).join("")}</div>`;
+const boardView = () => `<div class="lbd scroll">${lanes(shown()).map(({ k, m }) => `<section class="lcol" data-lane="${esc(k)}"><div class="lch">${laneHd(k)}<span class="num">${m.length}</span><span class="grow"></span><button class="tool" data-add="${esc(addKey(k))}" aria-label="New task">${svg(UI.plus, 18, 2.2)}</button></div><div class="lcl scroll">${m.map(lcard).join("")}<button class="addc" data-add="${esc(addKey(k))}">+ New task</button></div></section>`).join("")}</div>`;
 const lrow = r => `<div class="lr${sel(r)}${r.st === "Done" ? " is-done" : ""}" data-edit="${r.n}" data-row="${r.n}">${glyph(r)}<span class="lrt ell">${esc(r.title)}</span><span class="lrn ell grow">${P("Note") ? esc(r.note) : ""}</span>${P("Timing") && view.grp !== "Timing" ? `<span class="lrc${r.time === dayName() ? " today" : ""}">${tShort(r.time)}</span>` : ""}${P("Owner") && view.grp !== "Owner" ? av(r.owner) : ""}</div>`;
-const listView = () => `<div class="ll scroll">${lanes(shown()).filter(x => x.m.length).map(({ k, m }) => `<div class="band${view.grp === "Timing" && k === dayName() ? " today" : ""}">${laneHd(k)}<span class="num">${m.length}</span>${view.grp === "Timing" ? `<span>${timeDate(k)}</span>` : ""}<span class="grow"></span><button class="tool" data-add="${esc(addKey(k))}" aria-label="New task">${svg(UI.plus, 18, 2.2)}</button></div>${m.map(lrow).join("")}`).join("") || `<div class="s" style="padding:18px">${cb.rows.length ? "No tasks match the filter." : "No CucuBarri tasks yet."}</div>`}</div>`;
+const listView = () => `<div class="ll scroll">${lanes(shown()).filter(x => x.m.length).map(({ k, m }) => `<div class="lgrp" data-lane="${esc(k)}"><div class="band${view.grp === "Timing" && k === dayName() ? " today" : ""}">${laneHd(k)}<span class="num">${m.length}</span>${view.grp === "Timing" ? `<span>${timeDate(k)}</span>` : ""}<span class="grow"></span><button class="tool" data-add="${esc(addKey(k))}" aria-label="New task">${svg(UI.plus, 18, 2.2)}</button></div>${m.map(lrow).join("")}</div>`).join("") || `<div class="s" style="padding:18px">${cb.rows.length ? "No tasks match the filter." : "No CucuBarri tasks yet."}</div>`}</div>`;
 /* + Filter, then a chip per filtered property whose cross clears it; the view switch and Display at the far end */
 const tasksBar = () => `<div class="tbar"><button class="tb ghost${ts.pop === "filter" ? " on" : ""}" data-pop="filter">+ Filter</button>${FKEYS.filter(([k]) => view.tf[k].length).map(([k, l]) => `<span class="fchip"><span class="k">${l}</span><span class="ell">${view.tf[k].map(v => fname(k, v)).join(", ")}</span><button data-fclr="${k}" aria-label="Clear the ${l} filter">${svg(UI.x, 16, 2.4)}</button></span>`).join("")}<span class="grow"></span>${segBar(["List", "Board"], view.tasks, "tasks")}<button class="tb${ts.pop === "display" ? " on" : ""}" data-pop="display">${svg(UI.display, 18, 2)}Display</button></div>`;
 function popMenu() {
@@ -677,16 +810,110 @@ function saveSheet() {
   if (isNew) cbAdd(f); else cbEdit(r, f);
 }
 
-/* the screens built in later stages */
-const soon = n => () => head(n) + `<div class="body"><section class="card"><div class="empty">${n} is on its way. Home shows its summary for now.</div></section></div>`;
+/* ---------- Calendar: Week (the web app's grid, lifeSections.js ~1474-1500) and Day, with the Weather toggle's score tiles ---------- */
+/* an event's hours as [start, end], or null for an all-day one */
+const evSpan = e => { const s = tH(e.start); if (s === null) return null; const en = tH(e.end); return [s, en === null || en === s ? s + .5 : en < s ? 24 : en]; };
+/* an all-day "..., through Fri Oct 9" runs to that day */
+const evUntil = e => { const m = e.title.match(/through (?:[A-Z][a-z]{2} )?([A-Z][a-z]{2}) (\d{1,2})/), k = m ? MONTHS.indexOf(m[1]) : -1; if (k < 0) return e.d; const y = +e.d.slice(0, 4), s = `${y + (k + 1 < +e.d.slice(5, 7) ? 1 : 0)}-${p2(k + 1)}-${p2(+m[2])}`; return s > e.d ? s : e.d; };
+const wxHit = (sp, b) => !!sp && sp[0] < b.to && sp[1] > b.from;
+const hasTile = (s, j) => view.calwx && W && !!wxBlock(s, WX_BLOCKS[j]);
+const halfEv = (s, sp) => WX_BLOCKS.some((b, j) => hasTile(s, j) && wxHit(sp, b));
+function wxTile(s, j, H, from, half) {
+  const b = WX_BLOCKS[j], B = view.calwx && W && wxBlock(s, b);
+  if (!B) return "";
+  const a = wxFill(B.score), k = `${s},${j}`;
+  return `<button class="pwx${a ? " on" : ""}${a > .6 ? " hot" : ""}${half ? " half" : ""}${cs.cwx === k ? " sel" : ""}" data-cwx="${k}" style="top:${(b.from - from) * H + 2}px;height:${(b.to - b.from) * H - 4}px;--a:${Math.round(a * 70)}%;--b:${Math.round(a * 70 + 15)}%">${wxIco(wxIcon(B.code), 18)}<b class="num">${half ? `${B.lo}-${B.hi}` : `${B.lo} to ${B.hi}`}°</b><span class="num">${half ? "" : "Rain "}${B.p}%</span></button>`;
+}
+const wxBtn = () => `<button class="tb${view.calwx ? " on" : ""}" data-calwx>${wxIco("part", 20)}Weather</button>`;
+const md = s => fmtDay(s, { month: "short", day: "numeric" });
+function calDay() {
+  const H = 44, from = 7, n = 16, td = today(), now = nowH(), evs = cal.events.filter(e => e.d === td && evSpan(e));
+  const tiles = WX_BLOCKS.map((b, j) => wxTile(td, j, H, from, evs.some(e => wxHit(evSpan(e), b)))).join("");
+  const blocks = evs.map(e => { const [s, en] = evSpan(e), top = Math.max(0, (s - from) * H); return `<div class="blk${en <= now ? " past" : ""}${halfEv(td, [s, en]) ? " half" : ""}" style="top:${top + 1}px;height:${Math.max((en - Math.max(s, from)) * H - 3, 30)}px">${en - s < 1 ? `<b class="ell">${esc(e.title)} <span class="num" style="font-weight:400;color:var(--mut)">${esc(e.start)}</span></b>` : `<b>${esc(e.title)}</b><span class="num">${esc(e.start)} to ${esc(e.end)}</span>`}</div>`; }).join("");
+  const later = cal.events.filter(e => e.d === td && (tH(e.start) ?? -1) > now), tm = addDays(td, 1), allDay = cal.events.filter(e => e.d <= td && evUntil(e) >= td && !evSpan(e));
+  const sel = view.calwx && cs.cwx && cs.cwx.startsWith(td) ? `<section class="card">${wxHead(cs.cwx)}</section>` : "";
+  return `<div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;height:100%">
+    <section class="card scroll" style="padding:18px 14px 10px 10px">${allDay.map(e => `<div class="adev" style="margin:0 0 8px 52px">${esc(e.title)}</div>`).join("")}<div class="tl" style="height:${n * H}px">${Array.from({ length: n }, (_, i) => `<div class="hr" style="top:${i * H}px"><span class="num">${hr12(from + i)}</span></div>`).join("")}
+      ${tiles}${now >= from && now < from + n ? `<div class="nw" style="top:${(now - from) * H}px"></div>` : ""}${blocks}</div></section>
+    <div class="scroll" style="display:grid;align-content:start;gap:12px">${sel}<section class="card"><div class="ch">Coming up today<span class="s num">${later.length} left</span></div>${later.map(e => evRow(e, true)).join("") || '<div class="empty">Nothing else today.</div>'}</section>
+      <section class="card"><div class="ch">Tomorrow<span class="s">${fmtDay(tm, { weekday: "short", month: "short", day: "numeric" })}</span></div>${cal.events.filter(e => e.d === tm).map(e => evRow(e)).join("") || '<div class="empty">Nothing on the calendar.</div>'}</section></div></div>`;
+}
+/* Monday to Sunday, 8 AM to 8 PM, the blocks named down the hour column; the registry holds four weeks */
+function calWeek() {
+  const H = 52, F = 8, T = 20, td = today(), now = nowH(), mon = addDays(td, -((atNoon(td).getDay() + 6) % 7) + 7 * cs.wk), days = Array.from({ length: 7 }, (_, j) => addDays(mon, j));
+  const we = s => [0, 6].includes(atNoon(s).getDay());
+  const heads = days.map(s => `<div class="cgh${s === td ? " td" : ""}${we(s) ? " we" : ""}"><span>${fmtDay(s, { weekday: "short" })}</span><b class="num">${+s.slice(8)}</b></div>`).join("");
+  const ad = cal.events.filter(e => !evSpan(e) && e.d <= days[6] && evUntil(e) >= mon), per = days.map(s => ad.filter(e => e.d <= s && evUntil(e) >= s).length), adH = Math.max(32, 9 + Math.max(0, ...per) * 26 - 4);
+  const allday = `<div class="adl">All day</div><div class="adr">${ad.map(e => { const a = Math.max(0, days.indexOf(e.d < mon ? mon : e.d)), u = evUntil(e), z = u > days[6] ? 6 : days.indexOf(u); return `<div class="adev" style="grid-column:${a + 1}/${Math.max(a, z) + 2}">${esc(e.title)}</div>`; }).join("")}</div>`;
+  const hours = Array.from({ length: T - F }, (_, i) => `<span class="num" style="top:${i * H + 4}px">${hr12(F + i)}</span>`).join("") + WX_BLOCKS.map(b => `<em style="top:${(b.from - F) * H}px;height:${(b.to - b.from) * H}px">${b.label}</em>`).join("");
+  const cols = days.map(s => {
+    const evs = cal.events.filter(e => e.d === s && evSpan(e));
+    return `<div class="dcol${s === td ? " td" : ""}${we(s) ? " we" : ""}" style="height:${(T - F) * H}px;background-size:100% ${H}px">${[4, 8].map(h => `<i class="bline" style="top:${h * H - 1}px"></i>`).join("")}
+      ${WX_BLOCKS.map((b, j) => wxTile(s, j, H, F, evs.some(e => wxHit(evSpan(e), b)))).join("")}
+      ${evs.map(e => { const [a, z] = evSpan(e), s0 = Math.min(Math.max(a, F), T - .5), e0 = Math.max(Math.min(z, T), s0 + .5), past = s < td || (s === td && z <= now);
+        return `<div class="cev${halfEv(s, [a, z]) ? " half" : ""}${past ? " past" : ""}" style="top:${(s0 - F) * H + 1}px;height:${Math.max((e0 - s0) * H - 3, 22)}px"><b class="ell">${esc(e.title)}</b>${e0 - s0 >= .75 ? `<span class="num ell">${esc(e.start)}</span>` : ""}</div>`; }).join("")}
+      ${s === td && now >= F && now < T ? `<div class="cnow" style="top:${(now - F) * H}px"></div>` : ""}</div>`;
+  }).join("");
+  /* the open tile's hours, beside it: to its right on Monday to Thursday, to its left after; the evening one sits on the grid's floor */
+  let pop = "";
+  if (view.calwx && cs.cwx && days.includes(cs.cwx.split(",")[0])) {
+    const [s, b] = cs.cwx.split(","), j = days.indexOf(s), x = j >= 4 ? `right:calc((100% - 64px) / 7 * ${7 - j} + 6px)` : `left:calc(64px + (100% - 64px) / 7 * ${j + 1} + 6px)`;
+    pop = `<div class="wxp" style="${x};${+b === 2 ? "bottom:6px" : `top:${44 + adH + (WX_BLOCKS[+b].from - F) * H}px`}">${wxHead(cs.cwx)}</div>`;
+  }
+  return `<div class="cgw"><div class="cg"><div></div>${heads}${allday}<div class="hrs">${hours}</div>${cols}</div>${pop}</div>`;
+}
+function calendarScreen() {
+  const wk = view.cal === "Week", mon = addDays(today(), -((atNoon(today()).getDay() + 6) % 7) + 7 * cs.wk), sun = addDays(mon, 6);
+  const right = wxBtn() + (wk ? `<button class="tdy${cs.wk ? "" : " off"}" data-wk="0">This week</button><button class="nb${cs.wk > 0 ? "" : " off"}" data-wk="${cs.wk - 1}" aria-label="Last week">${svg(UI.left, 20, 2.4)}</button><button class="nb${cs.wk < 3 ? "" : " off"}" data-wk="${cs.wk + 1}" aria-label="Next week">${svg(UI.right, 20, 2.4)}</button>` : "");
+  const date = wk ? (mon.slice(5, 7) === sun.slice(5, 7) ? `${md(mon)} to ${+sun.slice(8)}` : `${md(mon)} to ${md(sun)}`) : undefined;
+  return head("Calendar", `<div style="margin-left:24px">${segBar(["Week", "Day"], view.cal, "cal")}</div>`, right, date) + `<div class="body${wk ? " scroll" : ""}">${wk ? calWeek() : calDay()}</div>`;
+}
+
+/* ---------- Weather: now and the next hours, then Next 7 Days with the picked block's hours beside it ---------- */
+function weatherScreen() {
+  const n = wxNow(), d = W && wxDay(today()), when = `<span class="s">${W ? (wxLive ? "Live from Open-Meteo, updated " + wxAt.split(", ").pop() : "Saved forecast from " + esc(wxAt)) : ""}</span>`;
+  if (!n || !d) return head("Weather", "", when) + `<div class="body"><section class="card"><div class="empty">Weather is unavailable right now.</div></section></div>`;
+  const td = today(), pills = wxDays().map((s, k) => { const x = wxDay(s); return `<div class="hp${k ? "" : " td"}">${segs(s)}<b>${k ? fmtDay(s, { weekday: "short" }) : "Today"}</b><span class="num">${x.hi}°</span>${wxIco(wxIcon(x.code), 20)}</div>${k ? "" : `<div class="ext">${WX_BLOCKS.map(b => { const B = wxBlock(td, b); return B ? `<span class="num">${wxIco(wxIcon(B.code), 14)}${B.lo} to ${B.hi}°</span>` : "<span></span>"; }).join("")}</div>`}`; }).join("");
+  return head("Weather", "", when) + `<div class="body scroll" style="display:grid;align-content:start;gap:12px">
+    <section class="card"><div style="display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px;align-items:center">
+      <div class="wxl">${wxIco(wxNowIcon(n), 52)}<span class="v num">${n.temp}°F</span><div class="grow"><div class="t1">${wxLabel(n.code)}${wxLive ? '<span class="tag">Live</span>' : ""}</div><div class="s num">Feels like ${n.feel}°. H ${d.hi}° L ${d.lo}°</div></div></div>
+      ${hourStrip(9)}</div></section>
+    <section class="card"><div class="h2">Next 7 Days<span>Hoboken, NJ</span></div><div class="wxw"><div class="hps">${pills}</div><div class="inl">${cs.wx ? wxHead(cs.wx) : '<span class="s">Tap a score to see its hours.</span>'}</div></div></section></div>`;
+}
+
+/* ---------- Yoni: Routines (goals and the three parts of the day), Packing, and Daycare, from fatherRegistry.md ---------- */
+function partCard(p) {
+  const P = yo.data.parts[p], c = yoCount([...P.steps, ...P.tasks]), now = p === yoNow();
+  return `<section class="card part${now ? " now" : ""}" style="display:flex;flex-direction:column;min-height:0"><div class="ach"><span class="nmr">${p}${now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></div><div class="scroll" style="flex:1;min-height:0">${partRows(P)}</div></section>`;
+}
+function yoniScreen() {
+  const d = yo.data, v = view.yoni;
+  let inner;
+  if (v === "Packing") {
+    const groups = [...new Set(d.packs.map(x => x.g))].map(g => ({ g, m: d.packs.filter(x => x.g === g) })), c = yoCount(d.packs), pct = c[1] ? Math.round(c[0] / c[1] * 100) : 0, open = groups.filter(x => x.m.some(y => !y.on)).length;
+    inner = `<div style="display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;height:100%">
+      <section class="card" style="padding:10px 14px"><div class="pks"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${c[0]} of ${c[1]} packed</b><span class="s">${open ? `${open} group${open === 1 ? "" : "s"} still open` : "All packed"}</span></div><button class="clr${c[0] ? "" : " off"}" data-yoclr>Clear</button></div></section>
+      <div class="scroll" style="min-height:0"><div style="columns:3;column-gap:12px">${groups.map(({ g, m }) => { const k = yoCount(m); return `<section class="card" style="break-inside:avoid;margin-bottom:12px;padding:12px 14px 6px"><div class="ach" style="padding-bottom:6px"><span class="nmr">${esc(g)}</span><span class="ct num">${k.join(" / ")}</span><span class="ybar"><i style="width:${k[0] / k[1] * 100}%"></i></span></div>${m.map(it => `<button class="rw${it.on ? " done" : ""}" data-yo="${it.i}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span></button>`).join("")}</section>`; }).join("") || '<div class="empty">No packing list in the file.</div>'}</div></div></div>`;
+  } else if (v === "Daycare") {
+    inner = `<div class="scroll" style="height:100%"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start">${["Current", "Later"].map(k => { const L = d.care[k] || []; return `<section class="card"><div class="ach" style="padding-bottom:4px"><span class="nmr">${k === "Current" ? "Bring now" : "Later on"}</span><span class="ct num">${L.length} item${L.length === 1 ? "" : "s"}</span></div>${L.map(x => `<div class="dc"><b>${esc(x.text)}</b>${x.count ? `<span class="pill num">${esc(x.count)}</span>` : ""}${x.det ? `<span class="s">${esc(x.det)}</span>` : ""}</div>`).join("") || '<div class="empty">Nothing listed.</div>'}</section>`; }).join("")}</div></div>`;
+  } else {
+    const g = yoCount(d.goals);
+    inner = `<div style="display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;height:100%">
+      <section class="card" style="padding:12px"><div class="h2" style="padding-top:0;padding-bottom:6px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div><div class="rings" style="grid-template-columns:repeat(${Math.max(4, d.goals.length)},minmax(0,1fr))">${d.goals.map(x => `<button class="rg${x.on ? " on" : ""}" data-yo="${x.i}"><span class="ro">${esc(x.em)}</span><div class="ell"><b class="num">${esc([x.target, x.unit].filter(Boolean).join(" "))}</b><i class="ell">${esc(x.text)}</i></div></button>`).join("") || '<div class="empty">No daily goals in the file.</div>'}</div></section>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;min-height:0">${YO_PARTS.map(partCard).join("")}</div></div>`;
+  }
+  return head("Yoni", `<div style="margin-left:24px">${segBar(["Routines", "Packing", "Daycare"], v, "yoni")}</div>`) + `<div class="body">${inner}</div>`;
+}
+
 function setupScreen(msg) {
   return head("Connect") + `<div class="body"><form class="card setup" id="setup"><h3>Connect to MattOS</h3><p>${esc(msg || "Paste the GitHub token for the mattos-data repository once. It is kept only on this iPad.")}</p><input class="in" id="token" type="password" autocomplete="off" placeholder="Token" required><button class="btn" type="submit">Connect</button></form></div>`;
 }
-const SCREENS = { Home: homeScreen, Tasks: tasksScreen, Calendar: soon("Calendar"), Weather: soon("Weather"), Yoni: soon("Yoni") };
+const SCREENS = { Home: homeScreen, Tasks: tasksScreen, Calendar: calendarScreen, Weather: weatherScreen, Yoni: yoniScreen };
 
 /* ---------- router and loading ---------- */
 let tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home", setupMsg = null;
 function draw() {
+  if (dg && dg.on) return; /* a lifted card is not drawn over; the drop redraws */
   keepText();
   $("side").innerHTML = sideBar();
   const sc = [...document.querySelectorAll("#main .scroll")].map(e => [e.scrollTop, e.scrollLeft]);
@@ -721,10 +948,93 @@ async function loadAll() {
   if (ts.edit === null) draw(); /* an open sheet is not redrawn under the keyboard */
 }
 
+/* ---------- drag and drop on Tasks: a long press lifts a card or row; dropping it in another lane changes that property ---------- */
+let dg = null, dragEnd = 0;
+function dragStart(p) {
+  const rc = p.el.getBoundingClientRect();
+  p.on = true; p.dx = p.x - rc.left; p.dy = p.y - rc.top;
+  try { if (p.el.hasPointerCapture(p.id)) p.el.releasePointerCapture(p.id); } catch (e) { /* nothing captured */ }
+  p.ghost = p.el.cloneNode(true); p.ghost.classList.add("dghost"); p.ghost.classList.remove("sel");
+  Object.assign(p.ghost.style, { width: rc.width + "px", height: rc.height + "px" });
+  document.body.appendChild(p.ghost);
+  p.ph = document.createElement("div"); p.ph.className = "dph"; p.ph.style.height = rc.height + "px";
+  p.el.parentNode.insertBefore(p.ph, p.el); p.el.style.display = "none";
+  p.home = dropAt(p);
+  dragMove(p); requestAnimationFrame(dragScroll);
+}
+/* the lane and the visible rows either side of the dashed box */
+function dropAt(p) {
+  const near = dir => { let e = p.ph[dir]; while (e === p.el) e = e[dir]; return e && e.dataset && e.dataset.row ? cb.rows[+e.dataset.row] : null; };
+  return { lane: p.ph.closest("[data-lane]").dataset.lane, before: near("nextElementSibling"), after: near("previousElementSibling") };
+}
+function dragMove(p) {
+  p.ghost.style.transform = `translate(${p.x - p.dx}px,${p.y - p.dy}px) rotate(1.5deg)`;
+  const hit = document.elementFromPoint(p.x, p.y), lane = hit && hit.closest("#main [data-lane]");
+  if (!lane) return;
+  const box = lane.querySelector(".lcl") || lane, items = [...box.children].filter(e => e.dataset.row && e !== p.el);
+  const next = items.find(e => { const r = e.getBoundingClientRect(); return p.y < r.top + r.height / 2; });
+  if (next) { if (p.ph.nextElementSibling !== next) box.insertBefore(p.ph, next); }
+  else { const end = box.querySelector(":scope > .addc"); if (end) { if (p.ph.nextElementSibling !== end) box.insertBefore(p.ph, end); } else if (box.lastElementChild !== p.ph) box.appendChild(p.ph); }
+}
+/* near an edge, the list under the finger scrolls, and the board scrolls sideways */
+function dragScroll() {
+  const p = dg;
+  if (!p || !p.on) return;
+  let moved = false;
+  const v = [...document.querySelectorAll("#main .lcl, #main .ll")].find(e => { const r = e.getBoundingClientRect(); return p.x >= r.left && p.x <= r.right; });
+  if (v) { const r = v.getBoundingClientRect(), s = p.y < r.top + 56 ? -1 : p.y > r.bottom - 56 ? 1 : 0; if (s) { v.scrollTop += s * 12; moved = true; } }
+  const h = document.querySelector("#main .lbd");
+  if (h) { const r = h.getBoundingClientRect(), s = p.x < r.left + 60 ? -1 : p.x > r.right - 60 ? 1 : 0; if (s) { h.scrollLeft += s * 14; moved = true; } }
+  if (moved) dragMove(p);
+  requestAnimationFrame(dragScroll);
+}
+function dragStop(drop) {
+  const p = dg;
+  dg = null;
+  if (!p) return;
+  clearTimeout(p.timer);
+  if (!p.on) return;
+  dragEnd = Date.now();
+  const to = dropAt(p);
+  p.ghost.remove(); p.ph.remove(); p.el.style.display = "";
+  const same = to.lane === p.home.lane && (to.before && to.before.n) === (p.home.before && p.home.before.n);
+  if (!drop || same || (view.ord !== "Manual" && to.lane === p.home.lane)) { draw(); return; }
+  const manual = view.ord === "Manual";
+  cbMove(p.r, to.lane, manual ? to.before : null, manual && !to.before ? to.after : null);
+}
+document.addEventListener("pointerdown", ev => {
+  if (tab !== "Tasks" || ts.edit !== null || ts.pop || dg || offline) return;
+  const el = ev.target.closest(".lc[data-row], .lr[data-row]");
+  if (!el || ev.target.closest("button")) return;
+  const r = cb.rows[+el.dataset.row];
+  if (!r) return;
+  const p = dg = { el, r, id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, x: ev.clientX, y: ev.clientY, on: false };
+  p.timer = setTimeout(() => { if (dg === p) dragStart(p); }, ev.pointerType === "mouse" ? 150 : 300);
+});
+document.addEventListener("pointermove", ev => {
+  const p = dg;
+  if (!p || ev.pointerId !== p.id) return;
+  p.x = ev.clientX; p.y = ev.clientY;
+  if (!p.on) { if (Math.hypot(p.x - p.x0, p.y - p.y0) > 8) dragStop(false); return; }
+  ev.preventDefault(); dragMove(p);
+});
+document.addEventListener("pointerup", ev => { if (dg && ev.pointerId === dg.id) dragStop(true); });
+document.addEventListener("pointercancel", ev => { if (dg && ev.pointerId === dg.id) dragStop(dg.on); });
+/* once a card is lifted, the finger moves it instead of scrolling */
+document.addEventListener("touchmove", ev => { if (dg && dg.on) ev.preventDefault(); }, { passive: false });
+
 document.addEventListener("click", ev => {
+  if (Date.now() - dragEnd < 500) return;
   const at = q => ev.target.closest(q);
   let x;
+  /* an open calendar tile closes on any tap outside it */
+  if (cs.cwx && tab === "Calendar" && !at("[data-cwx]") && !at(".wxp") && !at("[data-calwx]")) { cs.cwx = null; if (!at("button")) { draw(); return; } }
   if (at("[data-popx]")) { ts.pop = null; draw(); }
+  else if (at("[data-calwx]")) { view.calwx = !view.calwx; cs.cwx = null; keepView(); draw(); }
+  else if ((x = at("[data-cwx]"))) { cs.cwx = cs.cwx === x.dataset.cwx ? null : x.dataset.cwx; draw(); }
+  else if ((x = at("[data-wk]"))) { cs.wk = Math.max(0, Math.min(3, +x.dataset.wk)); cs.cwx = null; draw(); }
+  else if ((x = at("[data-wx]"))) { const k = x.dataset.wx; if (tab !== "Weather") { cs.wx = k; location.hash = "Weather"; } else { cs.wx = cs.wx === k ? null : k; draw(); } }
+  else if (at("[data-yoclr]")) yoClear();
   else if ((x = at("[data-pop]"))) { ts.pop = ts.pop === x.dataset.pop ? null : x.dataset.pop; draw(); }
   else if ((x = at("[data-fpick]"))) { const L = view.tf[x.dataset.fpick], v = x.dataset.v; L.includes(v) ? L.splice(L.indexOf(v), 1) : L.push(v); keepView(); draw(); }
   else if ((x = at("[data-fclr]"))) { view.tf[x.dataset.fclr] = []; keepView(); draw(); }
@@ -747,7 +1057,7 @@ document.addEventListener("submit", ev => {
   if (ev.target.id !== "setup") return;
   store.set("token", $("token").value.trim()); setupMsg = null; draw(); loadAll();
 });
-addEventListener("hashchange", () => { tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home"; ts.edit = ts.r = ts.pop = null; draw(); });
+addEventListener("hashchange", () => { tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home"; ts.edit = ts.r = ts.pop = cs.cwx = null; draw(); });
 /* Return in the sheet saves it */
 document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target.closest && ev.target.closest(".bs")) { ev.preventDefault(); saveSheet(); } });
 /* the iPad sits on its dock: the files are read again every five minutes and whenever the app comes back to the front */
