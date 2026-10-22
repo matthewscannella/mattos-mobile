@@ -92,6 +92,8 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .wxl .v{font-size:44px;line-height:48px;font-weight:700;letter-spacing:-.02em;color:#fff}
 .wxl .t1{font-weight:600;color:#fff;display:flex;align-items:center;gap:7px}
 .wk{display:grid;gap:4px}
+/* the hour strip runs a day ahead and scrolls sideways, n hours at a time */
+.wk.hsx{grid-auto-flow:column;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}
 .wc{white-space:nowrap;display:grid;justify-items:center;gap:5px;padding:10px 0 9px;border-radius:14px;font-size:12.5px;line-height:16px;color:var(--mut);--cut:var(--card)}
 .wc b{font-size:18px;line-height:22px;color:var(--tx);font-weight:700}
 .wc svg{color:var(--tx)}
@@ -125,7 +127,6 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:12px;background:var(--card);border:1px solid var(--rule)}
 .seg button{text-align:center;height:34px;line-height:34px;padding:0 16px;border-radius:9px;font-size:14px;font-weight:600;color:var(--mut)}
 .seg button.on{background:var(--blue);color:#fff}
-.sq{flex:none;width:42px;height:42px;border-radius:12px;background:var(--blue);display:grid;place-items:center;color:#fff}
 .tool{flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--mut)}
 .tbar{flex:none;display:flex;align-items:center;gap:8px;padding:0 22px 12px}
 .tb{height:42px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border-radius:12px;border:1px solid var(--rule);background:var(--card);font-size:14px;font-weight:600;color:var(--tx);white-space:nowrap;--cut:var(--card)}
@@ -156,12 +157,14 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .lcl{flex:1;min-height:0;display:grid;align-content:start;gap:8px;padding-bottom:6px}
 .lc{display:grid;gap:5px;padding:12px 14px 11px;border-radius:11px;background:var(--card);border:1px solid var(--line);transition:opacity .3s,transform .3s;--avr:var(--card)}
 .lc.sel{border-color:var(--blue);background:#141927}
-.lchd{display:flex;align-items:center;gap:6px;min-width:0;font-size:12.5px;color:var(--mut)}
-.lchd.today{color:var(--done)}
 .sep{margin:0 5px;color:var(--dim)}
 .lct{font-size:15px;line-height:20px;font-weight:500;color:var(--hi)}
 .lcn{font-size:13px;line-height:17px;color:var(--dim)}
-.lcf{display:flex;align-items:center;gap:9px;margin-top:3px;font-size:12px;color:var(--dim)}
+/* the card's foot: its status, timing, and owner on one line */
+.lcf{display:flex;align-items:center;gap:9px;margin-top:3px;font-size:12.5px;color:var(--mut)}
+.lcf .today{color:var(--done)}
+/* the New task button, bottom right of every tab */
+.fab{position:absolute;right:calc(22px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));z-index:3;width:56px;height:56px;border-radius:16px;background:var(--blue);display:grid;place-items:center;color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.5)}
 .addc{justify-self:start;padding:8px 10px;border-radius:8px;font-size:13.5px;color:var(--dim)}
 .ll{height:100%;border:1px solid var(--rule);border-radius:16px;background:var(--body)}
 .band{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;height:42px;padding:0 10px 0 16px;background:var(--card);border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}
@@ -294,6 +297,12 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .setup p{margin:0;color:var(--mut)}
 .in{width:100%;min-height:44px;border-radius:10px;border:1px solid var(--rule);background:var(--body);padding:11px 12px;font-size:16px;line-height:20px;color:var(--tx)}
 .in:focus{border-color:var(--blue)}
+.in::placeholder{color:#3d4350}
+/* the phone's Bug switch inside the Name field (index.html ~232-235) */
+.inwrap{position:relative}
+.in.bugpad{padding-right:52px}
+.o.bug{position:absolute;right:5px;top:5px;height:34px;width:40px;padding:0;justify-content:center;font-size:17px;background:none;filter:grayscale(1);opacity:.45;font-family:var(--emoji)}
+.o.bug.on{background:var(--raised);filter:none;opacity:1}
 .btn{height:46px;line-height:46px;border-radius:12px;padding:0 18px;font-size:15px;font-weight:600;text-align:center;background:var(--blue);color:#fff}
 </style>
 </head>
@@ -608,6 +617,20 @@ function cbAdd(f) {
     return true;
   }, `Tablet: add "${cells.Task}"`);
 }
+/* a bug goes to the MattOS task list as a 🐞 task, where "fix bugs" finds it; that file is not shown here, so it is only saved */
+const TASK_FILE = "02📋-tasks/taskRegistry.md";
+function bugAdd(f) {
+  const t0 = cbEnc(f.title), cells = { ...cbCells(f), Status: "Open", Task: t0.startsWith("🐞") ? t0 : "🐞 " + t0, Category: "🧑🏻‍👩🏻‍🧒🏻 Family", Added: today() };
+  if (offline) { status("Offline. Changes are off until the connection is back.", "err"); draw(); return; }
+  draw();
+  commitFile(TASK_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
+    const t = cbRead(lines);
+    if (!t.head) throw new Error("The MattOS task table was not found, so the bug was not saved.");
+    const at = t.rows.length ? t.rows[t.rows.length - 1].i + 1 : t.hi + 2;
+    lines.splice(at, 0, `| ${t.head.map(h => cells[h] || "").join(" | ")} |`.replace(/ {2}\|/g, " |") + cbEol(lines, t.hi));
+    return true;
+  }, `Tablet: bug "${cells.Task}"`).then(() => { if (stKind === "ok") status(`Bug added to MattOS tasks.`, "ok"); });
+}
 /* a deleted card is kept for Undo with the card above it, so it goes back in the same place */
 let undoCard = null, toastT = 0;
 function cbDel(r) {
@@ -672,7 +695,7 @@ const hsq = n => `<span class="hsq">${svg(TAB[n], 16)}</span>`;
 const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
 /* weather pieces shared by Home, Calendar, and Weather. cs holds what is open: the week shown, the calendar tile, and the Weather screen's block, each "YYYY-MM-DD,block" */
 const cs = { wk: 0, cwx: null, wx: null };
-const hourStrip = n => `<div class="wk" style="grid-template-columns:repeat(${n},1fr)">${wxFromNow(n).map((x, k) => `<div class="wc${k ? "" : " on"}"><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 22)}<span class="num">${x.p}%</span></div>`).join("")}</div>`;
+const hourStrip = n => `<div class="wk hsx scroll" style="grid-auto-columns:calc((100% - ${(n - 1) * 4}px) / ${n})">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 22)}<span class="num">${x.p}%</span></div>`).join("")}</div>`;
 const wxDays = () => W ? Array.from({ length: 7 }, (_, i) => addDays(today(), i)).filter(wxDay) : [];
 const segs = (s, small) => `<div class="hpp">${WX_BLOCKS.map((b, j) => { const B = wxBlock(s, b), k = `${s},${j}`; return B ? `<button class="sg num${B.score < 65 ? " lo" : ""}${!small && cs.wx === k ? " on" : ""}" data-wx="${k}" style="--a:${Math.round(wxFill(B.score) * 95)}%">${wx10(B.score)}</button>` : '<span class="sg gone"></span>'; }).join("")}</div>`;
 /* a block's heading and its four hours, each with its score out of 10 */
@@ -761,7 +784,7 @@ const whenTxt = t => { const d = t !== dayName() && t !== "Next Week" && timeDat
 const sel = r => ts.edit !== null && ts.r && ts.r.raw === r.raw ? " sel" : "";
 function lcard(r) {
   const tm = P("Timing") && view.grp !== "Timing", ow = P("Owner") && view.grp !== "Owner";
-  return `<div class="lc${sel(r)}${r.st === "Done" ? " is-done" : ""}" data-edit="${r.n}" data-row="${r.n}">${tm || ow ? `<div class="lchd${r.time === dayName() && tm ? " today" : ""}"><span class="ell">${tm ? whenTxt(r.time) : ""}</span><span class="grow"></span>${ow ? av(r.owner) : ""}</div>` : ""}<div class="lct">${esc(r.title)}</div>${P("Note") && r.note ? `<div class="lcn ell">${esc(r.note)}</div>` : ""}<div class="lcf">${glyph(r, 16)}</div></div>`;
+  return `<div class="lc${sel(r)}${r.st === "Done" ? " is-done" : ""}" data-edit="${r.n}" data-row="${r.n}"><div class="lct">${esc(r.title)}</div>${P("Note") && r.note ? `<div class="lcn ell">${esc(r.note)}</div>` : ""}<div class="lcf">${glyph(r, 16)}${tm ? `<span class="ell${r.time === dayName() ? " today" : ""}">${whenTxt(r.time)}</span>` : ""}<span class="grow"></span>${ow ? av(r.owner) : ""}</div></div>`;
 }
 const addKey = k => `${view.grp}:${k}`;
 const boardView = () => `<div class="lbd scroll">${lanes(shown()).map(({ k, m }) => `<section class="lcol" data-lane="${esc(k)}"><div class="lch">${laneHd(k)}<span class="num">${m.length}</span><span class="grow"></span><button class="tool" data-add="${esc(addKey(k))}" aria-label="New task">${svg(UI.plus, 18, 2.2)}</button></div><div class="lcl scroll">${m.map(lcard).join("")}<button class="addc" data-add="${esc(addKey(k))}">+ New task</button></div></section>`).join("")}</div>`;
@@ -782,7 +805,7 @@ function sheet() {
   if (ts.edit === null) return "";
   const f = ts.f, isNew = ts.edit === "new";
   return `<div class="dim" data-close></div><div class="bs"><h3>${isNew ? "New task" : "Edit task"}<button data-close>Cancel</button></h3>
-    <label class="fl"><span>Name</span><input class="in" id="fName" value="${esc(f.title)}" placeholder="What needs doing" enterkeyhint="done"></label>
+    <label class="fl"><span>Name</span><div class="inwrap"><input class="in${isNew ? " bugpad" : ""}" id="fName" value="${esc(f.title)}" placeholder="What needs doing" enterkeyhint="done">${isNew ? `<button type="button" class="o bug${f.bug ? " on" : ""}" data-bug aria-pressed="${!!f.bug}" aria-label="Bug">🐞</button>` : ""}</div></label>
     <label class="fl"><span>Note</span><input class="in" id="fNote" value="${esc(f.note)}" placeholder="Optional" enterkeyhint="done"></label>
     <div class="fl"><span>Status</span><div class="opts">${STATS.map(o => `<button class="o${o === f.st ? " on" : ""}" data-fset="st" data-v="${o}">${sGlyph(o, 16)}&nbsp;&nbsp;${o}</button>`).join("")}</div></div>
     <div class="fl"><span>Owner</span><div class="opts">${OWNERS.map(o => `<button class="o${o === f.owner ? " on" : ""}" data-fset="owner" data-v="${o}">${o}</button>`).join("")}</div></div>
@@ -791,7 +814,7 @@ function sheet() {
 }
 const toast = () => undoCard ? `<div class="toast"><span class="ell">Deleted "${esc(undoCard.title)}"</span><button data-undo>Undo</button></div>` : "";
 function tasksScreen() {
-  return head("Tasks", "", `<button class="sq" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 22, 2.4)}</button>`) + tasksBar() + `<div class="body">${view.tasks === "Board" ? boardView() : listView()}</div>${popMenu()}${sheet()}${toast()}`;
+  return head("Tasks") + tasksBar() + `<div class="body">${view.tasks === "Board" ? boardView() : listView()}</div>${popMenu()}`;
 }
 /* the sheet's typed text is kept before every redraw */
 function keepText() { const n = $("fName"), t = $("fNote"); if (n && ts.f) { ts.f.title = n.value; ts.f.note = t.value; } }
@@ -807,7 +830,7 @@ function saveSheet() {
   const f = ts.f, r = ts.r, isNew = ts.edit === "new";
   ts.edit = null; ts.r = null;
   if (!cbEnc(f.title)) { draw(); return; }
-  if (isNew) cbAdd(f); else cbEdit(r, f);
+  if (isNew && f.bug) bugAdd(f); else if (isNew) cbAdd(f); else cbEdit(r, f);
 }
 
 /* ---------- Calendar: Week (the web app's grid, lifeSections.js ~1474-1500) and Day, with the Weather toggle's score tiles ---------- */
@@ -917,7 +940,7 @@ function draw() {
   keepText();
   $("side").innerHTML = sideBar();
   const sc = [...document.querySelectorAll("#main .scroll")].map(e => [e.scrollTop, e.scrollLeft]);
-  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]();
+  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]() + `<button class="fab" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 26, 2.4)}</button>${sheet()}${toast()}`;
   document.querySelectorAll("#main .scroll").forEach((e, k) => { [e.scrollTop, e.scrollLeft] = sc[k] || [0, 0]; }); /* a redraw keeps each list where it was */
 }
 /* first from the copies kept on this iPad, so it opens at once, then from the newest files */
@@ -1042,6 +1065,8 @@ document.addEventListener("click", ev => {
   else if ((x = at("[data-prop]"))) { view.props[x.dataset.prop] = !view.props[x.dataset.prop]; keepView(); draw(); }
   else if ((x = at("[data-seg]"))) { view[x.dataset.seg] = x.dataset.v; keepView(); draw(); }
   else if ((x = at("[data-fset]"))) { ts.f[x.dataset.fset] = x.dataset.v; draw(); }
+  /* the Bug switch flips in place, so the keyboard stays up */
+  else if ((x = at("[data-bug]"))) { ev.preventDefault(); ts.f.bug = !ts.f.bug; x.classList.toggle("on", ts.f.bug); x.setAttribute("aria-pressed", ts.f.bug); }
   else if (at("[data-close]")) { ts.edit = null; ts.r = null; draw(); }
   else if (at("[data-save]")) saveSheet();
   else if (at("[data-del]")) { const r = ts.r; ts.edit = null; ts.r = null; if (r) cbDel(r); else draw(); }
