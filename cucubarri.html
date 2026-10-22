@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1218">
+<meta name="apple-mobile-web-app-title" content="CucuBarri">
+<link rel="manifest" href="cucubarri.webmanifest?v=2">
+<link rel="apple-touch-icon" href="tablet-icon-180.png">
+<link rel="icon" type="image/png" href="tablet-icon-180.png">
+<title>CucuBarri</title>
+<script>
+  /* Install page for the CucuBarri phone profile. Its install settings are written here, not swapped by script, so the home-screen icon is CucuBarri's.
+     Opened from the home screen, it goes straight into the profile */
+  if (navigator.standalone || matchMedia("(display-mode: standalone)").matches) location.replace("./?profile=cucubarri");
+</script>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0f1218; color: #e8ecf2; font: 17px/1.5 -apple-system, system-ui, sans-serif; text-align: center; }
+  main { padding: 32px 24px; max-width: 320px; }
+  img { width: 96px; height: 96px; border-radius: 22px; }
+  h1 { font-size: 24px; margin: 16px 0 8px; }
+  p { margin: 8px 0; color: #aab3c0; }
+  a { color: #7fb4ff; }
+</style>
+</head>
+<body>
+<main>
+  <img src="tablet-icon-180.png" alt="">
+  <h1>CucuBarri</h1>
+  <p>Tap the Share button, then <b>Add to Home Screen</b>, and then <b>Add</b>.</p>
+  <p><a href="./?profile=cucubarri">Open CucuBarri here</a></p>
+</main>
+</body>
+</html>
