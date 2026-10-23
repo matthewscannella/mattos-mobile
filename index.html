@@ -876,19 +876,20 @@ const tkCell = s => s.replace(/\|/g, "/").replace(/\s+/g, " ").trim();
 /* both files are changed as lines: one line is rewritten or added, so every other line stays exactly as the laptop wrote it.
    head is the table's column names, col the Status column, end the table's last line, and a row's i its line */
 function tkRead(lines) {
-  let head = null, end = -1;
+  /* the day is the Day column; a file from before it holds the day under Timing */
+  let head = null, end = -1, day = "Day";
   const rows = [];
   lines.forEach((line, i) => {
     const raw = line.replace(/\r$/, "");
     if (!raw.trim().startsWith("|")) return;
     const c = raw.trim().split("|").slice(1, -1).map(x => x.trim());
-    if (!head) { if (c.includes("Status") && c.includes("Task")) { head = c; end = i; } return; }
+    if (!head) { if (c.includes("Status") && c.includes("Task")) { head = c; end = i; day = c.includes("Day") ? "Day" : "Timing"; } return; }
     end = i;
     const cell = n => c[head.indexOf(n)] || "";
     if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note"))) return;
-    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell("Timing")), title: cell("Task"), note: cell("Note"), own: cell("Owner") });
+    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell(day)), title: cell("Task"), note: cell("Note"), own: cell("Owner") });
   });
-  return { head, col: head ? head.indexOf("Status") : -1, end, rows };
+  return { head, col: head ? head.indexOf("Status") : -1, end, rows, day };
 }
 /* parseIdeas and ideaAge from mattOs.html */
 function parseIdeas(md) {
@@ -997,16 +998,16 @@ function tickTask(n) {
     return hit;
   }, `Phone: ${to === "Done" ? "done" : "reopen"} "${r.title}"`);
 }
-/* a day button on an opened card rewrites the task's Timing in place, as the laptop's timing picker does */
+/* a day button on an opened card rewrites the task's Day in place, as the laptop's timing picker does */
 function moveTask(n, to) {
   const r = tk.rows[n];
   if (!r || r.time === to) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
   tk.wide = null;
   tkSave(r.f, lines => {
-    const t = tkRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw), at = t.head.indexOf("Timing");
+    const t = tkRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw), at = t.head.indexOf(t.day);
     if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
-    if (at < 0) throw new Error("The task table has no Timing column, so the task was not moved.");
+    if (at < 0) throw new Error("The task table has no Day column, so the task was not moved.");
     const cells = lines[hit.i].split("|");
     cells[at + 1] = ` ${to} `;
     lines[hit.i] = cells.join("|");
@@ -1020,7 +1021,7 @@ function openSheet() {
   tk.sheet = idea ? "Idea" : "Task"; tk.menu = false;
   $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tkCb() && !idea ? "CucuBarri " : ""}${tk.sheet}</h3>
     <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${idea || CB ? "" : " bugpad"}" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done">${idea || CB ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
-    ${idea ? "" : `<div class="fl"><span>Timing</span><div class="opts">${TK_TIMES.map(t => o("t", t, t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3), t === day)).join("")}</div></div>`}
+    ${idea ? "" : `<div class="fl"><span>Day</span><div class="opts">${TK_TIMES.map(t => o("t", t, t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3), t === day)).join("")}</div></div>`}
     <div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>
     <label class="fl"><span>Note</span><input class="in" id="tk-n" placeholder="Add a note…" autocomplete="off" enterkeyhint="done"></label>
     <div class="fb"><button type="button" class="btn" data-tk="cancel">Cancel</button><button type="submit" class="btn primary grow">Add ${tk.sheet}</button></div></form>`;
@@ -1040,7 +1041,7 @@ function saveSheet() {
     if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
     const same = t.rows.filter(r => r.time === time), at = same.length ? same[same.length - 1].i : t.end;
     /* Family is written with the emoji the registry already uses; the phone shows 👪, which an iPhone draws as one figure */
-    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note, ...(tkCb() ? { Owner: CB ? "BB" : "MS", Added: today() } : {}) };
+    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, [t.day]: time, Task: title, Note: note, ...(tkCb() ? { Owner: CB ? "BB" : "MS", Added: today() } : {}) };
     lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
     return cells;
   }, `Phone: new task "${title}"`);

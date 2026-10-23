@@ -558,9 +558,11 @@ function cbRead(lines) {
     if (!raw.trim().startsWith("|")) return;
     const c = raw.trim().split("|").slice(1, -1).map(x => x.trim());
     if (!head) { if (c.includes("Status") && c.includes("Task")) { head = c; hi = i; } return; }
+    /* the day is the Day column; a file from before it holds the day under Timing */
+    const day = head.includes("Day") ? "Day" : "Timing";
     const cell = n => c[head.indexOf(n)] || "";
     if (/^:?-+:?$/.test(c[0]) || !cell("Task")) return;
-    rows.push({ n: rows.length, i, raw, st: STATS.includes(cell("Status")) ? cell("Status") : "Open", owner: OWNERS.includes(cell("Owner")) ? cell("Owner") : "Both", time: TIMES.find(t => t.toLowerCase() === cell("Timing").toLowerCase()) || "Backlog", title: cell("Task"), note: cell("Note").replace(/<br\s*\/?>/gi, " "), cat: cell("Category") });
+    rows.push({ n: rows.length, i, raw, st: STATS.includes(cell("Status")) ? cell("Status") : "Open", owner: OWNERS.includes(cell("Owner")) ? cell("Owner") : "Both", time: TIMES.find(t => t.toLowerCase() === cell(day).toLowerCase()) || "Backlog", title: cell("Task"), note: cell("Note").replace(/<br\s*\/?>/gi, " "), cat: cell("Category") });
   });
   return { head, hi, col: head ? head.indexOf("Status") : -1, rows };
 }
@@ -691,7 +693,7 @@ function cbTick(n) {
 }
 /* a card's cells as the file holds them: a blank Owner for both of us, and no pipes or line breaks in the text */
 const cbEnc = s => String(s || "").replace(/\|/g, "/").replace(/\r?\n/g, " ").trim();
-const cbCells = f => ({ Status: f.st, Owner: f.owner === "Both" ? "" : f.owner, Timing: f.time, Task: cbEnc(f.title), Note: cbEnc(f.note) });
+const cbCells = f => ({ Status: f.st, Owner: f.owner === "Both" ? "" : f.owner, Day: f.time, Task: cbEnc(f.title), Note: cbEnc(f.note) });
 /* only the cells that were changed in the sheet are rewritten, so the Category and any note line breaks stay as they were */
 function cbEdit(r, f) {
   const was = cbCells(r), now = cbCells(f);
@@ -759,7 +761,7 @@ function yoClear() {
   }, "Tablet: clear packing");
 }
 /* a dropped card takes the lane's status, owner, or timing, and in Manual order moves to just above "before" (or below "after") in the file */
-const GCOL = { Status: "Status", Owner: "Owner", Timing: "Timing" };
+const GCOL = { Status: "Status", Owner: "Owner", Timing: "Day" };
 const laneOf = r => view.grp === "Status" ? r.st : view.grp === "Owner" ? r.owner : r.time;
 function cbMove(r, lane, before, after) {
   const col = GCOL[view.grp], v = col === "Owner" && lane === "Both" ? "" : lane, set = lane !== laneOf(r), ref = before || after;
