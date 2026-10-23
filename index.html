@@ -216,6 +216,9 @@
   .tr .tt { font-size: var(--ts); line-height: var(--tl); font-weight: 400; letter-spacing: -.01em; }
   .tr .tm { font-size: var(--ns); line-height: var(--nl); }
   .tr .cp { width: 34px; padding-top: var(--pad); text-align: center; font-size: var(--es); line-height: var(--tl); }
+  /* a CucuBarri task shows its owner, MS or BB, or a faint dash while it has none */
+  .cp.ow { font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--mut); }
+  .cp.ow.none { opacity: .5; }
   .tr.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   .tr .mv { gap: 5px; padding: 6px 0 2px; }
   .tr .mv .o { height: 30px; padding: 0 9px; font-size: 13px; }
@@ -860,8 +863,8 @@ async function loadCalendar() {
 }
 
 /* ---------- Tasks: add, check off, and move to another day. Row order is priority, so the phone never reorders, edits or deletes ---------- */
-/* CucuBarri's tasks are the CucuBarri board's, less those owned by MS alone; a new one is BB's */
-const TASK_FILE = CB ? "11🏖️-weekend/cucuBarriRegistry.md" : "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
+/* CucuBarri's tasks are the CucuBarri board's, and a new one is BB's. Matt's phone reads the board too, behind the CucuBarri filter, and a new one there is MS's */
+const CB_FILE = "11🏖️-weekend/cucuBarriRegistry.md", TASK_FILE = CB ? CB_FILE : "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
 const TK_CATS = { Habits: "🥕", Family: "👪", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
 const TK_TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
 const TK_STATUS = ["Open", "WIP", "Blocked", "Done"];
@@ -882,8 +885,8 @@ function tkRead(lines) {
     if (!head) { if (c.includes("Status") && c.includes("Task")) { head = c; end = i; } return; }
     end = i;
     const cell = n => c[head.indexOf(n)] || "";
-    if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note")) || (CB && cell("Owner") === "MS")) return;
-    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell("Timing")), title: cell("Task"), note: cell("Note") });
+    if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note"))) return;
+    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell("Timing")), title: cell("Task"), note: cell("Note"), own: cell("Owner") });
   });
   return { head, col: head ? head.indexOf("Status") : -1, end, rows };
 }
@@ -916,18 +919,24 @@ function addIdeaLines(lines, d) {
   if (lines.slice(at).some(l => l.startsWith("## "))) lines.splice(at, 0, ...[...block, "", "---"].map(l => l + cr));
   else lines.splice(at, lines.length - at, ...block.map(l => l + cr), "");
 }
-const tk = { lines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks", cat: "All", menu: false, wide: null, sheet: "" };
+const tk = { lines: [], clines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks", cat: "All", src: "All", menu: false, wide: null, sheet: "" };
 let tkBusy = 0, tkFail = false;
-function tkParse() { const t = tkRead(tk.lines); tk.rows = t.rows; tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); }
+/* a row keeps its file, f; on Matt's phone the CucuBarri board's rows follow his own, numbered on from them */
+function tkParse() {
+  const t = tkRead(tk.lines), own = t.rows.map(r => ({ ...r, f: TASK_FILE, cb: CB })), cb = CB ? [] : tkRead(tk.clines).rows.map(r => ({ ...r, f: CB_FILE, cb: true }));
+  tk.rows = [...own, ...cb].map((r, n) => ({ ...r, n })); tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); }
 function drawTasks() {
   if (tk.view === "Shopping") { drawShop(); return; }
   leaveHabits(); /* the Done shopping bar */
-  const cats = ["All", ...Object.keys(TK_CATS)], inCat = x => tk.cat === "All" || x.cat === tk.cat, open = r => r.st !== "Done";
+  /* Ideas filter by category, and Tasks by source: All Tasks, or the CucuBarri board's alone */
+  const idea = tk.view === "Ideas", key = idea ? "cat" : "src", on = tk[key], open = r => r.st !== "Done";
+  const inCat = x => tk.cat === "All" || x.cat === tk.cat, inSrc = r => tk.src === "All" || r.cb;
   const show = s => esc(s.replace(/<br\s*\/?>/gi, " ")), tick = n => svg(UI.check, n, 4);
-  const count = v => (tk.view === "Ideas" ? tk.ideas : tk.rows.filter(open)).filter(x => v === "All" || x.cat === v).length;
-  const menu = tk.menu ? `<div class="veil" data-tk="menu"></div><div class="pop" role="menu">${cats.map(v => `<button type="button" class="mi${tk.cat === v ? " on" : ""}" role="menuitemradio" aria-checked="${tk.cat === v}" data-tk="cat" data-a="${v}"><span class="em">${TK_CATS[v] || ""}</span><span class="grow">${v === "All" ? "All Categories" : v}</span><span class="num">${count(v)}</span></button>`).join("")}</div>` : "";
-  const bar = tkBar(tk.view, `<button type="button" class="sq${tk.cat !== "All" || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by category${tk.cat === "All" ? "" : ": " + tk.cat}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>${menu}`);
-  const none = what => `<div class="empty">${tk.cat === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${tk.cat} ${what}.`}</div>`;
+  const opts = idea ? ["All", ...Object.keys(TK_CATS)] : ["All", "CucuBarri"], label = v => v !== "All" ? v : idea ? "All Categories" : "All Tasks";
+  const count = v => idea ? tk.ideas.filter(x => v === "All" || x.cat === v).length : tk.rows.filter(r => open(r) && (v === "All" || r.cb)).length;
+  const menu = tk.menu ? `<div class="veil" data-tk="menu"></div><div class="pop" role="menu">${opts.map(v => `<button type="button" class="mi${on === v ? " on" : ""}" role="menuitemradio" aria-checked="${on === v}" data-tk="${key}" data-a="${v}"><span class="em">${idea ? TK_CATS[v] || "" : v === "CucuBarri" ? "🦜" : ""}</span><span class="grow">${label(v)}</span><span class="num">${count(v)}</span></button>`).join("")}</div>` : "";
+  const bar = tkBar(tk.view, `<button type="button" class="sq${on !== "All" || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by ${idea ? "category" : "source"}${on === "All" ? "" : ": " + on}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>${menu}`);
+  const none = what => `<div class="empty">${on === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${on} ${what}.`}</div>`;
   let body;
   if (tk.view === "Ideas") body = tk.ideas.filter(inCat).map(d => {
     const n = d.steps.length;
@@ -936,9 +945,9 @@ function drawTasks() {
   else {
     /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
     const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3)}</button>`).join("")}</div>`;
-    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}${days(r)}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`;
+    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
     body = TK_TIMES.map(tm => {
-      const all = tk.rows.filter(r => r.time === tm && inCat(r) && open(r));
+      const all = tk.rows.filter(r => r.time === tm && inSrc(r) && open(r));
       return all.length ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span></div>` + all.map(card).join("") : "";
     }).join("");
     body = body ? `<div class="tl">${body}</div>` : none("open tasks");
@@ -950,17 +959,19 @@ function drawTasks() {
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
 /* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
 const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
+/* the right of a task row: a CucuBarri task's owner, or the category's emoji */
+const tkTag = r => r.cb ? `<span class="cp ow${r.own ? "" : " none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>` : `<span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
-  const [t, i, y, s] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null)]);
+  const [t, i, y, s, c] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null)]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
-  tk.lines = t.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); tkParse();
+  tk.lines = t.text.split("\n"); if (c) tk.clines = c.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
   drawTasks();
 }
 /* the change shows at once and is then saved on top of the newest file. If a save fails, the list is read again once nothing else is waiting */
 function tkSave(path, change, message) {
-  try { change(path === TASK_FILE ? tk.lines : path === IDEA_FILE ? tk.ilines : path === SHOP_FILE ? sh.lines : yo.lines); } catch (e) { /* the save below reports it */ }
+  try { change(path === TASK_FILE ? tk.lines : path === CB_FILE ? tk.clines : path === IDEA_FILE ? tk.ilines : path === SHOP_FILE ? sh.lines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
   if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
   tkBusy++;
@@ -977,7 +988,7 @@ function tickTask(n) {
   const r = tk.rows[n], to = r && r.st === "Done" ? "Open" : "Done";
   if (!r) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
-  tkSave(TASK_FILE, lines => {
+  tkSave(r.f, lines => {
     const t = tkRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw);
     if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
     const cells = lines[hit.i].split("|");
@@ -992,7 +1003,7 @@ function moveTask(n, to) {
   if (!r || r.time === to) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
   tk.wide = null;
-  tkSave(TASK_FILE, lines => {
+  tkSave(r.f, lines => {
     const t = tkRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw), at = t.head.indexOf("Timing");
     if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
     if (at < 0) throw new Error("The task table has no Timing column, so the task was not moved.");
@@ -1007,7 +1018,7 @@ function openSheet() {
   const idea = tk.view === "Ideas", day = TK_TIMES[(new Date().getDay() + 6) % 7], cat = tk.cat === "All" ? "Family" : tk.cat;
   const o = (k, v, label, on) => `<button type="button" class="o${on ? " on" : ""}" data-tk="opt" data-k="${k}" data-a="${v}" aria-pressed="${on}">${label}</button>`;
   tk.sheet = idea ? "Idea" : "Task"; tk.menu = false;
-  $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tk.sheet}</h3>
+  $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tkCb() && !idea ? "CucuBarri " : ""}${tk.sheet}</h3>
     <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${idea || CB ? "" : " bugpad"}" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done">${idea || CB ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
     ${idea ? "" : `<div class="fl"><span>Timing</span><div class="opts">${TK_TIMES.map(t => o("t", t, t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3), t === day)).join("")}</div></div>`}
     <div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>
@@ -1015,6 +1026,8 @@ function openSheet() {
     <div class="fb"><button type="button" class="btn" data-tk="cancel">Cancel</button><button type="submit" class="btn primary grow">Add ${tk.sheet}</button></div></form>`;
   $("sheet").hidden = false; fitSheet(); $("tk-x").focus();
 }
+/* a new task goes to the CucuBarri board on CucuBarri, or on Matt's Tasks screen with the CucuBarri filter on */
+const tkCb = () => CB || (tab === "Tasks" && tk.src === "CucuBarri");
 function closeSheet() { tk.sheet = ""; $("sheet").hidden = true; $("sheet").innerHTML = ""; }
 function saveSheet() {
   const pick = k => ($("sheet").querySelector(`.o.on[data-k="${k}"]`) || { dataset: {} }).dataset.a;
@@ -1022,12 +1035,12 @@ function saveSheet() {
   if (!title) { $("tk-x").classList.add("bad"); $("tk-x").focus(); return; }
   closeSheet();
   if (idea) tkSave(IDEA_FILE, lines => { const d = { title, cat, added: today(), note }; addIdeaLines(lines, d); return d; }, `Phone: new idea "${title}"`);
-  else tkSave(TASK_FILE, lines => {
+  else tkSave(tkCb() ? CB_FILE : TASK_FILE, lines => {
     const t = tkRead(lines);
     if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
     const same = t.rows.filter(r => r.time === time), at = same.length ? same[same.length - 1].i : t.end;
     /* Family is written with the emoji the registry already uses; the phone shows 👪, which an iPhone draws as one figure */
-    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note, ...(CB ? { Owner: "BB", Added: today() } : {}) };
+    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, Timing: time, Task: title, Note: note, ...(tkCb() ? { Owner: CB ? "BB" : "MS", Added: today() } : {}) };
     lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
     return cells;
   }, `Phone: new task "${title}"`);
@@ -1061,7 +1074,7 @@ document.addEventListener("focusout", () => setTimeout(() => { if (!document.act
 function tkAct(act, a, el) {
   if (act === "view") { tk.menu = false; tk.wide = null; if (a !== "Notes") tk.view = a; if (tab !== "Tasks" || a === "Notes") { go(a === "Notes" ? "Notes" : "Tasks"); return; } $("scr").scrollTop = 0; drawTasks(); }
   else if (act === "menu") { tk.menu = !tk.menu; drawTasks(); }
-  else if (act === "cat") { tk.cat = a; tk.menu = false; drawTasks(); }
+  else if (act === "cat" || act === "src") { tk[act] = a; tk.menu = false; drawTasks(); }
   else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
   else if (act === "tick") tickTask(+a);
   else if (act === "move") moveTask(tk.wide, a);
@@ -1732,7 +1745,7 @@ function drawHome() {
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
-  const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div><span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span></div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
+  const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div>${tkTag(r)}</div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   if (CB) { cbHome(top, g, pc, full, now, grps[0], open, tasks, next); return; }
   /* Habits: the week's bars, each with its emoji in colour once the week's goal is met */
@@ -1750,7 +1763,7 @@ function cbHome(top, g, pc, full, now, grp, open, tasks, next) {
   const done = all.reduce((a, x) => a + x[0], 0), of = all.reduce((a, x) => a + x[1], 0), left = sh.d.items.filter(x => x.st === "On");
   const yt = `<div class="tile" data-go="Yoni"><div class="th">${hq("Yoni")}Yoni<span class="n">${now === "Evening" ? "Night" : now}</span></div><div class="kpi num">${done}<small> / ${of} done</small></div><div class="ln ge ell">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</div><div class="tsg">${pc.map(x => `<i class="${full(x) ? "on" : x[0] ? "half" : ""}"></i>`).join("")}</div></div>`;
   const st = `<div class="tile" data-go="Shopping"><div class="th">${hq("Shopping")}Shopping</div><div class="kpi num">${left.length}<small> left</small></div>${left.slice(0, 3).map((x, i) => `<div class="ln ell${i === 2 ? " mut" : ""}">${esc(x.name)}</div>`).join("") || `<div class="ln mut">Nothing on the list</div>`}</div>`;
-  const tt = `<div class="tile wide" data-go="Tasks"><div class="th">${hq("Tasks")}My Tasks<span class="n num">${grp ? `${grp}, ${open.filter(r => r.time === grp).length} open` : "All done"}</span></div>${grp ? tasks.replace(/<div class="dh">.*?<\/div>/, "") : `<div class="row">No open tasks</div>`}</div>`;
+  const tt = `<div class="tile wide" data-go="Tasks"><div class="th">${hq("Tasks")}Tasks<span class="n num">${grp ? `${grp}, ${open.filter(r => r.time === grp).length} open` : "All done"}</span></div>${grp ? tasks.replace(/<div class="dh">.*?<\/div>/, "") : `<div class="row">No open tasks</div>`}</div>`;
   const nt = `<div class="tile wide" data-go="Next Up"><div class="th">${hq("Calendar")}Next Up</div>${next}</div>`;
   $("main").innerHTML = `${top}<div class="tiles">${yt}${st}${tt}${nt}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
@@ -1767,12 +1780,12 @@ async function loadHome() {
     return;
   }
   /* a missing workout file only leaves the workout chip empty */
-  const [c, t, f, h, n, y, w] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(HABIT_FILE), readFile(HISTORY_FILE), readFile(NOTES_FILE), readFile(FATHER_FILE), readFile(WORKOUT_FILE).catch(() => ({ text: home.workout })), loadWeather()]);
+  const [c, t, f, h, n, y, w, cb] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(HABIT_FILE), readFile(HISTORY_FILE), readFile(NOTES_FILE), readFile(FATHER_FILE), readFile(WORKOUT_FILE).catch(() => ({ text: home.workout })), readFile(CB_FILE).catch(() => null), loadWeather()]);
   if (tab !== "Home") return;
   cal = parseCalendar(c.text); notes = parseNotes(n.text); home.workout = w.text;
   hb.cur = hwRead(f.text.split("\n")); hb.hist = hbRead(h.text.split("\n")).rows;
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
-  if (!tkBusy) { tk.lines = t.text.split("\n"); yo.lines = y.text.split("\n"); tkParse(); } /* a task still being saved is not drawn over */
+  if (!tkBusy) { tk.lines = t.text.split("\n"); if (cb) tk.clines = cb.text.split("\n"); yo.lines = y.text.split("\n"); tkParse(); } /* a task still being saved is not drawn over */
   status(c.at ? `Offline. Showing what was loaded ${c.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), c.at ? "err" : "ok");
   drawHome();
 }
