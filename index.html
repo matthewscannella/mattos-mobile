@@ -1300,6 +1300,13 @@ const HB_CATS = [
   { k: "fitness", name: "Fitness", target: 14, top: 3, codes: hbCodes("Au Av Aw Ax Ay Az", [1, 2, 3, 4, 5, 6]) },
   { k: "mental", name: "Mental", target: 45, top: 15, codes: hbCodes("Da Db Dc Dd De Df", [5, 10, 15, 20, 25, 30]) }
 ];
+/* the By Day grid's shades, punitive: short of target is red, deeper red when well short, and green only for a full day. Fitness and Mental grade green by amount */
+const HB_SHADE = { gray: "color:var(--mut)", red: "background:rgba(249,112,102,.3);color:#ffd9d5", red2: "background:rgba(249,112,102,.6);color:#ffe6e3", l: "background:rgba(63,207,142,.18);color:#bfeedb", m: "background:rgba(63,207,142,.36);color:#d9f7e9", f: "background:rgba(63,207,142,.63);color:#ecfbf4" };
+const HB_RULE = {
+  water: v => v >= 4 ? "f" : v <= 2 ? "red2" : "red", habits: v => v >= 4 ? "f" : v <= 2 ? "red2" : "red",
+  food: v => v >= 3 ? "f" : v === 2 ? "gray" : v <= 0 ? "red2" : "red",
+  fitness: v => v <= 0 ? "gray" : v <= 3 ? "l" : v === 4 ? "m" : "f", mental: v => v <= 0 ? "gray" : v <= 5 ? "l" : v < 15 ? "m" : "f"
+};
 /* the form's controls: a meal is healthy, neutral or unhealthy, and a habit is yes or no. The codes are how an archived week records each */
 const HB_MEALS = [["Breakfast", "Bm Bn Bo"], ["Lunch", "Bp Bq Br"], ["Snack", "Bs Bt Bu"], ["Dinner", "Bv Bw Bx"], ["Drink", "By Bz Ca"], ["Dessert", "Cb Cc Cd"]].map(m => ({ name: m[0], codes: m[1].split(" ") }));
 /* col is the habit's column in habitsRegistry.md, as HW_RULES in mattOs.html; Stretching leads */
@@ -1543,11 +1550,9 @@ function drawHabits() {
   const cell = (c, x) => {
     const sel = x.date === d.date ? " sel" : "";
     if (x.st !== "draft" && x.st !== "saved") return `<span class="c off${sel}"></span>`;
-    const v = x.score[c.k], a = (v > 0 ? x.share : Math.min(Math.abs(v) / c.top, 1)) * .55 + .08;
-    return `<span class="c num${sel}" style="${v > 0 ? `background:rgba(63,207,142,${a});color:#d9f7e9` : v < 0 ? `background:rgba(249,112,102,${a});color:#ffd9d5` : "color:var(--mut)"}">${v}</span>`;
+    const v = x.score[c.k];
+    return `<span class="c num${sel}" style="${HB_SHADE[HB_RULE[c.k](v)]}">${v}</span>`;
   };
-  /* a day's share of habits done: each category's total against its daily top, averaged */
-  days.forEach(x => { x.share = HB_CATS.reduce((a, c) => a + Math.max(0, Math.min(1, x.score[c.k] / c.top)), 0) / HB_CATS.length; });
   const grid = `<div class="hwg"><span></span>${days.map(x => `<button type="button" class="wd num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b></button>`).join("")}${HB_CATS.map(c => `<span class="rn">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
   /* the open week can be closed from its Sunday. Once it has ended the card moves to the top, as nothing new is logged until it is closed */
   const sun = addDays(hb.week, 6), none = days.filter(x => x.st !== "draft" && x.st !== "saved").map(x => wkDay(x.date)), ended = canLog && now > sun;
