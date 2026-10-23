@@ -220,6 +220,9 @@
   .cp.ow { font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--mut); }
   .cp.ow.none { opacity: .5; }
   .tr.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+  .tl .tr { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .tr.lift { z-index: 5; background: var(--raised); border-radius: 12px; box-shadow: 0 8px 22px rgba(0, 0, 0, .5); }
+  .tr.lift::after { display: none; }
   .tr .mv { gap: 5px; padding: 6px 0 2px; }
   .tr .mv .o { height: 30px; padding: 0 9px; font-size: 13px; }
   /* the hairline under each row starts at the text */
@@ -1091,6 +1094,77 @@ function tkAct(act, a, el) {
   else if (act.startsWith("sh")) shAct(act, a);
 }
 function leaveTasks() { closeSheet(); tk.menu = false; leaveHabits(); }
+/* press and hold a task, then drag it: it moves among the tasks of its own file, and a drop under another day's heading moves it to that day */
+let dg = null;
+const dgSig = list => [...list.children].map(c => c.classList.contains("dh") ? c.textContent : tk.rows[+c.dataset.a].f === dg.r.f ? c.dataset.a : "").join(",");
+document.addEventListener("touchstart", e => {
+  const el = e.target.closest(".tl .tr");
+  if (dg) clearTimeout(dg.timer);
+  dg = null;
+  if (!el || tab !== "Tasks" || tk.view !== "Tasks" || offline || e.target.closest(".mv") || e.touches.length > 1) return;
+  const t = e.touches[0];
+  dg = { el, r: tk.rows[+el.dataset.a], x: t.clientX, y: t.clientY, live: false };
+  dg.sig = dgSig(el.parentNode);
+  dg.timer = setTimeout(() => { dg.live = true; dg.grab = dg.y - el.getBoundingClientRect().top; el.classList.add("lift"); }, 400);
+}, { passive: true });
+document.addEventListener("touchmove", e => {
+  if (!dg) return;
+  const t = e.touches[0];
+  /* a finger that moves before the hold ends is a scroll */
+  if (!dg.live) { if (Math.hypot(t.clientX - dg.x, t.clientY - dg.y) > 8) { clearTimeout(dg.timer); dg = null; } return; }
+  e.preventDefault();
+  dg.y = t.clientY;
+  const { el, r, y } = dg, list = el.parentNode, s = $("scr"), sb = s.getBoundingClientRect();
+  if (y < sb.top + 60) s.scrollTop -= 10; else if (y > sb.bottom - 60) s.scrollTop += 10;
+  const over = [...list.children].find(c => c !== el && (c.classList.contains("dh") || tk.rows[+c.dataset.a].f === r.f) && (b => y >= b.top && y < b.bottom)(c.getBoundingClientRect()));
+  if (over) {
+    const b = over.getBoundingClientRect(), up = y < b.top + b.height / 2;
+    /* the top half of a heading drops at the end of the day above it; the first heading has none above */
+    list.insertBefore(el, up && over !== list.firstElementChild ? over : over.nextSibling);
+  }
+  el.style.transform = "";
+  el.style.transform = `translateY(${y - dg.grab - el.getBoundingClientRect().top}px)`;
+}, { passive: false });
+function dgEnd(cancel) {
+  if (!dg) return;
+  clearTimeout(dg.timer);
+  const d = dg, list = d.el.parentNode, same = dgSig(list) === d.sig;
+  dg = null;
+  if (!d.live) return;
+  /* the click that follows a drag must not open the task */
+  const stop = c => { c.stopPropagation(); c.preventDefault(); };
+  document.addEventListener("click", stop, { capture: true, once: true });
+  setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
+  if (cancel || same) { drawTasks(); return; }
+  let day = null, prev = null, next = null, seen = false;
+  for (const c of list.children) {
+    if (c === d.el) { seen = true; continue; }
+    if (c.classList.contains("dh")) { if (seen) break; day = c.querySelector("b").textContent; prev = null; continue; }
+    const x = tk.rows[+c.dataset.a];
+    if (x.f !== d.r.f) continue;
+    if (!seen) prev = x; else if (!next) next = x;
+  }
+  dropTask(d.r, day, prev, next);
+}
+document.addEventListener("touchend", () => dgEnd(false));
+document.addEventListener("touchcancel", () => dgEnd(true));
+/* the task's line goes after the task above it in the same file, or before the one below; in a day with no others, after that day's last task */
+function dropTask(r, day, prev, next) {
+  tk.wide = null;
+  tkSave(r.f, lines => {
+    const t = tkRead(lines), find = x => x && (t.rows.find(y => y.i === x.i && y.raw === x.raw) || t.rows.find(y => y.raw === x.raw));
+    const hit = find(r), a = find(prev), b = find(next), at = t.head.indexOf(t.day), cr = lines[hit ? hit.i : 0].endsWith("\r") ? "\r" : "";
+    if (!hit || (prev && !a) || (next && !b)) throw new Error(`"${r.title}" changed on the laptop, so it was not moved. The list has been reloaded.`);
+    if (day !== r.time && at < 0) throw new Error("The task table has no Day column, so the task was not moved.");
+    const cells = lines[hit.i].replace(/\r$/, "").split("|");
+    if (day !== r.time) cells[at + 1] = ` ${day} `;
+    const shift = i => i > hit.i ? i - 1 : i, last = t.rows.filter(x => x.time === day && x !== hit).pop();
+    lines.splice(hit.i, 1);
+    const to = a ? shift(a.i) + 1 : b ? shift(b.i) : last ? shift(last.i) + 1 : (hit.i === t.end ? t.end : shift(t.end) + 1);
+    lines.splice(to, 0, cells.join("|") + cr);
+    return hit;
+  }, `Phone: reorder "${r.title}"${day !== r.time ? ` to ${day}` : ""}`);
+}
 
 /* ---------- Shopping: 26🛒-shoppingList/shoppingListRegistry.md; shRead, shSecs, shSet, shAdd, and shClear are the same in tablet.html ---------- */
 const SHOP_FILE = "26🛒-shoppingList/shoppingListRegistry.md";
