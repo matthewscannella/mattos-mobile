@@ -1830,7 +1830,7 @@ function drawHome() {
   /* Habits: the week's bars, each with its emoji in colour once the week's goal is met */
   const H = hbNow(), saved = hbFiled(td).st === "saved";
   const HE = { water: "💧", habits: "✅", food: "🥗", fitness: "💪🏻", mental: "🧠" };
-  const bars = H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
+  const bars = H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
   $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet, yoni)}${sec("Habits", saved, bars)}${sec("Tasks", false, tasks)}${sec("Calendar", false, next, "Next Up")}${sec("Notes", false, list)}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
