@@ -220,7 +220,7 @@
   .tr .tt { font-size: var(--ts); line-height: var(--tl); font-weight: 400; letter-spacing: -.01em; }
   .tr .tm { font-size: var(--ns); line-height: var(--nl); }
   .tr .cp { width: 34px; padding-top: var(--pad); text-align: center; font-size: var(--es); line-height: var(--tl); }
-  /* a CucuBarri task shows its owner, MS or BB, or a faint dash while it has none */
+  /* a task shows its owner, MS, BB, or CC, or a faint dash while it has none */
   .cp.ow { font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--mut); }
   .cp.ow.none { opacity: .5; }
   .tr.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
@@ -975,8 +975,8 @@ function drawTasks() {
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
 /* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
 const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
-/* the right of a task row: a CucuBarri task's owner, or the category's emoji */
-const tkTag = r => r.cb ? `<span class="cp ow${r.own ? "" : " none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>` : `<span class="cp" role="img" aria-label="${r.cat || "No category"}">${TK_CATS[r.cat] || "•"}</span>`;
+/* the right of a task row: its owner, or a faint dash while it has none */
+const tkTag = r => `<span class="cp ow${r.own ? "" : " none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
   const [t, i, y, s, c] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null)]);
@@ -1029,15 +1029,19 @@ function moveTask(n, to) {
     return hit;
   }, `Phone: move "${r.title}" to ${to}`);
 }
-/* the add button: a new task goes after the last task with the same timing, as on the laptop; a new idea goes first */
+/* the add button: a new task goes after the last task with the same timing, as on the laptop; a new idea goes first.
+   A task has no category: Matt's phone picks its board, Tasks or CucuBarri, and both phones pick its person */
+const TK_OWNERS = ["MS", "BB", "CC"];
 function openSheet() {
   const idea = tk.view === "Ideas", day = TK_TIMES[(new Date().getDay() + 6) % 7], cat = tk.cat === "All" ? "Family" : tk.cat;
   const o = (k, v, label, on) => `<button type="button" class="o${on ? " on" : ""}" data-tk="opt" data-k="${k}" data-a="${v}" aria-pressed="${on}">${label}</button>`;
   tk.sheet = idea ? "Idea" : "Task"; tk.menu = false;
-  $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tkCb() && !idea ? "CucuBarri " : ""}${tk.sheet}</h3>
+  $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tk.sheet}</h3>
     <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${idea || CB ? "" : " bugpad"}" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done">${idea || CB ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
     ${idea ? "" : `<div class="fl"><span>Day</span><div class="opts">${TK_TIMES.map(t => o("t", t, t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3), t === day)).join("")}</div></div>`}
-    <div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>
+    ${idea ? `<div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>`
+      : `${CB ? "" : `<div class="fl"><span>Board</span><div class="opts">${o("d", "Tasks", `✏️<span class="nm">Tasks</span>`, !tkCb())}${o("d", "CucuBarri", `🦜<span class="nm">CucuBarri</span>`, tkCb())}</div></div>`}
+    <div class="fl"><span>Person</span><div class="opts">${TK_OWNERS.map(w => o("w", w, w, w === (CB ? "BB" : "MS"))).join("")}</div></div>`}
     <label class="fl"><span>Note</span><input class="in" id="tk-n" placeholder="Add a note…" autocomplete="off" enterkeyhint="done"></label>
     <div class="fb"><button type="button" class="btn" data-tk="cancel">Cancel</button><button type="submit" class="btn primary grow">Add ${tk.sheet}</button></div></form>`;
   $("sheet").hidden = false; fitSheet(); $("tk-x").focus();
@@ -1047,16 +1051,15 @@ const tkCb = () => CB || (tab === "Tasks" && tk.src === "CucuBarri");
 function closeSheet() { tk.sheet = ""; $("sheet").hidden = true; $("sheet").innerHTML = ""; }
 function saveSheet() {
   const pick = k => ($("sheet").querySelector(`.o.on[data-k="${k}"]`) || { dataset: {} }).dataset.a;
-  const bug = tk.sheet !== "Idea" && pick("b"), raw = $("tk-x").value.trim(), title = tkCell(raw && bug && !raw.startsWith("🐞") ? "🐞 " + raw : raw), note = tkCell($("tk-n").value), cat = pick("c") || "Family", time = pick("t") || "Backlog", idea = tk.sheet === "Idea";
+  const bug = tk.sheet !== "Idea" && pick("b"), raw = $("tk-x").value.trim(), title = tkCell(raw && bug && !raw.startsWith("🐞") ? "🐞 " + raw : raw), note = tkCell($("tk-n").value), cat = pick("c") || "Family", cb = CB || pick("d") === "CucuBarri", own = pick("w") || "", time = pick("t") || "Backlog", idea = tk.sheet === "Idea";
   if (!title) { $("tk-x").classList.add("bad"); $("tk-x").focus(); return; }
   closeSheet();
   if (idea) tkSave(IDEA_FILE, lines => { const d = { title, cat, added: today(), note }; addIdeaLines(lines, d); return d; }, `Phone: new idea "${title}"`);
-  else tkSave(tkCb() ? CB_FILE : TASK_FILE, lines => {
+  else tkSave(cb ? CB_FILE : TASK_FILE, lines => {
     const t = tkRead(lines);
     if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
     const same = t.rows.filter(r => r.time === time), at = same.length ? same[same.length - 1].i : t.end;
-    /* Family is written with the emoji the registry already uses; the phone shows 👪, which an iPhone draws as one figure */
-    const cells = { Status: "Open", Category: `${cat === "Family" ? "🧑🏻‍👩🏻‍🧒🏻" : TK_CATS[cat]} ${cat}`, [t.day]: time, Task: title, Note: note, ...(tkCb() ? { Owner: CB ? "BB" : "MS", Added: today() } : {}) };
+    const cells = { Status: "Open", Owner: own, [t.day]: time, Task: title, Note: note, Added: today() };
     lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
     return cells;
   }, `Phone: new task "${title}"`);
