@@ -204,6 +204,10 @@
   /* the Tasks screen is a plain list, as in Reminders (mobileTasksOptionsV6.html option 5, Compact); Home keeps the cards above */
   .tl { --ts: 15px; --tl: 20px; --ns: 13px; --nl: 17px; --cs: 20px; --cl: 12px; --gap: 10px; --es: 13px; --pad: 9px; }
   .tl .dh { padding: 18px 0 6px; margin-left: calc(var(--cl) - 16px); }
+  .tl .ph { margin: 10px 0 0 calc(var(--cl) - 16px); padding-bottom: 4px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--mut); }
+  .tl .ph.now { color: var(--acc); }
+  .tl .ph.past, .tr.past { opacity: .45; }
+  .tl .dh + .ph { margin-top: 2px; }
   .tl .dh b { font-size: 20px; line-height: 25px; letter-spacing: -.015em; }
   .tr { position: relative; display: flex; align-items: flex-start; min-height: 44px; margin-left: -16px; }
   .tr .rcb { width: calc(var(--cl) + var(--cs) + var(--gap)); display: flex; justify-content: flex-start; place-items: initial; padding: calc(var(--pad) + (var(--tl) - var(--cs)) / 2) 0 0 var(--cl); }
@@ -872,6 +876,10 @@ const CB_FILE = "11🏖️-weekend/cucuBarriRegistry.md", TASK_FILE = CB ? CB_FI
 const TK_CATS = { Habits: "🥕", Family: "👪", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
 const TK_TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
 const TK_STATUS = ["Open", "WIP", "Blocked", "Done"];
+/* today's tasks split by the Timing column into Morning (to noon), Afternoon (to 5 pm), and Evening; a task with no timing sits above them */
+const TK_PARTS = ["Morning", "Afternoon", "Evening"];
+const tkPartOf = s => TK_PARTS.find(x => x.toLowerCase() === s.toLowerCase()) || "";
+const tkPartNow = () => { const h = new Date().getHours(); return h < 12 ? 0 : h < 17 ? 1 : 2; };
 /* as taskCat, taskTiming and wkLine in mattOs.html: an unknown category is Family, an unknown timing is Backlog, and Weekday reads as Monday */
 const tkCatOf = c => Object.keys(TK_CATS).find(k => c === k || c.endsWith(" " + k)) || "Family";
 const tkTimeOf = s => { const k = s.toLowerCase(); return TK_TIMES.find(x => x.toLowerCase() === (k === "weekday" ? "monday" : k)) || "Backlog"; };
@@ -891,7 +899,7 @@ function tkRead(lines) {
     end = i;
     const cell = n => c[head.indexOf(n)] || "";
     if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note"))) return;
-    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell(day)), title: cell("Task"), note: cell("Note"), own: cell("Owner") });
+    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell(day)), part: day === "Day" ? tkPartOf(cell("Timing")) : "", title: cell("Task"), note: cell("Note"), own: cell("Owner") });
   });
   return { head, col: head ? head.indexOf("Status") : -1, end, rows, day };
 }
@@ -951,9 +959,12 @@ function drawTasks() {
     /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
     const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${t.includes(" ") || t === "Backlog" ? t : t.slice(0, 3)}</button>`).join("")}</div>`;
     const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
+    const today = TK_TIMES[(new Date().getDay() + 6) % 7], now = tkPartNow();
+    /* today's parts all show, even when empty, so a task can be dragged into any of them; a part that has passed is greyed */
+    const parts = all => all.filter(r => !r.part).map(card).join("") + TK_PARTS.map((p, i) => `<div class="ph${i < now ? " past" : i === now ? " now" : ""}" data-p="${p}">${p}</div>` + all.filter(r => r.part === p).map(r => i < now ? card(r).replace('class="tr', 'class="tr past') : card(r)).join("")).join("");
     body = TK_TIMES.map(tm => {
       const all = tk.rows.filter(r => r.time === tm && inSrc(r) && open(r));
-      return all.length ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span></div>` + all.map(card).join("") : "";
+      return all.length || tm === today ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span></div>` + (tm === today ? parts(all) : all.map(card).join("")) : "";
     }).join("");
     body = body ? `<div class="tl">${body}</div>` : none("open tasks");
   }
@@ -1095,9 +1106,9 @@ function tkAct(act, a, el) {
   else if (act.startsWith("sh")) shAct(act, a);
 }
 function leaveTasks() { closeSheet(); tk.menu = false; leaveHabits(); }
-/* press and hold a task, then drag it: it moves among the tasks of its own file, and a drop under another day's heading moves it to that day */
+/* press and hold a task, then drag it: it moves among the tasks of its own file, a drop under another day's heading moves it to that day, and a drop under one of today's part labels sets its Timing */
 let dg = null;
-const dgSig = list => [...list.children].map(c => c.classList.contains("dh") ? c.textContent : tk.rows[+c.dataset.a].f === dg.r.f ? c.dataset.a : "").join(",");
+const dgSig = list => [...list.children].map(c => c.classList.contains("dh") || c.classList.contains("ph") ? c.textContent : tk.rows[+c.dataset.a].f === dg.r.f ? c.dataset.a : "").join(",");
 document.addEventListener("touchstart", e => {
   const el = e.target.closest(".tl .tr");
   if (dg) clearTimeout(dg.timer);
@@ -1117,7 +1128,7 @@ document.addEventListener("touchmove", e => {
   dg.y = t.clientY;
   const { el, r, y } = dg, list = el.parentNode, s = $("scr"), sb = s.getBoundingClientRect();
   if (y < sb.top + 60) s.scrollTop -= 10; else if (y > sb.bottom - 60) s.scrollTop += 10;
-  const over = [...list.children].find(c => c !== el && (c.classList.contains("dh") || tk.rows[+c.dataset.a].f === r.f) && (b => y >= b.top && y < b.bottom)(c.getBoundingClientRect()));
+  const over = [...list.children].find(c => c !== el && (c.classList.contains("dh") || c.classList.contains("ph") || tk.rows[+c.dataset.a].f === r.f) && (b => y >= b.top && y < b.bottom)(c.getBoundingClientRect()));
   if (over) {
     const b = over.getBoundingClientRect(), up = y < b.top + b.height / 2;
     /* the top half of a heading drops at the end of the day above it; the first heading has none above */
@@ -1140,34 +1151,38 @@ function dgEnd(cancel) {
   document.addEventListener("click", stop, { capture: true, once: true });
   setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
   if (cancel || same) { drawTasks(); return; }
-  let day = null, prev = null, next = null, seen = false;
+  let day = null, part = "", prev = null, next = null, seen = false;
   for (const c of list.children) {
     if (c === d.el) { seen = true; continue; }
-    if (c.classList.contains("dh")) { if (seen) break; day = c.querySelector("b").textContent; prev = null; continue; }
+    if (c.classList.contains("dh")) { if (seen) break; day = c.querySelector("b").textContent; part = ""; prev = null; continue; }
+    if (c.classList.contains("ph")) { if (!seen) part = c.dataset.p; continue; }
     const x = tk.rows[+c.dataset.a];
     if (x.f !== d.r.f) continue;
     if (!seen) prev = x; else if (!next) next = x;
   }
-  dropTask(d.r, day, prev, next);
+  dropTask(d.r, day, prev, next, day === TK_TIMES[(new Date().getDay() + 6) % 7] ? part : d.r.part);
 }
 document.addEventListener("touchend", () => dgEnd(false));
 document.addEventListener("touchcancel", () => dgEnd(true));
 /* the task's line goes after the task above it in the same file, or before the one below; in a day with no others, after that day's last task */
-function dropTask(r, day, prev, next) {
+function dropTask(r, day, prev, next, part = r.part) {
   tk.wide = null;
   tkSave(r.f, lines => {
     const t = tkRead(lines), find = x => x && (t.rows.find(y => y.i === x.i && y.raw === x.raw) || t.rows.find(y => y.raw === x.raw));
     const hit = find(r), a = find(prev), b = find(next), at = t.head.indexOf(t.day), cr = lines[hit ? hit.i : 0].endsWith("\r") ? "\r" : "";
     if (!hit || (prev && !a) || (next && !b)) throw new Error(`"${r.title}" changed on the laptop, so it was not moved. The list has been reloaded.`);
     if (day !== r.time && at < 0) throw new Error("The task table has no Day column, so the task was not moved.");
+    const pt = t.day === "Day" ? t.head.indexOf("Timing") : -1;
+    if (part !== r.part && pt < 0) throw new Error("The task table has no Timing column, so the task was not moved.");
     const cells = lines[hit.i].replace(/\r$/, "").split("|");
     if (day !== r.time) cells[at + 1] = ` ${day} `;
+    if (part !== r.part) cells[pt + 1] = ` ${part} `;
     const shift = i => i > hit.i ? i - 1 : i, last = t.rows.filter(x => x.time === day && x !== hit).pop();
     lines.splice(hit.i, 1);
     const to = a ? shift(a.i) + 1 : b ? shift(b.i) : last ? shift(last.i) + 1 : (hit.i === t.end ? t.end : shift(t.end) + 1);
     lines.splice(to, 0, cells.join("|") + cr);
     return hit;
-  }, `Phone: reorder "${r.title}"${day !== r.time ? ` to ${day}` : ""}`);
+  }, `Phone: reorder "${r.title}"${day !== r.time ? ` to ${day}` : ""}${part !== r.part ? ` ${part || "with no timing"}` : ""}`);
 }
 
 /* ---------- Shopping: 26🛒-shoppingList/shoppingListRegistry.md; shRead, shSecs, shSet, shAdd, and shClear are the same in tablet.html ---------- */
