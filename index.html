@@ -880,8 +880,8 @@ const TK_STATUS = ["Open", "WIP", "Blocked", "Done"];
 const TK_PARTS = ["Morning", "Afternoon", "Evening"];
 const tkPartOf = s => TK_PARTS.find(x => x.toLowerCase() === s.toLowerCase()) || "";
 const tkPartNow = () => { const h = new Date().getHours(); return h < 12 ? 0 : h < 17 ? 1 : 2; };
-/* as taskCat, taskTiming and wkLine in mattOs.html: an unknown category is Family, an unknown timing is Backlog, and Weekday reads as Monday */
-const tkCatOf = c => Object.keys(TK_CATS).find(k => c === k || c.endsWith(" " + k)) || "Family";
+/* as taskCat, taskTiming and wkLine in mattOs.html: a blank category stays blank, an unknown one is Family, an unknown timing is Backlog, and Weekday reads as Monday */
+const tkCatOf = c => !c.trim() ? "" : Object.keys(TK_CATS).find(k => c === k || c.endsWith(" " + k)) || "Family";
 const tkTimeOf = s => { const k = s.toLowerCase(); return TK_TIMES.find(x => x.toLowerCase() === (k === "weekday" ? "monday" : k)) || "Backlog"; };
 const tkLine = c => `| ${c.join(" | ")} |`.replace(/ {2}\|/g, " |");
 const tkCell = s => s.replace(/\|/g, "/").replace(/\s+/g, " ").trim();
@@ -976,7 +976,7 @@ const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw
 /* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
 const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
 /* the right of a task row: a CucuBarri task's owner, or the category's emoji */
-const tkTag = r => r.cb ? `<span class="cp ow${r.own ? "" : " none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>` : `<span class="cp" role="img" aria-label="${r.cat}">${TK_CATS[r.cat]}</span>`;
+const tkTag = r => r.cb ? `<span class="cp ow${r.own ? "" : " none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>` : `<span class="cp" role="img" aria-label="${r.cat || "No category"}">${TK_CATS[r.cat] || "•"}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
   const [t, i, y, s, c] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null)]);
