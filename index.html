@@ -189,6 +189,7 @@
   .dh { display: flex; align-items: baseline; gap: 8px; padding: 12px 2px 7px 4px; }
   .dh b { font-size: 17px; line-height: 22px; font-weight: 700; letter-spacing: -.01em; color: var(--done); }
   .dh span { font-size: 13px; color: var(--mut); }
+  .dh .dhb { margin-left: auto; align-self: center; height: 30px; padding: 0 12px; border-radius: 15px; background: var(--raised); color: var(--acc); font-size: 13.5px; font-weight: 600; }
   .tc { display: flex; align-items: center; gap: 6px; min-height: 48px; margin-bottom: 6px; padding: 6px 10px 6px 3px; border-radius: 12px; background: var(--card); }
   .tc.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   .tt { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
@@ -964,9 +965,11 @@ function drawTasks() {
     const today = TK_TIMES[(new Date().getDay() + 6) % 7], now = tkPartNow();
     /* today's parts all show, even when empty, so a task can be dragged into any of them; a part that has passed is greyed */
     const parts = all => all.filter(r => !r.part).map(card).join("") + TK_PARTS.map((p, i) => `<div class="ph${i < now ? " past" : i === now ? " now" : ""}" data-p="${p}">${p}</div>` + all.filter(r => r.part === p).map(r => i < now ? card(r).replace('class="tr', 'class="tr past') : card(r)).join("")).join("");
+    /* the open tasks left on earlier days of this week; the button on today's heading moves them all to today */
+    const late = tkLate().length, pull = late && !offline ? `<button type="button" class="dhb" data-tk="pull">Move ${late} earlier here</button>` : "";
     body = TK_TIMES.map(tm => {
       const all = tk.rows.filter(r => r.time === tm && inSrc(r) && open(r));
-      return all.length || tm === today ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span></div>` + (tm === today ? parts(all) : all.map(card).join("")) : "";
+      return all.length || tm === today ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span>${tm === today ? pull : ""}</div>` + (tm === today ? parts(all) : all.map(card).join("")) : "";
     }).join("");
     body = body ? `<div class="tl">${body}</div>` : none("open tasks");
   }
@@ -1030,6 +1033,29 @@ function moveTask(n, to) {
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Phone: move "${r.title}" to ${to}`);
+}
+/* the open tasks shown on days before today, and the button that rewrites each one's Day to today, one save per file */
+const tkLate = () => { const d = (new Date().getDay() + 6) % 7; return tk.rows.filter(r => r.st !== "Done" && (tk.src === "All" || r.cb) && TK_TIMES.indexOf(r.time) < d); };
+function pullToday() {
+  const late = tkLate(), to = TK_TIMES[(new Date().getDay() + 6) % 7];
+  if (!late.length) return;
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  tk.wide = null;
+  [...new Set(late.map(r => r.f))].forEach(f => {
+    const mine = late.filter(r => r.f === f);
+    tkSave(f, lines => {
+      const t = tkRead(lines), at = t.head.indexOf(t.day);
+      if (at < 0) throw new Error("The task table has no Day column, so the tasks were not moved.");
+      mine.forEach(r => {
+        const hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw);
+        if (!hit) return; /* changed on the laptop since; it stays where it is */
+        const cells = lines[hit.i].split("|");
+        cells[at + 1] = ` ${to} `;
+        lines[hit.i] = cells.join("|");
+      });
+      return true;
+    }, `Phone: move ${mine.length} task${mine.length > 1 ? "s" : ""} to ${to}`);
+  });
 }
 /* the add button: a new task goes after the last task with the same timing, as on the laptop; a new idea goes first.
    A task has no category: Matt's phone picks its board, Tasks or CucuBarri, and both phones pick its person */
@@ -1099,6 +1125,7 @@ function tkAct(act, a, el) {
   else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
   else if (act === "tick") tickTask(+a);
   else if (act === "move") moveTask(tk.wide, a);
+  else if (act === "pull") pullToday();
   else if (act === "yo") yoTick(+a);
   else if (act === "fold") { yo.open[a] = !yo.open[a]; drawYoni(); }
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
