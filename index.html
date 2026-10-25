@@ -456,8 +456,8 @@
   .rb .hbr .val { width: 56px; }
   .rb .hbr .em { flex: none; width: 22px; text-align: center; font-size: 17px; }
   .rb .hbr .em.off { filter: grayscale(1); opacity: .35; }
-  .rb .hbr.all { border-bottom: 1px solid var(--line); font-weight: 600; }
-  .rb .hbr.all .val { color: var(--tx); }
+  .hbr.all { border-bottom: 1px solid var(--line); font-weight: 600; }
+  .hbr.all .val { color: var(--tx); }
   .rb .hbr .em .gd { display: inline-block; }
   .rail { margin: 14px -16px 0; }
   .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
@@ -1595,7 +1595,7 @@ function drawHabits() {
     + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-k="${i}">${m.name}<i>${v == null ? "Tap" : v > 0 ? "Healthy" : v < 0 ? "Unhealthy" : "Neutral"}</i></button>`; }).join("")}</div>`)
     + grp("Fitness", "", step("Resistance", "sets", "sets", 1)) + grp("Mental", "", step("Meditation", "med", "min", 5))
     + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
-  const bars = HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
+  const bars = `<div class="hbr all"><span style="width:16px;flex:none"></span><span class="nm">Overall</span><div class="hbar grow"><i style="width:${overall}%;background:${gc}"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${overall}%</span><span class="gd" style="background:${gc}"></span></div>` + HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
   /* one day's total for one category; a day with nothing logged is a dashed blank */
   const cell = (c, x) => {
     const sel = x.date === d.date ? " sel" : "";
