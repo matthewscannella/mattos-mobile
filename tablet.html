@@ -228,6 +228,11 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .cev b{font-size:12.5px;line-height:16px;font-weight:600;color:var(--tx);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:clip}
 .cev.half,.blk.half{right:calc(50% + 2px)}
 .cev.past{opacity:.5}
+/* whose calendar: Matt blue, Barri pink, Both purple, as on the web app (mattOs.css ~837-842) */
+.who-barri.ev>i{background:#e87fa8}.who-both.ev>i{background:#a98bf0}
+.blk.who-barri,.cev.who-barri{border-left-color:#e87fa8}.blk.who-both,.cev.who-both{border-left-color:#a98bf0}
+.blk.who-barri{background:rgba(232,127,168,.16)}.blk.who-both{background:rgba(169,139,240,.16)}
+.adev.who-barri{background:rgba(232,127,168,.16);color:#e87fa8}.adev.who-both{background:rgba(169,139,240,.16);color:#a98bf0}
 .cnow{position:absolute;left:0;right:0;height:2px;background:var(--flag);z-index:2}
 /* the weather layer: one tile per block, filled green by its score; tapping one opens its hours */
 .pwx{position:absolute;left:4px;right:4px;display:grid;align-content:start;justify-items:start;gap:3px;border-radius:8px;padding:6px 8px;border:1px solid transparent;background:rgba(255,255,255,.02);font-size:12px;line-height:15px;color:var(--mut);--cut:var(--card)}
@@ -528,11 +533,13 @@ function parseCalendar(md) {
     const c = line.split("|").slice(1, -1).map(x => x.trim()), dm = (c[0] || "").match(/^[A-Z][a-z]{2} ([A-Z][a-z]{2}) (\d{1,2})$/);
     if (!dm || !c[3]) return;
     const m = MONTHS.indexOf(dm[1]);
-    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3] });
+    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3], who: c[6] || "" });
   });
   return { synced: synced.replace(/, \d{4}/, ""), events };
 }
 let cal = { synced: "", events: [] };
+/* the Who column: Barri and Both get their colour class, Matt keeps the blue */
+const calWho = e => /^(barri|both)$/i.test(e.who) ? " who-" + e.who.toLowerCase() : "";
 
 /* ---------- CucuBarri tasks: 11🏖️-weekend/cucuBarriRegistry.md, changed as lines like the phone's tkRead (index.html ~802) ---------- */
 const CUCU_FILE = "11🏖️-weekend/cucuBarriRegistry.md";
@@ -801,7 +808,7 @@ const sideBar = () => `<div class="brand"><img src="tablet-icon-180.png" alt="">
 /* ---------- Home: today's calendar, the weather, Yoni's part of the day, and the open tasks by owner ---------- */
 function evRow(e, td) {
   const past = td && (tH(e.end) ?? tH(e.start) ?? 24) <= nowH();
-  return `<div class="ev${past ? " past" : ""}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${e.start ? (e.end ? `${esc(e.start)} to ${esc(e.end)}` : esc(e.start)) : "All day"}</span></div></div>`;
+  return `<div class="ev${past ? " past" : ""}${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${e.start ? (e.end ? `${esc(e.start)} to ${esc(e.end)}` : esc(e.start)) : "All day"}</span></div></div>`;
 }
 function homeCal() {
   const td = today(), tm = addDays(td, 1), a = cal.events.filter(e => e.d === td), b = cal.events.filter(e => e.d === tm);
@@ -955,11 +962,11 @@ const md = s => fmtDay(s, { month: "short", day: "numeric" });
 function calDay() {
   const H = 44, from = 7, n = 16, td = today(), now = nowH(), evs = cal.events.filter(e => e.d === td && evSpan(e));
   const tiles = WX_BLOCKS.map((b, j) => wxTile(td, j, H, from, evs.some(e => wxHit(evSpan(e), b)))).join("");
-  const blocks = evs.map(e => { const [s, en] = evSpan(e), top = Math.max(0, (s - from) * H); return `<div class="blk${en <= now ? " past" : ""}${halfEv(td, [s, en]) ? " half" : ""}" style="top:${top + 1}px;height:${Math.max((en - Math.max(s, from)) * H - 3, 30)}px">${en - s < 1 ? `<b class="ell">${esc(e.title)} <span class="num" style="font-weight:400;color:var(--mut)">${esc(e.start)}</span></b>` : `<b>${esc(e.title)}</b><span class="num">${esc(e.start)} to ${esc(e.end)}</span>`}</div>`; }).join("");
+  const blocks = evs.map(e => { const [s, en] = evSpan(e), top = Math.max(0, (s - from) * H); return `<div class="blk${calWho(e)}${en <= now ? " past" : ""}${halfEv(td, [s, en]) ? " half" : ""}" style="top:${top + 1}px;height:${Math.max((en - Math.max(s, from)) * H - 3, 30)}px">${en - s < 1 ? `<b class="ell">${esc(e.title)} <span class="num" style="font-weight:400;color:var(--mut)">${esc(e.start)}</span></b>` : `<b>${esc(e.title)}</b><span class="num">${esc(e.start)} to ${esc(e.end)}</span>`}</div>`; }).join("");
   const later = cal.events.filter(e => e.d === td && (tH(e.start) ?? -1) > now), tm = addDays(td, 1), allDay = cal.events.filter(e => e.d <= td && evUntil(e) >= td && !evSpan(e));
   const sel = view.calwx && cs.cwx && cs.cwx.startsWith(td) ? `<section class="card">${wxHead(cs.cwx)}</section>` : "";
   return `<div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;height:100%">
-    <section class="card scroll" style="padding:18px 14px 10px 10px">${allDay.map(e => `<div class="adev" style="margin:0 0 8px 52px">${esc(e.title)}</div>`).join("")}<div class="tl" style="height:${n * H}px">${Array.from({ length: n }, (_, i) => `<div class="hr" style="top:${i * H}px"><span class="num">${hr12(from + i)}</span></div>`).join("")}
+    <section class="card scroll" style="padding:18px 14px 10px 10px">${allDay.map(e => `<div class="adev${calWho(e)}" style="margin:0 0 8px 52px">${esc(e.title)}</div>`).join("")}<div class="tl" style="height:${n * H}px">${Array.from({ length: n }, (_, i) => `<div class="hr" style="top:${i * H}px"><span class="num">${hr12(from + i)}</span></div>`).join("")}
       ${tiles}${now >= from && now < from + n ? `<div class="nw" style="top:${(now - from) * H}px"></div>` : ""}${blocks}</div></section>
     <div class="scroll" style="display:grid;align-content:start;gap:12px">${sel}<section class="card"><div class="ch">Coming up today<span class="s num">${later.length} left</span></div>${later.map(e => evRow(e, true)).join("") || '<div class="empty">Nothing else today.</div>'}</section>
       <section class="card"><div class="ch">Tomorrow<span class="s">${fmtDay(tm, { weekday: "short", month: "short", day: "numeric" })}</span></div>${cal.events.filter(e => e.d === tm).map(e => evRow(e)).join("") || '<div class="empty">Nothing on the calendar.</div>'}</section></div></div>`;
@@ -970,14 +977,14 @@ function calWeek() {
   const we = s => [0, 6].includes(atNoon(s).getDay());
   const heads = days.map(s => `<div class="cgh${s === td ? " td" : ""}${we(s) ? " we" : ""}"><span>${fmtDay(s, { weekday: "short" })}</span><b class="num">${+s.slice(8)}</b></div>`).join("");
   const ad = cal.events.filter(e => !evSpan(e) && e.d <= days[6] && evUntil(e) >= mon), per = days.map(s => ad.filter(e => e.d <= s && evUntil(e) >= s).length), adH = Math.max(32, 9 + Math.max(0, ...per) * 26 - 4);
-  const allday = `<div class="adl">All day</div><div class="adr">${ad.map(e => { const a = Math.max(0, days.indexOf(e.d < mon ? mon : e.d)), u = evUntil(e), z = u > days[6] ? 6 : days.indexOf(u); return `<div class="adev" style="grid-column:${a + 1}/${Math.max(a, z) + 2}">${esc(e.title)}</div>`; }).join("")}</div>`;
+  const allday = `<div class="adl">All day</div><div class="adr">${ad.map(e => { const a = Math.max(0, days.indexOf(e.d < mon ? mon : e.d)), u = evUntil(e), z = u > days[6] ? 6 : days.indexOf(u); return `<div class="adev${calWho(e)}" style="grid-column:${a + 1}/${Math.max(a, z) + 2}">${esc(e.title)}</div>`; }).join("")}</div>`;
   const hours = Array.from({ length: T - F }, (_, i) => `<span class="num" style="top:${i * H + 4}px">${hr12(F + i)}</span>`).join("") + WX_BLOCKS.map(b => `<em style="top:${(b.from - F) * H}px;height:${(b.to - b.from) * H}px">${b.label}</em>`).join("");
   const cols = days.map(s => {
     const evs = cal.events.filter(e => e.d === s && evSpan(e));
     return `<div class="dcol${s === td ? " td" : ""}${we(s) ? " we" : ""}" style="height:${(T - F) * H}px;background-size:100% ${H}px">${[4, 8].map(h => `<i class="bline" style="top:${h * H - 1}px"></i>`).join("")}
       ${WX_BLOCKS.map((b, j) => wxTile(s, j, H, F, evs.some(e => wxHit(evSpan(e), b)))).join("")}
       ${evs.map(e => { const [a, z] = evSpan(e), s0 = Math.min(Math.max(a, F), T - .5), e0 = Math.max(Math.min(z, T), s0 + .5), past = s < td || (s === td && z <= now);
-        return `<div class="cev${halfEv(s, [a, z]) ? " half" : ""}${past ? " past" : ""}" style="top:${(s0 - F) * H + 1}px;height:${Math.max((e0 - s0) * H - 3, 22)}px"><b class="ell">${esc(e.title)}</b>${e0 - s0 >= .75 ? `<span class="num ell">${esc(e.start)}</span>` : ""}</div>`; }).join("")}
+        return `<div class="cev${calWho(e)}${halfEv(s, [a, z]) ? " half" : ""}${past ? " past" : ""}" style="top:${(s0 - F) * H + 1}px;height:${Math.max((e0 - s0) * H - 3, 22)}px"><b class="ell">${esc(e.title)}</b>${e0 - s0 >= .75 ? `<span class="num ell">${esc(e.start)}</span>` : ""}</div>`; }).join("")}
       ${s === td && now >= F && now < T ? `<div class="cnow" style="top:${(now - F) * H}px"></div>` : ""}</div>`;
   }).join("");
   /* the open tile's hours, beside it: to its right on Monday to Thursday, to its left after; the evening one sits on the grid's floor */

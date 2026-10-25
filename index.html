@@ -142,7 +142,10 @@
   .bk .sc small { display: block; font-size: 11px; line-height: 13px; font-weight: 500; color: var(--mut); }
   .bk.good .sc { color: var(--done); }
   .bk.on { outline: 2px solid var(--blue); outline-offset: 1px; }
-  .up { display: flex; align-items: center; gap: 12px; padding: 7px 2px; }
+  .up { display: flex; align-items: center; gap: 12px; padding: 7px 2px 7px 7px; border-left: 3px solid var(--blue); }
+  /* whose calendar: Matt blue, Barri pink, Both purple, as on the web app */
+  .who-barri.ev > i { background: #e87fa8; } .who-both.ev > i { background: #a98bf0; }
+  .up.who-barri { border-left-color: #e87fa8; } .up.who-both { border-left-color: #a98bf0; }
   .up .dt { flex: none; width: 50px; display: grid; font-size: 12px; line-height: 15px; color: var(--mut); }
   .up .dt b { font-size: 14px; line-height: 18px; color: var(--tx); font-weight: 600; }
   .up .t { font-weight: 600; color: var(--tx); }
@@ -823,11 +826,13 @@ function parseCalendar(md) {
     const c = line.split("|").slice(1, -1).map(x => x.trim()), dm = (c[0] || "").match(/^[A-Z][a-z]{2} ([A-Z][a-z]{2}) (\d{1,2})$/);
     if (!dm || !c[3]) return;
     const m = MONTHS.indexOf(dm[1]);
-    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3] });
+    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3], who: c[6] || "" });
   });
   return { synced: synced.replace(/, \d{4}/, ""), events };
 }
 let cal = { synced: "", events: [] }, calPick = null, calView = "Today";
+/* the Who column: Barri and Both get their colour class, Matt keeps the blue (mattOs.css ~837-842) */
+const calWho = e => /^(barri|both)$/i.test(e.who) ? " who-" + e.who.toLowerCase() : "";
 const calWhen = e => e.start ? (e.end ? `${e.start} to ${e.end}` : e.start) : "All day";
 function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
@@ -854,8 +859,8 @@ function calWeather() {
 function drawCalendar() {
   const td = today(), ev = cal.events.filter(e => e.d === td), ahead = cal.events.filter(e => e.d > td), side = $("wk") ? $("wk").scrollLeft : 0;
   const wx = W ? calWeather() : { head: "", strip: "", score: "", week: "", source: `<div class="srcl"><span>Weather is unavailable. Tap the Calendar tab to try again.</span></div>` };
-  const row = e => `<div class="ev"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`;
-  const next = ahead.slice(0, 5).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("");
+  const row = e => `<div class="ev${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`;
+  const next = ahead.slice(0, 5).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("");
   const seg = `<div class="segw"><div class="seg">${["Today", "Next Up"].map(v => `<button type="button" data-v="${v}" class="${v === calView ? "on" : ""}"${v === calView ? ' aria-current="true"' : ""}>${v}</button>`).join("")}</div></div>`;
   const src = `${wx.source}<div class="srcl"><span class="ell num">${W ? `Open-Meteo, ${esc(shortAt(wxRead))}; ` : ""}GCal, ${esc(shortAt(cal.synced))}</span></div>`, end = addDays(td, 6);
   $("main").innerHTML = seg + (calView === "Today" ? `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
@@ -1880,7 +1885,7 @@ function drawHome() {
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
   const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(r.note)}</div>` : ""}</div>${tkTag(r)}</div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
-  const next = ahead.slice(0, 3).map(e => `<div class="up"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
+  const next = ahead.slice(0, 3).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   if (CB) { cbHome(top, g, pc, full, now, grps[0], open, tasks, next); return; }
   /* Habits: the week's bars, each with its emoji in colour once the week's goal is met */
   const H = hbNow(), saved = hbFiled(td).st === "saved";
