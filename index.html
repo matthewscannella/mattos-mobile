@@ -456,6 +456,9 @@
   .rb .hbr .val { width: 56px; }
   .rb .hbr .em { flex: none; width: 22px; text-align: center; font-size: 17px; }
   .rb .hbr .em.off { filter: grayscale(1); opacity: .35; }
+  .rb .hbr.all { border-bottom: 1px solid var(--line); font-weight: 600; }
+  .rb .hbr.all .val { color: var(--tx); }
+  .rb .hbr .em .gd { display: inline-block; }
   .rail { margin: 14px -16px 0; }
   .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
   .sh { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 18px 7px 16px; font-size: 14px; font-weight: 600; color: var(--tx); }
@@ -1578,7 +1581,7 @@ function drawHabits() {
   const live = days.filter(x => x.st === "draft" || x.st === "saved"), tot = Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(live.reduce((a, x) => a + x.score[c.k], 0))]));
   const target = c => set[c.k] || c.target, part = c => Math.max(0, Math.min(1, tot[c.k] / target(c)));
   const overall = Math.round(HB_CATS.reduce((a, c) => a + part(c), 0) / HB_CATS.length * 100), r = 48, len = 2 * Math.PI * r;
-  const ring = `<div class="ring"><svg width="56" height="56" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="#3fcf8e" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
+  const gc = hbGrade(overall / 100), ring = `<div class="ring"><svg width="56" height="56" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
   const at = hb.at[d.date] ? ` at ${hb.at[d.date]}` : "";
   const sub = !canLog ? "Archived week" : mine ? "Unsaved changes, kept on this phone" : { draft: `Draft saved${at}`, saved: `Submitted${at}`, miss: "Skipped, fill it in any time", "": "Not started" }[d.st] || "";
   const last = hb.week >= hbOpen();
@@ -1882,7 +1885,8 @@ function drawHome() {
   /* Habits: the week's bars, each with its emoji in colour once the week's goal is met */
   const H = hbNow(), saved = hbFiled(td).st === "saved";
   const HE = { water: "💧", habits: "✅", food: "🥗", fitness: "💪🏻", mental: "🧠" };
-  const bars = H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
+  /* the week's overall score first, graded in the scorecard colours */
+  const bars = `<div class="hbr all"><span class="nm">Overall</span><div class="hbar grow"><i style="width:${H.overall}%;background:${hbGrade(H.overall / 100)}"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${H.overall}%</span><span class="em"><span class="gd" style="background:${hbGrade(H.overall / 100)}"></span></span></div>` + H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
   $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet, yoni)}${sec("Habits", saved, bars)}${sec("Tasks", false, tasks)}${sec("Calendar", false, next, "Next Up")}${sec("Notes", false, list)}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
