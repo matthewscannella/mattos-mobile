@@ -1136,8 +1136,7 @@ function tkAct(act, a, el) {
   else if (act === "move") moveTask(tk.wide, a);
   else if (act === "pull") pullToday();
   else if (act === "yo") yoTick(+a);
-  else if (act === "fold") { yo.open[a] = !yo.open[a]; drawYoni(); }
-  else if (act === "yoroom") { yo.rooms[a] = !yo.rooms[a]; drawYoni(); }
+  else if (act === "fold") { const k = el.dataset.done ? "rooms" : "open"; yo[k][a] = !yo[k][a]; drawYoni(); }
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
   else if (act === "yopacked") { yo.packed = !yo.packed; drawYoni(); }
   else if (act === "yoclear") yoClear();
@@ -1773,7 +1772,7 @@ function yoRead(lines) {
   });
   return out;
 }
-/* open is the parts unfolded; on is the Eastern date it was last set to the part of the day it is now; rooms is the finished rooms tapped open again */
+/* open is the parts unfolded; on is the Eastern date it was last set to the part of the day it is now; rooms is the finished parts tapped open again */
 const yo = { lines: [], data: yoRead([]), open: {}, rooms: {}, on: "", view: "Routines", packed: false };
 const yoCount = list => [list.filter(x => x.on).length, list.length];
 function yoniBody() {
@@ -1784,18 +1783,15 @@ function yoniBody() {
   const seg = segBar(["Routines", "Packing"], yo.view, "tk", "yoview");
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
   const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when) || "After"}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
-  /* a routine row with a Room is a round item, listed under a header for its time and room with the room's count. Once the room is done the header
-     turns green and its items fold away, until the header is tapped; a room that is no longer done drops that tap, so it folds again when finished */
-  const partRows = (P, p) => {
+  /* a routine row with a Room is a round item, listed under a header for its time and room with the room's count, which turns green once the room is done */
+  const partRows = P => {
     let last = "";
     const out = P.steps.map(it => {
       if (!it.room) { last = ""; return rows([it], true); }
       const k = it.when + "|" + it.room, grp = P.steps.filter(x => x.room && x.when + "|" + x.room === k), c = yoCount(grp);
-      const done = c[0] === c[1], rk = p + "|" + k, label = `${esc(it.when)} - ${esc(it.room)}<span class="num">${done ? "✓ " : ""}${c.join("/")}</span>`;
-      if (!done) delete yo.rooms[rk];
-      const head = k === last ? "" : done ? `<button type="button" class="sub on" data-tk="yoroom" data-a="${esc(rk)}" aria-expanded="${!!yo.rooms[rk]}">${label}</button>` : `<div class="sub">${label}</div>`;
+      const done = c[0] === c[1], head = k === last ? "" : `<div class="sub${done ? " on" : ""}">${esc(it.when)} - ${esc(it.room)}<span class="num">${done ? "✓ " : ""}${c.join("/")}</span></div>`;
       last = k;
-      return head + (done && !yo.rooms[rk] ? "" : rows([it], false));
+      return head + rows([it], false);
     }).join("") || rows([], true);
     return out + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : "");
   };
@@ -1811,8 +1807,11 @@ function yoniBody() {
   return `${seg}<div class="hgl" style="margin-top:4px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div>
     <div class="rings">${d.goals.map(x => `<button type="button" class="rg${x.on ? " on" : ""}" data-tk="yo" data-a="${x.i}" aria-pressed="${x.on}"><span class="ro">${esc(x.em)}</span><b class="num">${esc(x.target)} ${esc(x.unit)}</b><i class="ell">${esc(x.text)}</i></button>`).join("")}</div>
     <div class="hgl" style="margin-top:18px">Routines<span>Tap a part to open it</span></div>
-    ${YO_PARTS.map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), o = !!yo.open[p]; return `<div class="ac${o ? " open" : ""}"><button type="button" class="ach" data-tk="fold" data-a="${p}" aria-expanded="${o}">${svg(UI.right, 16, 2.6)}<span class="nmr">${p}${p === now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></button>
-      ${o ? `<div class="acb">${partRows(P, p)}</div>` : ""}</div>`; }).join("")}
+    ${YO_PARTS.map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), full = !!c[1] && c[0] === c[1];
+      /* a part whose steps and tasks are all done folds away until tapped open; one no longer done drops that tap, so it folds again when finished */
+      if (!full) delete yo.rooms[p];
+      const o = full ? !!yo.rooms[p] : !!yo.open[p]; return `<div class="ac${o ? " open" : ""}"><button type="button" class="ach" data-tk="fold" data-a="${p}"${full ? ' data-done="1"' : ""} aria-expanded="${o}">${svg(UI.right, 16, 2.6)}<span class="nmr">${p}${p === now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></button>
+      ${o ? `<div class="acb">${partRows(P)}</div>` : ""}</div>`; }).join("")}
     <p class="ynote">Goals, routines, and tasks clear at midnight Eastern.</p>`;
 }
 /* Yoni, its own tab: Routines and Packing, switched at the top */
