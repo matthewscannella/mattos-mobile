@@ -1368,8 +1368,12 @@ const HB_RULE = {
 const HB_MEALS = [["Breakfast", "Bm Bn Bo"], ["Lunch", "Bp Bq Br"], ["Snack", "Bs Bt Bu"], ["Dinner", "Bv Bw Bx"], ["Drink", "By Bz Ca"], ["Dessert", "Cb Cc Cd"]].map(m => ({ name: m[0], codes: m[1].split(" ") }));
 /* col is the habit's column in habitsRegistry.md, as HW_RULES in mattOs.html; Stretching leads */
 const HB_RULES = [["Stretching", "As At", "Stretching"], ["Pain bodies", "Aq Ar", "Pain"], ["Posture", "Ao Ap", "Posture"], ["Anxiety", "Am An", "Anxiety"]].map(r => ({ name: r[0], codes: r[1].split(" "), col: r[2] }));
-/* the live week's targets are those of the latest archived week, except Habits, which is every habit every day */
-const hbLiveTargets = text => { const set = hbTargets(text); return HB_CATS.map(c => `${c.name} ${c.k === "habits" ? HB_RULES.length * 7 : set[c.k] || c.target}`).join(", "); };
+/* the live week's targets are those of the latest archived week, then any goals in the history's Goals table set from a later Monday up to the week's own,
+   except Habits, which is every habit every day */
+const hbLiveTargets = (latest, week, goals) => {
+  const set = hbTargets(latest && latest.targets);
+  (goals || []).filter(g => g.from <= week && (!latest || g.from > latest.week)).sort((a, b) => a.from < b.from ? -1 : 1).forEach(g => Object.assign(set, hbTargets(g.targets)));
+  return HB_CATS.map(c => `${c.name} ${c.k === "habits" ? HB_RULES.length * 7 : set[c.k] || c.target}`).join(", "); };
 const hbTargets = text => Object.fromEntries([...(text || "").matchAll(/([A-Za-z]+)\s+(\d+(?:\.\d+)?)/g)].map(m => [m[1].toLowerCase(), +m[2]]));
 const hbRound = n => Math.round(n * 100) / 100;
 const hbScore = codes => Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(codes.reduce((a, x) => a + (c.codes[x] || 0), 0))]));
@@ -1391,7 +1395,19 @@ function hbRead(lines) {
     end = i;
     if (/^\d{4}-\d{2}-\d{2}$/.test(c[0])) rows.push({ i, week: c[0], days: [1, 2, 3, 4, 5, 6, 7].map(n => (c[n] || "").split(/[\s,]+/).filter(Boolean)), targets: c[8] || "" });
   });
-  return { head, end, rows };
+  return { head, end, rows, goals: hbGoals(lines) };
+}
+/* the Goals table of the archive: a row per change of target, from a week's Monday on, such as "Food 16, Fitness 12" */
+function hbGoals(lines) {
+  const out = [];
+  let on = false;
+  lines.forEach(line => {
+    const raw = line.replace(/\r$/, "").trim(), c = raw.split("|").slice(1, -1).map(x => x.trim());
+    if (!raw.startsWith("|")) { on = false; return; }
+    if (c[0] === "From") { on = true; return; }
+    if (on && /^\d{4}-\d{2}-\d{2}$/.test(c[0])) out.push({ from: c[0], targets: c[1] || "" });
+  });
+  return out;
 }
 /* the week in progress, read and written as hwParse and hwSerialize in mattOs.html: its Monday, then a row per day.
    Water is bottles, a meal 1, 0 or -1, a habit Yes or No, and a blank cell nothing entered; Status is Saved, Draft or blank */
@@ -1420,7 +1436,7 @@ function hwRead(lines) {
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
-const hb = { cur: null, hist: [], week: "", day: "", on: "", drafts: {}, at: {}, busy: false, closing: false, view: "Today" };
+const hb = { cur: null, hist: [], goals: [], week: "", day: "", on: "", drafts: {}, at: {}, busy: false, closing: false, view: "Today" };
 const hbMonday = s => addDays(s, -((atNoon(s).getDay() + 6) % 7));
 const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
 /* only the open week can be logged: the week in the file, until it is closed, or the week of today when the file holds none */
@@ -1577,7 +1593,7 @@ function drawHabits() {
   if (hb.view === "Meditation") { drawMeditation(); return; }
   const now = today(), canLog = hbLive(hb.week), row = hb.hist.find(r => r.week === hb.week), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null);
   /* as on the desktop, an archived week is graded against its own targets and the week in progress against those of the latest archived week */
-  const set = hbTargets(canLog ? hbLiveTargets((latest || {}).targets) : (row || {}).targets);
+  const set = hbTargets(canLog ? hbLiveTargets(latest, hb.week, hb.goals) : (row || {}).targets);
   /* a day is saved, a draft, skipped (miss), not started ("") or still to come (off); a draft counts towards the week, here and on the desktop */
   const days = [0, 1, 2, 3, 4, 5, 6].map(i => {
     const date = addDays(hb.week, i), codes = row ? row.days[i] : [], filed = hbFiled(date), draft = hb.drafts[date];
@@ -1630,7 +1646,7 @@ function drawHabits() {
 async function loadHabits() {
   const [f, h] = await Promise.all([readFile(HABIT_FILE), readFile(HISTORY_FILE)]), now = today();
   if (tab !== "Habits") return;
-  hb.cur = hwRead(f.text.split("\n")); hb.hist = hbRead(h.text.split("\n")).rows;
+  hb.cur = hwRead(f.text.split("\n")); { const r = hbRead(h.text.split("\n")); hb.hist = r.rows; hb.goals = r.goals; }
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
   /* a draft for a week that can no longer be logged is dropped */
   hb.drafts = Object.fromEntries(Object.entries(hb.drafts).filter(([date]) => hbLive(hbMonday(date))).map(([date, d]) => [date, hwForm(d)]));
@@ -1682,7 +1698,7 @@ async function hbClose() {
     ok = !cells.some(Boolean) || await commitFile(HISTORY_FILE, split, join, lines => {
       const h = hbRead(lines), had = h.rows.find(r => r.week === week), latest = h.rows.filter(r => r !== had).reduce((a, r) => !a || r.week > a.week ? r : a, null);
       if (h.head < 0) throw new Error("The Weeks table is missing from the habit history, so the week was not closed.");
-      const row = `| ${[week, ...cells, hbLiveTargets(latest && latest.targets)].join(" | ")} |` + (lines[h.head].endsWith("\r") ? "\r" : "");
+      const row = `| ${[week, ...cells, hbLiveTargets(latest, week, h.goals)].join(" | ")} |` + (lines[h.head].endsWith("\r") ? "\r" : "");
       if (had) lines[had.i] = row; else lines.splice(h.head + 2, 0, row);
       return true;
     }, `Phone: habits week of ${monDay(week)} closed`);
@@ -1864,7 +1880,7 @@ function hWear() {
 }
 /* the open week's totals, counted as drawHabits counts them: saved days and drafts, against the same targets as the Habits tab (those of the latest archived week, except Habits, which is every habit every day) */
 function hbNow() {
-  const w = hbOpen(), now = today(), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null), set = hbTargets(hbLiveTargets((latest || {}).targets));
+  const w = hbOpen(), now = today(), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null), set = hbTargets(hbLiveTargets(latest, w, hb.goals));
   const live = [0, 1, 2, 3, 4, 5, 6].map(i => addDays(w, i)).filter(d => d <= now && (hb.drafts[d] || hbFiled(d).st)).map(d => hwScore(hb.drafts[d] || hbFiled(d).f));
   const cats = HB_CATS.map(c => { const tot = hbRound(live.reduce((a, s) => a + s[c.k], 0)), target = set[c.k] || c.target; return { c, tot, target, part: Math.max(0, Math.min(1, tot / target)) }; });
   return { cats, logged: live.length, overall: Math.round(cats.reduce((a, x) => a + x.part, 0) / cats.length * 100) };
@@ -1928,7 +1944,7 @@ async function loadHome() {
   const [c, t, f, h, n, y, w, cb] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(HABIT_FILE), readFile(HISTORY_FILE), readFile(NOTES_FILE), readFile(FATHER_FILE), readFile(WORKOUT_FILE).catch(() => ({ text: home.workout })), readFile(CB_FILE).catch(() => null), loadWeather()]);
   if (tab !== "Home") return;
   cal = parseCalendar(c.text); notes = parseNotes(n.text); home.workout = w.text;
-  hb.cur = hwRead(f.text.split("\n")); hb.hist = hbRead(h.text.split("\n")).rows;
+  hb.cur = hwRead(f.text.split("\n")); { const r = hbRead(h.text.split("\n")); hb.hist = r.rows; hb.goals = r.goals; }
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
   if (!tkBusy) { tk.lines = t.text.split("\n"); if (cb) tk.clines = cb.text.split("\n"); yo.lines = y.text.split("\n"); tkParse(); } /* a task still being saved is not drawn over */
   status(c.at ? `Offline. Showing what was loaded ${c.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), c.at ? "err" : "ok");
