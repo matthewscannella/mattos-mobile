@@ -998,6 +998,68 @@ async function loadTasks(quiet) {
   tk.lines = t.text.split("\n"); if (c) tk.clines = c.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
   drawTasks();
+  if (!quick && !t.at) recurSync();
+}
+/* recurring tasks, as recurSync in mattOs.html (screens.js): each rule in recurringRegistry.md due by this Sunday that has no open task adds one, on its due
+   weekday (today once overdue) with a 🔁 note naming the due date. A Done task with that note moves its rule on: Flexible counts from today, Fixed from the due date */
+const REC_FILE = "02📋-tasks/recurringRegistry.md", RC_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], rcMark = /🔁 (\d{4}-\d\d-\d\d)/;
+function rcRead(lines) {
+  let head = null;
+  const rows = [];
+  lines.forEach((l, i) => {
+    const s = l.replace(/\r$/, "").trim(), c = s.split("|").slice(1, -1).map(x => x.trim());
+    if (!s.startsWith("|")) return;
+    if (!head) { if (c.includes("Task") && c.includes("Next Due")) head = c; return; }
+    const r = Object.fromEntries(head.map((h, k) => [h, c[k] || ""]));
+    if (r.Task && !/^:?-+:?$/.test(c[0])) rows.push({ i, task: r.Task, cat: r.Category, every: r.Every || "1 week", on: r.On, next: r["Next Due"], tod: r.Timing, type: r.Type === "Fixed" ? "Fixed" : "Flexible" });
+  });
+  return { head: head || [], rows };
+}
+function recurNext(r, from) {
+  const on = r.on.split(",").map(s => RC_DAYS.indexOf(s.trim())).filter(n => n >= 0), m = r.every.match(/(\d+)\s*([dwm])/i) || [, 1, "w"], n = +m[1], u = m[2].toLowerCase();
+  const step = base => {
+    const d = new Date(base + "T12:00");
+    if (on.length > 1) { do d.setDate(d.getDate() + 1); while (!on.includes(d.getDay())); return isoDay(d); }
+    if (u === "m") { const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); }
+    else d.setDate(d.getDate() + n * (u === "w" ? 7 : 1));
+    if (on.length === 1) while (d.getDay() !== on[0]) d.setDate(d.getDate() + 1);
+    return isoDay(d);
+  };
+  let next = step(from);
+  while (next <= r.next) next = step(next);
+  return next;
+}
+let rcBusy = false;
+async function recurSync() {
+  if (CB || offline || rcBusy) return;
+  rcBusy = true;
+  try {
+    const rules = rcRead((await fetchFile(REC_FILE)).text.split("\n")).rows, now = new Date(), day0 = today();
+    const end = isoDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 6 - (now.getDay() + 6) % 7)), own = tk.rows.filter(r => !r.cb);
+    const moved = [];
+    own.forEach(t => {
+      const m = t.st === "Done" && t.note.match(rcMark), r = m && rules.find(x => x.task === t.title && x.next === m[1]);
+      if (r) { const to = recurNext(r, r.type === "Fixed" ? r.next : day0); moved.push({ task: r.task, from: r.next, to }); r.next = to; }
+    });
+    if (moved.length) commitFile(REC_FILE, text => text.split("\n"), lines => lines.join("\n"), lines => {
+      const t = rcRead(lines), col = t.head.indexOf("Next Due") + 1;
+      moved.forEach(mv => { const r = t.rows.find(x => x.task === mv.task && x.next === mv.from); if (r) { const c = lines[r.i].split("|"); c[col] = ` ${mv.to} `; lines[r.i] = c.join("|"); } });
+      return moved;
+    }, `Phone: recurring ${moved.map(m => `"${m.task}"`).join(", ")} next due`);
+    const due = rules.filter(r => r.next && r.next <= end && !own.some(t => t.st !== "Done" && t.title === r.task));
+    if (due.length) tkSave(TASK_FILE, lines => {
+      const t = tkRead(lines);
+      if (!t.head) throw new Error("The task table was not found, so the recurring tasks were not added.");
+      const add = due.filter(r => !t.rows.some(x => x.st !== "Done" && x.title === r.task));
+      add.forEach(r => {
+        const cells = { Status: "Open", Category: r.cat, [t.day]: RC_DAYS[new Date((r.next < day0 ? day0 : r.next) + "T12:00").getDay()], Timing: r.tod, Task: r.task, Note: `🔁 ${r.next}`, Added: day0 };
+        const at = tkRead(lines).end;
+        lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
+      });
+      return add;
+    }, `Phone: recurring ${due.map(r => `"${r.task}"`).join(", ")}`);
+  } catch (e) { /* no rules file yet, or no connection: tasks show as they are */ }
+  finally { rcBusy = false; }
 }
 /* the change shows at once and is then saved on top of the newest file. If a save fails, the list is read again once nothing else is waiting */
 function tkSave(path, change, message) {
@@ -1026,6 +1088,7 @@ function tickTask(n) {
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Phone: ${to === "Done" ? "done" : "reopen"} "${r.title}"`);
+  if (to === "Done" && rcMark.test(r.note)) recurSync();
 }
 /* a day button on an opened card rewrites the task's Day in place, as the laptop's timing picker does */
 function moveTask(n, to) {
