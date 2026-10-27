@@ -800,7 +800,7 @@ const wxLabel = c => WX_LABEL[c] || "Weather";
 const WX_BLOCKS = [{ label: "Morning", from: 8, to: 12 }, { label: "Afternoon", from: 12, to: 16 }, { label: "Evening", from: 16, to: 20 }];
 /* the desktop app's formula (WX_COLD, wxTemp, wxScore), kept identical so both show the same score:
    58 to 75 feels perfect; cold falls through 55=.9, 50=.6, 45=.4, 40=.2 to 0 at 35; heat falls to 0 at 95.
-   clouds feel 2 (partly) or 4 (overcast and worse) degrees cooler; rain chance is free up to 20% and zeroes the score at 80% */
+   wind chill counts for at most 3 degrees below the air temperature; clouds feel 2 (partly) or 4 (overcast and worse) degrees cooler; rain chance is free up to 20% and zeroes the score at 80% */
 const WX_COLD = [[35, 0], [40, .2], [45, .4], [50, .6], [55, .9], [58, 1]];
 const wxTemp = f => {
   if (f > 75) return Math.max(0, (95 - f) / 20);
@@ -840,7 +840,7 @@ function wxHoursAt(i0, n) {
   for (let i = i0; i < i0 + n && i < h.time.length; i++) {
     if (h.temperature_2m[i] == null || h.weather_code[i] == null) continue;
     const p = h.precipitation_probability[i] ?? 0, feel = h.apparent_temperature[i] ?? h.temperature_2m[i];
-    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(feel, p, h.weather_code[i]) });
+    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(Math.max(feel, h.temperature_2m[i] - 3), p, h.weather_code[i]) });
   }
   return out;
 }

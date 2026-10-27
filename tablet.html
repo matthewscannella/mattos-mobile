@@ -501,7 +501,7 @@ function wxHoursAt(i0, n) {
   for (let i = i0; i < i0 + n && i < h.time.length; i++) {
     if (h.temperature_2m[i] == null || h.weather_code[i] == null) continue;
     const p = h.precipitation_probability[i] ?? 0, feel = h.apparent_temperature[i] ?? h.temperature_2m[i];
-    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(feel, p, h.weather_code[i]) });
+    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(Math.max(feel, h.temperature_2m[i] - 3), p, h.weather_code[i]) });
   }
   return out;
 }
