@@ -41,7 +41,7 @@
      (on Matt's phone window 812, 100vh 874): the page itself, not only the frame, then takes the 100vh height (fitFrame) */
   html.tall { height: 100vh; }
   html.tall body { bottom: auto; height: 100vh; }
-  button { all: unset; box-sizing: border-box; cursor: pointer; }
+  button, label.hap { all: unset; box-sizing: border-box; cursor: pointer; }
   input, textarea { font: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 4px; }
   .ic { flex: none; display: block; }
@@ -373,12 +373,12 @@
   .hfr + .hfr { border-top: 1px solid var(--line); }
   .hfr .lb { width: 104px; flex: none; font-size: 15px; }
   .hseg { flex: 1; display: flex; background: var(--raised); border-radius: 9px; padding: 2px; }
-  .hseg button { flex: 1; height: 34px; border-radius: 7px; text-align: center; font-size: 13px; font-weight: 500; color: var(--mut); }
-  .hseg button.good { background: rgba(63, 207, 142, .22); color: var(--done); font-weight: 600; }
-  .hseg button.bad { background: rgba(249, 112, 102, .2); color: var(--flag); font-weight: 600; }
+  .hseg :is(button, label) { flex: 1; height: 34px; border-radius: 7px; text-align: center; font-size: 13px; font-weight: 500; color: var(--mut); }
+  .hseg :is(button, label).good { background: rgba(63, 207, 142, .22); color: var(--done); font-weight: 600; }
+  .hseg :is(button, label).bad { background: rgba(249, 112, 102, .2); color: var(--flag); font-weight: 600; }
   .pips { display: flex; gap: 8px; padding: 8px 0; }
-  .pips button { flex: 1; height: 60px; border-radius: 12px; background: var(--raised); color: #3a4152; display: grid; place-items: center; }
-  .pips button.on { background: rgba(59, 110, 245, .2); color: var(--acc); }
+  .pips :is(button, label) { flex: 1; height: 60px; border-radius: 12px; background: var(--raised); color: #3a4152; display: grid; place-items: center; }
+  .pips :is(button, label).on { background: rgba(59, 110, 245, .2); color: var(--acc); }
   .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px 0; }
   .chip { height: 46px; border-radius: 10px; background: var(--raised); color: var(--mut); display: grid; align-content: center; justify-items: center; font-size: 13.5px; line-height: 16px; font-weight: 600; }
   .chip i { font-style: normal; font-weight: 400; font-size: 11.5px; line-height: 14px; opacity: .85; }
@@ -386,7 +386,7 @@
   .chip.bad { background: rgba(249, 112, 102, .18); color: var(--flag); }
   .chip.mid { background: #2a3040; color: var(--tx); }
   .hstp { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-  .hstp button { width: 40px; height: 40px; border-radius: 10px; background: var(--raised); color: var(--tx); display: grid; place-items: center; }
+  .hstp :is(button, label) { width: 40px; height: 40px; border-radius: 10px; background: var(--raised); color: var(--tx); display: grid; place-items: center; }
   .hstp b { min-width: 64px; text-align: center; font-size: 15px; font-weight: 600; }
   .hstp b i { font-style: normal; font-weight: 400; font-size: 13px; color: var(--mut); }
   /* the tick on each bar is the pace for the days logged so far */
@@ -749,7 +749,7 @@ function upsertOpenNote() {
 function showNoteList() {
   leaveHabits(); openId = null; base = null; swOpen = null; $("fab").hidden = offline;
   $("main").innerHTML = tkBar("Notes") + (notes.length
-    ? notes.map(n => `<div class="nsw">${offline ? "" : `<button class="ndel" type="button" data-del="${esc(n.id)}" aria-label="Delete ${esc(n.title) || "Untitled"}">${svg(UI.trash, 22)}</button>`}<button class="note" type="button" data-id="${esc(n.id)}"><b class="ell">${esc(n.title) || "Untitled"}</b><span class="s ell num">${esc(n.edited)}</span><span class="s ell">${esc(n.body.split("\n").find(l => l.trim())) || "Empty note"}</span></button></div>`).join("")
+    ? notes.map(n => `<div class="nsw">${offline ? "" : `<button class="ndel" type="button" data-hap data-del="${esc(n.id)}" aria-label="Delete ${esc(n.title) || "Untitled"}">${svg(UI.trash, 22)}</button>`}<button class="note" type="button" data-id="${esc(n.id)}"><b class="ell">${esc(n.title) || "Untitled"}</b><span class="s ell num">${esc(n.edited)}</span><span class="s ell">${esc(n.body.split("\n").find(l => l.trim())) || "Empty note"}</span></button></div>`).join("")
     : `<div class="empty">No notes yet. Tap the add button to start one.</div>`);
 }
 function showNote(id) {
@@ -763,7 +763,7 @@ function showNote(id) {
     <span class="s num">Edited ${esc(n.edited)}</span>
     <textarea id="nbody" placeholder="Start writing…" aria-label="Note"${ro}>${esc(noteShow(n.body))}</textarea></div>`;
   /* a bar above the tabs, like the Habits save bar: Done saves and goes back to the list */
-  $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del">Delete</button>`) + `<button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
+  $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del" data-hap>Delete</button>`) + `<button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
   fitNote();
 }
@@ -1040,7 +1040,7 @@ function drawTasks() {
   else {
     /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
     const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${TK_DAY[TK_TIMES.indexOf(t)]}</button>`).join("")}</div>`;
-    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
+    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-hap data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
     const today = TK_TIMES[(new Date().getDay() + 6) % 7], now = tkPartNow();
     /* today's parts all show, even when empty, so a task can be dragged into any of them; a part that has passed is greyed */
     const parts = all => all.filter(r => !r.part).map(card).join("") + TK_PARTS.map((p, i) => `<div class="ph${i < now ? " past" : i === now ? " now" : ""}" data-p="${p}">${p}</div>` + all.filter(r => r.part === p).map(r => i < now ? card(r).replace('class="tr', 'class="tr past') : card(r)).join("")).join("");
@@ -1750,11 +1750,11 @@ function drawHabits() {
   /* the form, in the order of the picked design: Water, Food, Fitness, Mental, then Habits */
   const tone = v => v > 0 ? "good" : v < 0 ? "bad" : "mid", food = f.food.reduce((a, v) => a + (v || 0), 0);
   const grp = (t, meta, body) => `<div class="hgl">${t}<span class="num">${meta}</span></div><div class="hcard">${body}</div>`;
-  const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
-  const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
-    + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-k="${i}">${m.name}<i>${v == null ? "Tap" : v > 0 ? "Healthy" : v < 0 ? "Unhealthy" : "Neutral"}</i></button>`; }).join("")}</div>`)
+  const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-hap data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
+    + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-hap data-k="${i}">${m.name}<i>${v == null ? "Tap" : v > 0 ? "Healthy" : v < 0 ? "Unhealthy" : "Neutral"}</i></button>`; }).join("")}</div>`)
     + grp("Fitness", "", step("Resistance", "sets", "sets", 1)) + grp("Mental", "", step("Meditation", "med", "min", 5))
-    + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
+    + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-hap data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
   const bars = `<div class="hbr all"><span style="width:16px;flex:none"></span><span class="nm">Overall</span><div class="hbar grow"><i style="width:${overall}%;background:${gc}"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${overall}%</span><span class="gd" style="background:${gc}"></span></div>` + HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
   /* one day's total for one category; a day with nothing logged is a dashed blank */
   const cell = (c, x) => {
@@ -1938,7 +1938,7 @@ function yoniBody() {
   const list = yo.view === "Daycare" ? d.care : d.packs, pc = yoCount(list);
   const seg = segBar(["Routines", "Packing", "Daycare"], yo.view, "tk", "yoview");
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
-  const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when) || "After"}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
+  const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when) || "After"}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
   /* a routine row with a Room is a round item, listed under a header for its time and room with the room's count, which turns green once the room is done */
   const partRows = P => {
     let last = "";
@@ -1953,7 +1953,7 @@ function yoniBody() {
   };
   if (yo.view === "Packing" || yo.view === "Daycare") {
     const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = list.filter(x => !x.on), done = list.filter(x => x.on);
-    const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span><span class="g">${esc(it.g)}</span></button>`;
+    const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span><span class="g">${esc(it.g)}</span></button>`;
     return `${seg}<div class="pks" style="margin-top:4px"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${pc[0]} of ${pc[1]} packed</b><span class="s">${left.length ? `${new Set(left.map(x => x.g)).size} groups still open` : "All packed"}</span></div><button type="button" class="clr" data-tk="yoclear" data-a="${yo.view}"${pc[0] ? "" : " disabled"}>Clear</button></div>
       <div class="hgl">Still to pack<span class="num">${left.length}</span></div>
       ${left.length ? `<div class="pkl">${left.map(prow).join("")}</div>` : `<div class="s" style="padding:4px 2px">Everything is in the bag.</div>`}
@@ -1961,7 +1961,7 @@ function yoniBody() {
       <p class="ynote">Checks clear at midnight Eastern, or with Clear.</p>`;
   }
   return `${seg}<div class="hgl" style="margin-top:4px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div>
-    <div class="rings">${d.goals.map(x => `<button type="button" class="rg${x.on ? " on" : ""}" data-tk="yo" data-a="${x.i}" aria-pressed="${x.on}"><span class="ro">${esc(x.em)}</span><b class="num">${esc(x.target)} ${esc(x.unit)}</b><i class="ell">${esc(x.text)}</i></button>`).join("")}</div>
+    <div class="rings">${d.goals.map(x => `<button type="button" class="rg${x.on ? " on" : ""}" data-tk="yo" data-hap data-a="${x.i}" aria-pressed="${x.on}"><span class="ro">${esc(x.em)}</span><b class="num">${esc(x.target)} ${esc(x.unit)}</b><i class="ell">${esc(x.text)}</i></button>`).join("")}</div>
     <div class="hgl" style="margin-top:18px">Routines<span>Tap a part to open it</span></div>
     ${YO_PARTS.map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), full = !!c[1] && c[0] === c[1];
       /* a part whose steps and tasks are all done folds away until tapped open; one no longer done drops that tap, so it folds again when finished */
@@ -2380,14 +2380,25 @@ document.addEventListener("visibilitychange", () => {
   else if (tab === "Habits" && !$("setup") && cfg().token) loadHabits().catch(() => {}); /* in place, so a half-filled form keeps its position */
   else if (!openId && !$("setup") && !tk.sheet && cfg().token) go(here());
 });
-/* a haptic tap: navigator.vibrate where there is one (Android); iOS Safari has none, but from iOS 18 a click on a hidden switch input's label gives the switch's tap.
-   strong is the win toast's pattern: a longer buzz, or three taps on iOS */
+/* a haptic tap: navigator.vibrate where there is one (Android); strong is the win toast's longer pattern.
+   iOS has no vibrate and gives a tap only when a finger taps a switch's label, so buttons marked data-hap become labels around a hidden switch */
 function buzz(strong) {
-  if (navigator.vibrate) { navigator.vibrate(strong ? [40, 60, 40, 60, 80] : 12); return; }
-  /* a fresh switch each time, in the head so the tap handlers never see it, as the ios-haptics library does */
-  const tap = () => { const l = document.createElement("label"); l.ariaHidden = "true"; l.style.display = "none"; l.innerHTML = '<input type="checkbox" switch>'; document.head.append(l); l.click(); l.remove(); };
-  tap(); if (strong) [130, 260].forEach(t => setTimeout(tap, t));
+  if (navigator.vibrate) navigator.vibrate(strong ? [40, 60, 40, 60, 80] : 12);
 }
+const hapify = () => document.querySelectorAll("button[data-hap]").forEach(b => {
+  const l = document.createElement("label");
+  for (const a of b.attributes) if (a.name !== "type") l.setAttribute(a.name, a.value);
+  l.setAttribute("role", "button"); l.classList.add("hap"); l.innerHTML = '<input type="checkbox" switch style="display:none">'; l.append(...b.childNodes); b.replaceWith(l);
+});
+new MutationObserver(hapify).observe(document.body, { childList: true, subtree: true }); hapify();
+/* the switch's own click is dropped, and the label's is handled a moment later, so a redraw cannot take the label away before its switch flips */
+const hapLater = new WeakSet();
+document.addEventListener("click", e => {
+  if (e.target.matches("input[switch]")) { e.stopImmediatePropagation(); return; }
+  if (!e.target.closest("label.hap") || hapLater.has(e)) return;
+  e.stopImmediatePropagation();
+  setTimeout(() => { const ev = new MouseEvent("click", { bubbles: true }); hapLater.add(ev); e.target.dispatchEvent(ev); });
+}, true);
 function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; undoTask = null; }, 8000);
