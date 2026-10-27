@@ -194,20 +194,17 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .toast{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);width:440px;display:flex;align-items:center;gap:12px;background:var(--raised);border:1px solid var(--rule);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:6}
 .toast span{flex:1}
 .toast button{color:var(--acc);font-weight:600;padding:4px 6px}
-/* the phone's win stamp (index.html .win), larger: a centred badge with a filling ring, and confetti once Yoni's day is done */
-.win{position:fixed;inset:0;z-index:9;pointer-events:none;display:grid;place-items:center;overflow:hidden}
+/* the phone's win toast (index.html .win), larger: a green bar where the toast sits whose emoji pops, and confetti once Yoni's day is done */
+.win{position:fixed;inset:0;z-index:9;pointer-events:none;overflow:hidden}
 .win[hidden]{display:none}
-.wst{width:220px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--raised);border:1px solid var(--rule);border-radius:28px;padding:22px 14px 20px;box-shadow:0 12px 36px rgba(0,0,0,.55);animation:wIn .35s ease-out both,wOut .3s ease-in 3.1s forwards}
-.wst b{display:block;font-size:17px;line-height:22px;font-weight:600;color:var(--hi)}
-.wst small{display:block;font-size:14px;line-height:18px;color:var(--mut)}
-.wr{position:relative;width:104px;height:104px}
-.wr svg{position:absolute;inset:0;transform:rotate(-90deg)}
-.wr .arc{stroke-dasharray:188.5;animation:wRing .7s ease-out .15s both}
-.wr .em{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;line-height:1;font-family:var(--emoji)}
+.wst{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));width:440px;margin-left:-220px;display:flex;align-items:center;gap:14px;background:#10261d;border:1px solid #1f5a3f;border-radius:14px;padding:12px 16px;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:wIn .3s ease-out both,wOut .3s ease-in 3.1s forwards}
+.wst b{display:block;font-size:16px;line-height:20px;font-weight:600;color:var(--hi)}
+.wst small{display:block;font-size:14px;line-height:18px;color:#8fd9b6}
+.wst .em{flex:none;font-size:32px;line-height:1;font-family:var(--emoji);animation:wPop .5s ease-out .1s both}
 .wcf i{position:absolute;top:0;width:9px;height:14px;border-radius:2px;animation:wFall 2.8s ease-in both}
-@keyframes wIn{0%{opacity:0;transform:scale(1.6)}70%{opacity:1;transform:scale(.94)}100%{opacity:1;transform:none}}
-@keyframes wOut{to{opacity:0;transform:scale(.9)}}
-@keyframes wRing{from{stroke-dashoffset:var(--from)}to{stroke-dashoffset:var(--to)}}
+@keyframes wIn{from{opacity:0;transform:translateY(14px)}}
+@keyframes wOut{to{opacity:0;transform:translateY(14px)}}
+@keyframes wPop{0%{transform:scale(.2)}60%{transform:scale(1.35)}100%{transform:none}}
 @keyframes wFall{0%{opacity:0;transform:translateY(-40px) rotate(0)}8%,80%{opacity:1}100%{opacity:0;transform:translateY(105vh) rotate(540deg)}}
 
 /* Calendar: the header's week buttons, then the mockup's Day timeline and the web app's week grid (mattOs.css ~501-512, ~846-872) */
@@ -770,13 +767,13 @@ function yoTick(i) {
     return hit;
   }, `Tablet: ${to ? "check" : "uncheck"} "${it.text}"`);
   const now = yoAll(yo.data);
-  if (now[1] && now[0] === now[1] && was[0] < was[1]) win(was[0] / was[1]);
+  if (now[1] && now[0] === now[1] && was[0] < was[1]) win();
 }
-/* the phone's win stamp (index.html win()), for Yoni's finished day only */
+/* the phone's win toast (index.html win()), for Yoni's finished day only */
 let winT = 0;
-function win(was) {
+function win() {
   const CF = ["#3fcf8e", "#8dabf9", "#f9c74f", "#f97066", "#c084fc"], el = $("win");
-  el.innerHTML = `<div class="wst"><div class="wr"><svg viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="none" stroke="var(--rule)" stroke-width="6"/><circle class="arc" cx="35" cy="35" r="30" fill="none" stroke="var(--done)" stroke-width="6" stroke-linecap="round" style="--from:${188.5 * (1 - was)};--to:0"/></svg><span class="em">👶🏻</span></div><b>Yoni's day is done</b><small>Every goal and routine complete</small></div><div class="wcf">${Array.from({ length: 40 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${CF[i % 5]};animation-delay:${(i % 7) * .07}s"></i>`).join("")}</div>`;
+  el.innerHTML = `<div class="wst"><span class="em">👶🏻</span><div><b>Yoni's day is done</b><small>Every goal and routine complete</small></div></div><div class="wcf">${Array.from({ length: 40 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${CF[i % 5]};animation-delay:${(i % 7) * .07}s"></i>`).join("")}</div>`;
   el.hidden = false; clearTimeout(winT); winT = setTimeout(() => { el.hidden = true; }, 3500);
 }
 /* Clear empties every packing or daycare item's Done cell, as the desktop's Clear checks does */

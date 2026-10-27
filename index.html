@@ -553,21 +553,20 @@
 
   .toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
   .toast span { flex: 1; }
-  /* the win stamp (mobileWinToastV1, Center Stamp): a badge in the middle of the screen whose ring fills to the week's progress; sad greys the ring and droops the emoji, party adds confetti */
-  .win { position: fixed; inset: 0; z-index: 7; pointer-events: none; display: grid; place-items: center; padding-bottom: 8vh; overflow: hidden; }
-  .wst { width: 172px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; background: var(--raised); border: 1px solid var(--rule); border-radius: 24px; padding: 18px 12px 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, .55); animation: wIn .35s ease-out both, wOut .3s ease-in 2.3s forwards; }
+  /* the win toast (mobileWinToastV1, Green Pop): a green bar where the toast sits whose emoji pops; sad turns it red and droops the emoji, party adds confetti */
+  .win { position: fixed; inset: 0; z-index: 7; pointer-events: none; overflow: hidden; }
+  .wst { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: #10261d; border: 1px solid #1f5a3f; border-radius: 12px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); animation: wIn .3s ease-out both, wOut .3s ease-in 2.3s forwards; }
   .party .wst { animation-delay: 0s, 3.1s; }
   .wst b { display: block; font-size: 14px; line-height: 18px; font-weight: 600; color: var(--hi); }
-  .wst small { display: block; font-size: 12.5px; line-height: 16px; color: var(--mut); }
-  .wr { position: relative; width: 80px; height: 80px; }
-  .wr svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-  .wr .arc { stroke-dasharray: 188.5; animation: wRing .7s ease-out .15s both; }
-  .wr .em { position: absolute; inset: 0; display: grid; place-items: center; font-size: 32px; line-height: 1; }
-  .sad .wr .em { animation: wDroop .5s ease-out .3s both; }
+  .wst small { display: block; font-size: 12.5px; line-height: 16px; color: #8fd9b6; }
+  .wst .em { flex: none; font-size: 26px; line-height: 1; animation: wPop .5s ease-out .1s both; }
+  .wst.sad { background: #2a1517; border-color: #5c2a2c; }
+  .wst.sad small { color: #e6a3a0; }
+  .wst.sad .em { animation: wDroop .5s ease-out .3s both; }
   .wcf i { position: absolute; top: 0; width: 7px; height: 11px; border-radius: 2px; animation: wFall 2.6s ease-in both; }
-  @keyframes wIn { 0% { opacity: 0; transform: scale(1.6); } 70% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: none; } }
-  @keyframes wOut { to { opacity: 0; transform: scale(.9); } }
-  @keyframes wRing { from { stroke-dashoffset: var(--from); } to { stroke-dashoffset: var(--to); } }
+  @keyframes wIn { from { opacity: 0; transform: translateY(14px); } }
+  @keyframes wOut { to { opacity: 0; transform: translateY(14px); } }
+  @keyframes wPop { 0% { transform: scale(.2); } 60% { transform: scale(1.35); } 100% { transform: none; } }
   @keyframes wDroop { to { transform: translateY(3px) rotate(-14deg); } }
   @keyframes wFall { 0% { opacity: 0; transform: translateY(-40px) rotate(0); } 8%, 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(105vh) rotate(540deg); } }
   /* Meditation, the third view of Habits: the time left in big digits, the breath phase with its count, and a dot per phase */
@@ -2378,12 +2377,12 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; }, 8000);
 }
 let winTimer = null;
-function win({ em, head, sub, pct = 0, was = pct, sad, party }) {
-  const L = 188.5, cl = v => Math.max(0, Math.min(1, v || 0)), CF = ["#3fcf8e", "#8dabf9", "#f9c74f", "#f97066", "#c084fc"];
+function win({ em, head, sub, sad, party }) {
+  const CF = ["#3fcf8e", "#8dabf9", "#f9c74f", "#f97066", "#c084fc"];
   const conf = party ? `<div class="wcf">${Array.from({ length: 30 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${CF[i % 5]};animation-delay:${(i % 7) * .07}s"></i>`).join("")}</div>` : "";
   const el = $("win");
   el.className = "win" + (party ? " party" : "");
-  el.innerHTML = `<div class="wst${sad ? " sad" : ""}"><div class="wr"><svg viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="none" stroke="var(--rule)" stroke-width="6"/><circle class="arc" cx="35" cy="35" r="30" fill="none" stroke="${sad ? "#6b7280" : "var(--done)"}" stroke-width="6" stroke-linecap="round" style="--from:${L * (1 - cl(was))};--to:${L * (1 - cl(pct))}"/></svg><span class="em">${em}</span></div><b>${esc(head)}</b><small>${esc(sub)}</small></div>${conf}`;
+  el.innerHTML = `<div class="wst${sad ? " sad" : ""}"><span class="em">${em}</span><div><b>${esc(head)}</b><small>${esc(sub)}</small></div></div>${conf}`;
   el.hidden = false; clearTimeout(winTimer); winTimer = setTimeout(() => { el.hidden = true; }, party ? 3500 : 2700);
 }
 /* sw.js keeps a copy of the app so that it opens with no signal */
