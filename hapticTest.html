@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Haptic Test</title>
+<style>
+  body { margin: 0; padding: 24px 18px calc(24px + env(safe-area-inset-bottom)); font: 16px/1.4 -apple-system, system-ui, sans-serif; background: #111418; color: #e8eaed; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 20px; color: #9aa0a6; font-size: 13px; }
+  .t { background: #1c2026; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+  .t b { display: block; font-size: 16px; }
+  .t small { color: #9aa0a6; font-size: 13px; }
+  .t > div { flex: 1; }
+  .n { font-size: 22px; font-weight: 700; color: #3fcf8e; width: 22px; }
+  button { font: inherit; font-weight: 600; background: #3fcf8e; color: #0b1a12; border: 0; border-radius: 10px; padding: 10px 16px; }
+  label.vis { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .off { position: absolute; left: -9999px; top: 0; opacity: 0; }
+</style>
+</head>
+<body>
+<h1>Haptic Test</h1>
+<p class="sub" id="env"></p>
+
+<div class="t"><span class="n">1</span><div><b>Real switch</b><small>Flip it yourself. This checks whether iOS buzzes for web switches at all.</small></div><input type="checkbox" switch></div>
+
+<div class="t"><span class="n">2</span><div><b>Hidden label in head</b><small>What the app does now.</small></div><button id="b2">Tap</button></div>
+
+<div class="t"><span class="n">3</span><div><b>Off-screen label</b><small>A label moved off screen, not hidden.</small></div><button id="b3">Tap</button></div>
+
+<div class="t"><span class="n">4</span><div><b>Off-screen switch, clicked directly</b><small>Clicks the switch itself instead of its label.</small></div><button id="b4">Tap</button></div>
+
+<div class="t"><span class="n">5</span><div><b>Visible label</b><small>Tap the words, not the switch.</small></div><label class="vis"><input type="checkbox" switch> Tap these words</label></div>
+
+<label class="off" id="l3"><input type="checkbox" switch></label>
+<input type="checkbox" switch class="off" id="i4">
+
+<script>
+document.getElementById("env").textContent = navigator.userAgent.replace(/^.*?\(([^)]+)\).*$/, "$1") + (matchMedia("(display-mode: standalone)").matches || navigator.standalone ? " · Home Screen app" : " · browser") + (navigator.vibrate ? " · vibrate available" : " · no vibrate");
+document.getElementById("b2").onclick = () => { const l = document.createElement("label"); l.ariaHidden = "true"; l.style.display = "none"; l.innerHTML = '<input type="checkbox" switch>'; document.head.append(l); l.click(); l.remove(); };
+document.getElementById("b3").onclick = () => document.getElementById("l3").click();
+document.getElementById("b4").onclick = () => document.getElementById("i4").click();
+</script>
+</body>
+</html>
