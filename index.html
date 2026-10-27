@@ -259,7 +259,6 @@
   .tl .tr { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .tr.lift { z-index: 5; background: var(--raised); border-radius: 12px; box-shadow: 0 8px 22px rgba(0, 0, 0, .5); }
   .tr.lift::after { display: none; }
-  .tr.dim { opacity: .3; transition: opacity .15s; }
   .tr .mv { gap: 5px; padding: 6px 0 2px; }
   .tr .mv .o { height: 30px; padding: 0 9px; font-size: 13px; }
   /* the hairline under each row starts at the text */
@@ -1295,7 +1294,7 @@ document.addEventListener("touchstart", e => {
   const t = e.touches[0];
   dg = { el, r: tk.rows[+el.dataset.a], x: t.clientX, y: t.clientY, live: false };
   dg.sig = dgSig(el.parentNode);
-  dg.timer = setTimeout(() => { dg.live = true; dg.grab = dg.y - el.getBoundingClientRect().top; el.classList.add("lift"); dgDim(true); }, 400);
+  dg.timer = setTimeout(() => { dg.live = true; dg.grab = dg.y - el.getBoundingClientRect().top; el.classList.add("lift"); }, 400);
 }, { passive: true });
 document.addEventListener("touchmove", e => {
   if (!dg) return;
@@ -1315,12 +1314,9 @@ document.addEventListener("touchmove", e => {
   el.style.transform = "";
   el.style.transform = `translateY(${y - dg.grab - el.getBoundingClientRect().top}px)`;
 }, { passive: false });
-/* while a task is held, the other file's tasks dim, since it cannot move among them */
-function dgDim(on) { document.querySelectorAll(".tl .tr").forEach(c => c.classList.toggle("dim", on && tk.rows[+c.dataset.a].f !== dg.r.f)); }
 function dgEnd(cancel) {
   if (!dg) return;
   clearTimeout(dg.timer);
-  if (dg.live) dgDim(false);
   const d = dg, list = d.el.parentNode, same = dgSig(list) === d.sig;
   dg = null;
   if (!d.live) return;
