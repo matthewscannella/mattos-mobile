@@ -196,6 +196,7 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .toast button{color:var(--acc);font-weight:600;padding:4px 6px}
 /* the phone's win stamp (index.html .win), larger: a centred badge with a filling ring, and confetti once Yoni's day is done */
 .win{position:fixed;inset:0;z-index:9;pointer-events:none;display:grid;place-items:center;overflow:hidden}
+.win[hidden]{display:none}
 .wst{width:220px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--raised);border:1px solid var(--rule);border-radius:28px;padding:22px 14px 20px;box-shadow:0 12px 36px rgba(0,0,0,.55);animation:wIn .35s ease-out both,wOut .3s ease-in 3.1s forwards}
 .wst b{display:block;font-size:17px;line-height:22px;font-weight:600;color:var(--hi)}
 .wst small{display:block;font-size:14px;line-height:18px;color:var(--mut)}
