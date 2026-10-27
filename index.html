@@ -1438,19 +1438,19 @@ function drawShop() {
   if (!sh.d.stores.length) body = `<div class="empty">The shopping list file was not found.</div>`;
   else if (sh.cat) body = secs.map(s => {
     const n = s.groups.reduce((a, g) => a + g.items.filter(x => x.st).length, 0), op = sh.open[s.name];
-    return `<div class="ssec${op ? " op" : ""}"><button type="button" class="ssh" data-tk="shsec" data-a="${esc(s.name)}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sbd num${n ? "" : " z"}">${n}</span>${svg(UI.right, 16, 2.4, "scv")}</button>${op ? `<div class="sbody">${s.groups.filter(g => g.items.length).map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(x => `<button type="button" class="slr${x.st ? " on" : ""}" data-tk="shon" data-a="${esc(x.name)}"><span class="sck">${x.st ? tick : ""}</span><span class="snm">${esc(x.name)}</span></button>`).join("")}`).join("")}</div>` : ""}</div>`;
+    return `<div class="ssec${op ? " op" : ""}"><button type="button" class="ssh" data-tk="shsec" data-a="${esc(s.name)}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sbd num${n ? "" : " z"}">${n}</span>${svg(UI.right, 16, 2.4, "scv")}</button>${op ? `<div class="sbody">${s.groups.filter(g => g.items.length).map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(x => `<button type="button" class="slr${x.st ? " on" : ""}" data-tk="shon" data-hap data-a="${esc(x.name)}"><span class="sck">${x.st ? tick : ""}</span><span class="snm">${esc(x.name)}</span></button>`).join("")}`).join("")}</div>` : ""}</div>`;
   }).join("");
   else {
     const live = secs.map(s => { const groups = s.groups.map(g => ({ k: g.k, items: g.items.filter(x => x.st) })).filter(g => g.items.length), all = groups.flatMap(g => g.items), n = all.filter(x => x.st === "Got").length; return { ...s, groups, all, n, fin: n === all.length }; }).filter(s => s.all.length);
     if (sh.one === null || (sh.one && !live.some(s => s.name === sh.one))) { const f = live.find(s => !s.fin); sh.one = f ? f.name : live.length ? "" : null; }
-    const row = x => `<button type="button" class="slr${x.st === "Got" ? " got" : ""}" data-tk="shgot" data-a="${esc(x.name)}"><span class="sck">${x.st === "Got" ? tick : ""}</span><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span>${x.q ? `<span class="sqty">${esc(x.q)}</span>` : ""}</button>`;
+    const row = x => `<button type="button" class="slr${x.st === "Got" ? " got" : ""}" data-tk="shgot" data-hap data-a="${esc(x.name)}"><span class="sck">${x.st === "Got" ? tick : ""}</span><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span>${x.q ? `<span class="sqty">${esc(x.q)}</span>` : ""}</button>`;
     body = live.map(s => { const op = sh.one === s.name; return `<div class="scard${op ? " op" : ""}${s.fin ? " fin" : ""}"><button type="button" class="slg" data-tk="shone" data-a="${esc(s.name)}" aria-expanded="${op}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sn num">${s.fin ? `✓ All ${s.all.length}` : `${s.n} of ${s.all.length}`}</span>${svg(UI.right, 14, 2.4, "scv")}</button><div class="sprog"><i style="width:${s.n / s.all.length * 100}%"></i></div>${op ? s.groups.map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(row).join("")}`).join("") : ""}</div>`; }).join("")
       || `<div class="empty">The list is empty. Add an item above, or pick from the Catalog.</div>`;
   }
   $("main").innerHTML = tkBar("Shopping") + top + (sh.cat ? "" : add) + body;
   $("fab").hidden = true;
   if (sh.cat || !on.length) { leaveHabits(); return; }
-  $("savebar").innerHTML = `<span class="spg num">${on.length - got} left</span><button type="button" class="sv shd${got && !offline ? "" : " off"}" data-tk="shdone">Done shopping${got ? ` (${got})` : ""}</button>`;
+  $("savebar").innerHTML = `<span class="spg num">${on.length - got} left</span><button type="button" class="sv shd${got && !offline ? "" : " off"}" data-tk="shdone" data-hap>Done shopping${got ? ` (${got})` : ""}</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
 }
 function shSave(change, message) {
