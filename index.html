@@ -121,27 +121,18 @@
   .wxl .v { font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
   .wxl .t1 { font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; }
   .srcl { display: flex; align-items: center; gap: 7px; padding: 12px 2px 0; font-size: 12px; line-height: 16px; color: var(--mut); }
-  /* the next 24 hours, six to a screen, scrolling sideways to the screen's edges; a blue dot marks an outdoor score above 85 */
-  .wk { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 6); gap: 4px; margin: 0 -16px; padding: 12px 16px 0; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; scroll-padding: 0 16px; }
-  .wk::-webkit-scrollbar { display: none; }
-  .wc { display: grid; justify-items: center; gap: 5px; padding: 11px 0 9px; border-radius: 14px; font-size: 13px; line-height: 16px; color: var(--mut); --cut: var(--body); scroll-snap-align: start; }
-  .wc b { font-size: 20px; line-height: 24px; color: var(--tx); font-weight: 700; }
-  .wc svg { color: var(--tx); margin-top: 2px; }
-  .dot { display: block; width: 5px; height: 5px; margin-top: 2px; border-radius: 50%; background: var(--blue); }
-  .dot.no { background: transparent; }
-  .wc.on { background: var(--blue); color: rgba(255, 255, 255, .85); --cut: var(--blue); }
-  .wc.on b, .wc.on svg { color: #fff; }
-  .wc.on .dot { background: #fff; }
-  .wc.on .dot.no { background: transparent; }
-  .bks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  /* --n is the score's step, 0 to 1 (wxStep): the tile's green deepens with it */
-  .bk { display: grid; gap: 3px; align-content: start; padding: 10px; border-radius: 14px; --cut: color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 40%), var(--card)); background: var(--cut); border: 1px solid color-mix(in srgb, #3fcf8e calc(var(--n, 0) * 80%), var(--rule)); min-height: 126px; }
-  .bk > b { font-size: 14px; color: #fff; font-weight: 600; }
-  .bk .bl { font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
-  .bk .sc { margin-top: 4px; font-size: 22px; line-height: 26px; font-weight: 700; color: var(--tx); }
-  .bk .sc small { display: block; font-size: 11px; line-height: 13px; font-weight: 500; color: var(--mut); }
-  .bk.good .sc { color: var(--done); }
-  .bk.on { outline: 2px solid var(--blue); outline-offset: 1px; }
+  /* the next 24 hours of daylight in one bar: each hour's box holds its score, green from 65 (a shown 7) and deeper with it; night folds into a striped notch */
+  .tbar { display: flex; gap: 3px; align-items: stretch; }
+  .tbar .col { flex: 1; display: grid; justify-items: center; align-content: start; gap: 6px; min-width: 0; --cut: var(--body); }
+  .tbar .lab { font-size: 11px; line-height: 13px; color: var(--mut); white-space: nowrap; }
+  .tbar .now .lab { color: var(--acc); font-weight: 600; }
+  .tbar .t { font-size: 12.5px; line-height: 15px; font-weight: 600; color: var(--tx); }
+  .tbar svg { color: var(--tx); }
+  .tbar .sg { width: 100%; height: 30px; display: grid; place-items: center; border-radius: 6px; background: var(--raised); font-size: 12.5px; font-weight: 700; color: var(--mut); }
+  .tbar .sg.good { color: #fff; }
+  .tbar .night { flex: 0 0 34px; }
+  .tbar .night .sg { background: repeating-linear-gradient(135deg, #10131a 0 4px, #161a23 4px 8px); }
+  .tbar .night svg { color: var(--mut); }
   .up { display: flex; align-items: center; gap: 12px; padding: 7px 2px 7px 7px; border-left: 3px solid var(--blue); }
   /* whose calendar: Matt blue, Barri pink, Both purple, as on the web app */
   .who-barri.ev > i { background: #e87fa8; } .who-both.ev > i { background: #a98bf0; }
@@ -771,8 +762,6 @@ const wxScore = (feel, p, code) => 100
 /* a score is held as 0 to 100 and shown as 0 to 10; it shows green from 65 (a shown 7) up, and gray below */
 const wx10 = s => Math.round(s / 10);
 const wxFill = s => s < 65 ? 0 : .22 + .78 * Math.pow((s - 65) / 35, 1.4);
-/* the shade of an Outdoor Score tile, 0 to 1, in five steps of the score: none below 50, then the 50s, 60s, 70s, 80s, and 90 to 100 */
-const wxStep = s => s < 50 ? 0 : Math.min(5, Math.floor((s - 50) / 10) + 1) / 5;
 /* W is the newest forecast, or the one kept from the last load when there is no connection. It is dropped once it no longer covers today */
 let W = null, wxLive = false, wxRead = "";
 async function loadWeather() {
@@ -838,9 +827,15 @@ const calWhen = e => e.start ? (e.end ? `${e.start} to ${e.end}` : e.start) : "A
 function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
   const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
-  const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${wx10(x.score)}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
-  /* a tapped tile shows its hour by hour breakout beneath, as a tapped third of a Next Up pill does */
-  const tiles = WX_BLOCKS.map((b, k) => { const B = wxBlock(td, b); return B ? `<button type="button" data-p="${td}|${k}" class="bk${wxGood(B.score)}${calPick === `${td}|${k}` ? " on" : ""}" style="--n:${wxStep(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${wx10(B.score)}<small>Outdoor score</small></span></button>` :`<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
+  /* the next 24 hours, daylight only: each run of night hours becomes one notch labelled with its span */
+  const ap = h => `${h % 12 || 12}${h < 12 ? "a" : "p"}`, hs = wxFromNow(24), cols = [];
+  hs.forEach((x, k) => {
+    if (x.day) { cols.push(`<div class="col${k ? "" : " now"}"><span class="lab num">${k ? ap(x.h) : "Now"}</span><span class="sg num${wxGood(x.score)}"${x.score >= 65 ? ` style="background:color-mix(in srgb, #3fcf8e ${Math.round(30 + wxFill(x.score) * 70)}%, var(--card))"` : ""}>${wx10(x.score)}</span><span class="t num">${x.temp}°</span>${wxIco(wxHourIcon(x), 16)}</div>`); return; }
+    if (k && !hs[k - 1].day) return;
+    const up = hs.slice(k).find(y => y.day);
+    if (up) cols.push(`<div class="col night"><span class="lab num">${k ? ap(x.h) : "Now"}-${ap(up.h)}</span><span class="sg">${wxIco("moon", 13)}</span></div>`);
+  });
+  const strip = `<section><div class="h2">Weather</div><div class="tbar">${cols.join("")}</div></section>`;
   const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
   /* calPick is "day|block": a tapped third of a pill picks that block; a tap on the rest of the pill picks the day's first block not yet past */
   let [pd, pk] = (calPick || "").split("|");
@@ -854,19 +849,19 @@ function calWeather() {
   /* the picked block's hour by hour breakout beneath, as in the desktop app's weather pop (pcalWxPop), scores shown out of 10 */
   const b = calPick && WX_BLOCKS[+pk], B = b && wxBlock(pd, b);
   const picked = B ? `<div class="pdet"><div class="pwh"><span class="s num"><b>${fullDay(pd)} · ${b.label}</b> ${wxLabel(B.code)}, ${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}, rain ${B.p}%</span><span class="pill num${wxGood(B.score)}">Score ${wx10(B.score)}</span></div>${wxHours(pd, b.from, b.to).map(x => `<div class="pwr num${x.past ? " past" : ""}${wxGood(x.score)}"><span>${hr12(x.h)}</span>${wxIco(wxHourIcon(x), 18)}<span>${x.temp}°</span><span>${x.p}%</span><i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`).join("")}<div class="s" style="margin-top:4px">The score is the best hour still to come. Green from 7 up, gray below.</div></div>` : "";
-  return { head, strip, score: `<section><div class="h2">Outdoor Score Today</div><div class="bks">${tiles}</div>${pd === td ? picked : ""}</section>`,
+  return { head, strip,
     week: `<section><div class="h2">Weather</div><div class="hps">${pills}</div>${picked}</section>`, source: "" };
 }
 function drawCalendar() {
   const td = today(), ev = cal.events.filter(e => e.d === td), ahead = cal.events.filter(e => e.d > td), side = $("wk") ? $("wk").scrollLeft : 0;
-  const wx = W ? calWeather() : { head: "", strip: "", score: "", week: "", source: `<div class="srcl"><span>Weather is unavailable. Tap the Calendar tab to try again.</span></div>` };
+  const wx = W ? calWeather() : { head: "", strip: "", week: "", source: `<div class="srcl"><span>Weather is unavailable. Tap the Calendar tab to try again.</span></div>` };
   const row = e => `<div class="ev${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`;
   const next = ahead.slice(0, 5).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("");
   const seg = `<div class="segw"><div class="seg">${["Today", "Next Up"].map(v => `<button type="button" data-v="${v}" class="${v === calView ? "on" : ""}"${v === calView ? ' aria-current="true"' : ""}>${v}</button>`).join("")}</div></div>`;
   const src = `${wx.source}<div class="srcl"><span class="ell num">${W ? `Open-Meteo, ${esc(shortAt(wxRead))}; ` : ""}GCal, ${esc(shortAt(cal.synced))}</span></div>`, end = addDays(td, 6);
   $("main").innerHTML = seg + (calView === "Today" ? `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
     ${ev.length || wx.head ? `<div class="card">${ev.map(row).join("")}${wx.head}</div>` : ""}
-    ${wx.strip}${wx.score}${src}`
+    ${wx.strip}${src}`
     : `<div class="big">${monDay(td)} to ${monDay(end)}</div>
     ${wx.week}<section><div class="h2">Calendar</div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}</section>${src}`);
   if ($("wk")) $("wk").scrollLeft = side;
