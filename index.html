@@ -553,6 +553,23 @@
 
   .toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
   .toast span { flex: 1; }
+  /* the win stamp (mobileWinToastV1, Center Stamp): a badge in the middle of the screen whose ring fills to the week's progress; sad greys the ring and droops the emoji, party adds confetti */
+  .win { position: fixed; inset: 0; z-index: 7; pointer-events: none; display: grid; place-items: center; padding-bottom: 8vh; overflow: hidden; }
+  .wst { width: 172px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; background: var(--raised); border: 1px solid var(--rule); border-radius: 24px; padding: 18px 12px 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, .55); animation: wIn .35s ease-out both, wOut .3s ease-in 2.3s forwards; }
+  .party .wst { animation-delay: 0s, 3.1s; }
+  .wst b { display: block; font-size: 14px; line-height: 18px; font-weight: 600; color: var(--hi); }
+  .wst small { display: block; font-size: 12.5px; line-height: 16px; color: var(--mut); }
+  .wr { position: relative; width: 80px; height: 80px; }
+  .wr svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .wr .arc { stroke-dasharray: 188.5; animation: wRing .7s ease-out .15s both; }
+  .wr .em { position: absolute; inset: 0; display: grid; place-items: center; font-size: 32px; line-height: 1; }
+  .sad .wr .em { animation: wDroop .5s ease-out .3s both; }
+  .wcf i { position: absolute; top: 0; width: 7px; height: 11px; border-radius: 2px; animation: wFall 2.6s ease-in both; }
+  @keyframes wIn { 0% { opacity: 0; transform: scale(1.6); } 70% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: none; } }
+  @keyframes wOut { to { opacity: 0; transform: scale(.9); } }
+  @keyframes wRing { from { stroke-dashoffset: var(--from); } to { stroke-dashoffset: var(--to); } }
+  @keyframes wDroop { to { transform: translateY(3px) rotate(-14deg); } }
+  @keyframes wFall { 0% { opacity: 0; transform: translateY(-40px) rotate(0); } 8%, 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(105vh) rotate(540deg); } }
   /* Meditation, the third view of Habits: the time left in big digits, the breath phase with its count, and a dot per phase */
   .med { display: flex; flex-direction: column; align-items: center; }
   .med .huge { font-size: 112px; line-height: 112px; font-weight: 200; color: var(--hi); letter-spacing: -.03em; margin-top: 70px; }
@@ -577,6 +594,7 @@
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
 <nav class="tabs" id="tabs"></nav>
 <div class="sheet" id="sheet" hidden></div>
+<div class="win" id="win" hidden aria-live="polite"></div>
 <div class="toast" id="toast" hidden><span id="toastmsg"></span><button class="btn" type="button" id="undo">Undo</button></div>
 <script>
 /* MattOS for the phone. Reads and writes the registry files in the private mattos-data repository through the GitHub API.
@@ -1720,6 +1738,7 @@ function drawHabits() {
   const d = days.find(x => x.date === hb.day) || days[0], f = d.f, mine = !!hb.drafts[d.date], name = fmtDay(d.date, { weekday: "long" });
   const live = days.filter(x => x.st === "draft" || x.st === "saved"), tot = Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(live.reduce((a, x) => a + x.score[c.k], 0))]));
   const target = c => set[c.k] || c.target, part = c => Math.max(0, Math.min(1, tot[c.k] / target(c)));
+  hb.wk = Object.fromEntries(HB_CATS.map(c => [c.k, [tot[c.k], target(c)]])); /* the win stamp's ring compares the week before and after a change */
   const overall = Math.round(HB_CATS.reduce((a, c) => a + part(c), 0) / HB_CATS.length * 100), r = 48, len = 2 * Math.PI * r;
   const gc = hbGrade(overall / 100), ring = `<div class="ring"><svg width="56" height="56" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
   const at = hb.at[d.date] ? ` at ${hb.at[d.date]}` : "";
@@ -1857,8 +1876,24 @@ function hbAct(act, k, a) {
     else if (act === "inc") f[k] = Math.max(0, Math.min(k === "sets" ? 18 : 90, f[k] + +a));
     if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
     hbKeep();
+    const before = hb.wk || {};
+    drawHabits(); hbWin(act, k, +a, f, before);
+    return;
   }
   drawHabits();
+}
+/* a stamp for every added set or meditation and every healthy meal, and a sad one for an unhealthy meal */
+const HB_MEAL_EM = ["🍳", "🥗", "🍎", "🍽️", "🥤", "🍨"];
+function hbWin(act, k, a, f, before) {
+  const wk = c => { const [t, of] = hb.wk[c] || [0, 1], [w] = before[c] || [t]; return { t, of, pct: t / of, was: w / of }; };
+  if (act === "inc" && a > 0) {
+    const c = k === "sets" ? "fitness" : "mental", w = wk(c);
+    win({ em: c === "fitness" ? "💪🏻" : "🧠", head: c === "fitness" ? `${f.sets} set${f.sets === 1 ? "" : "s"} logged` : `${f.med} min meditation`, sub: `${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
+  } else if (act === "cycle" && (f.food[k] === 1 || f.food[k] === -1)) {
+    const meal = HB_MEALS[k].name.toLowerCase(), w = wk("food");
+    if (f.food[k] === 1) win({ em: HB_MEAL_EM[k], head: `Healthy ${meal}`, sub: `Food ${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
+    else win({ em: "😔", head: `Unhealthy ${meal}`, sub: "The next meal is a fresh start", pct: w.pct, was: w.was, sad: true });
+  }
 }
 function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("hbs"); }
 
@@ -1893,6 +1928,8 @@ function yoRead(lines) {
 /* open is the parts unfolded; on is the Eastern date it was last set to the part of the day it is now; rooms is the finished parts tapped open again */
 const yo = { lines: [], data: yoRead([]), open: {}, rooms: {}, on: "", view: "Routines", packed: false };
 const yoCount = list => [list.filter(x => x.on).length, list.length];
+/* the day's whole list for the win stamp: every Daily Goal and every routine step and task */
+const yoAll = d => yoCount([...d.goals, ...YO_PARTS.flatMap(p => [...d.parts[p].steps, ...d.parts[p].tasks])]);
 function yoniBody() {
   const d = yo.data, now = yoNow(), g = yoCount(d.goals);
   if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; yo.rooms = {}; }
@@ -1952,7 +1989,7 @@ function yoClear(kind) {
 }
 /* only the row's own Done cell is rewritten. A row is found again by its heading and its exact text, as the same task can sit under two parts of the day */
 function yoTick(i) {
-  const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "";
+  const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "", was = yoAll(yo.data);
   if (!it) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
   tkSave(FATHER_FILE, lines => {
@@ -1963,6 +2000,12 @@ function yoTick(i) {
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Phone: ${to ? "check" : "uncheck"} "${it.text}"`);
+  yoWin(was);
+}
+/* the party stamp, once the last goal or routine of the day is checked */
+function yoWin(was) {
+  const now = yoAll(yo.data);
+  if (now[1] && now[0] === now[1] && was[0] < was[1]) win({ em: "👶🏻", head: "Yoni's day is done", sub: "Every goal and routine complete", pct: 1, was: was[0] / was[1], party: true });
 }
 
 /* ---------- Home: the Calendar screen's date, today's card and hours, the Yoni card, then a rail section each for Habits, Tasks, Calendar and Notes.
@@ -2333,6 +2376,15 @@ document.addEventListener("visibilitychange", () => {
 function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; }, 8000);
+}
+let winTimer = null;
+function win({ em, head, sub, pct = 0, was = pct, sad, party }) {
+  const L = 188.5, cl = v => Math.max(0, Math.min(1, v || 0)), CF = ["#3fcf8e", "#8dabf9", "#f9c74f", "#f97066", "#c084fc"];
+  const conf = party ? `<div class="wcf">${Array.from({ length: 30 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${CF[i % 5]};animation-delay:${(i % 7) * .07}s"></i>`).join("")}</div>` : "";
+  const el = $("win");
+  el.className = "win" + (party ? " party" : "");
+  el.innerHTML = `<div class="wst${sad ? " sad" : ""}"><div class="wr"><svg viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="none" stroke="var(--rule)" stroke-width="6"/><circle class="arc" cx="35" cy="35" r="30" fill="none" stroke="${sad ? "#6b7280" : "var(--done)"}" stroke-width="6" stroke-linecap="round" style="--from:${L * (1 - cl(was))};--to:${L * (1 - cl(pct))}"/></svg><span class="em">${em}</span></div><b>${esc(head)}</b><small>${esc(sub)}</small></div>${conf}`;
+  el.hidden = false; clearTimeout(winTimer); winTimer = setTimeout(() => { el.hidden = true; }, party ? 3500 : 2700);
 }
 /* sw.js keeps a copy of the app so that it opens with no signal */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
