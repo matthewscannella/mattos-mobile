@@ -41,7 +41,7 @@
      (on Matt's phone window 812, 100vh 874): the page itself, not only the frame, then takes the 100vh height (fitFrame) */
   html.tall { height: 100vh; }
   html.tall body { bottom: auto; height: 100vh; }
-  button, label.hap { all: unset; box-sizing: border-box; cursor: pointer; }
+  button, :where(label.hap) { all: unset; box-sizing: border-box; cursor: pointer; }
   input, textarea { font: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 4px; }
   .ic { flex: none; display: block; }
