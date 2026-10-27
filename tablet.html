@@ -699,6 +699,7 @@ function cbFind(lines, r) {
 function cbTick(n) {
   const r = cb.rows[n];
   if (!r) return;
+  undoKeep({ done: true, title: r.title, i: r.i, was: r.st });
   save(CUCU_FILE, lines => {
     const { t, hit } = cbFind(lines, r);
     setCell(lines, hit.i, t.col + 1, "Done");
@@ -736,18 +737,28 @@ function bugAdd(f) {
   const t0 = cbEnc(f.title);
   cbAdd({ ...f, title: t0.startsWith("🐞") ? t0 : "🐞 " + t0 });
 }
-/* a deleted card is kept for Undo with the card above it, so it goes back in the same place */
+/* a checked-off or deleted card is offered back by the toast for 8 seconds, in the web app's words. A deleted card is kept with the card above it,
+   so it goes back in the same place; a checked-off card gets its old status back */
 let undoCard = null, toastT = 0;
+function undoKeep(u) { if (offline) return; undoCard = u; clearTimeout(toastT); toastT = setTimeout(() => { undoCard = null; draw(); }, 8000); }
 function cbDel(r) {
   const prev = cb.rows[r.n - 1];
-  undoCard = { raw: r.raw, after: prev ? prev.raw : null, title: r.title };
+  undoKeep({ raw: r.raw, after: prev ? prev.raw : null, title: r.title });
   save(CUCU_FILE, lines => { const { hit } = cbFind(lines, r); lines.splice(hit.i, 1); return hit; }, `Tablet: delete "${r.title}"`);
-  clearTimeout(toastT); toastT = setTimeout(() => { undoCard = null; draw(); }, 6000);
 }
 function cbUndo() {
   const u = undoCard;
   undoCard = null; clearTimeout(toastT);
   if (!u) return;
+  if (u.done) {
+    save(CUCU_FILE, lines => {
+      const t = cbRead(lines), hit = t.rows.filter(x => x.title === u.title && x.st === "Done").sort((a, b) => Math.abs(a.i - u.i) - Math.abs(b.i - u.i))[0];
+      if (!hit) throw new Error(`"${u.title}" changed on the laptop, so it was not reopened. The list has been reloaded.`);
+      setCell(lines, hit.i, t.col + 1, u.was);
+      return hit;
+    }, `Tablet: undo done "${u.title}"`);
+    return;
+  }
   save(CUCU_FILE, lines => {
     const t = cbRead(lines), above = u.after && t.rows.find(x => x.raw === u.after);
     if (!t.head) throw new Error("The CucuBarri table was not found in the file.");
@@ -938,7 +949,7 @@ function shSave() {
   sh.edit = null;
   if (n && n !== e.name) save(SHOP_FILE, lines => shRename(lines, e.name, n), `Tablet: renamed "${e.name}" to "${n}" in the shopping list`); else draw();
 }
-const toast = () => undoCard ? `<div class="toast"><span class="ell">Deleted "${esc(undoCard.title)}"</span><button data-undo>Undo</button></div>` : "";
+const toast = () => undoCard ? `<div class="toast"><span class="ell">${undoCard.done ? "Checked off" : "Task deleted"}</span><button data-undo>Undo</button></div>` : "";
 function tasksScreen() {
   return head("Tasks") + tasksBar() + `<div class="body">${view.tasks === "Board" ? boardView() : listView()}</div>${popMenu()}`;
 }

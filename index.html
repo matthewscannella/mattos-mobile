@@ -712,7 +712,7 @@ function parseNotes(md) {
   }
   return out;
 }
-let notes = [], openId = null, base = null, saveTimer = null, undoNote = null, toastTimer = null;
+let notes = [], openId = null, base = null, saveTimer = null, undoNote = null, undoTask = null, toastTimer = null;
 const commitNotes = (change, message, onSaved) => commitFile(NOTES_FILE, parseNotes, serializeNotes, change, message, (item, list) => { notes = list; if (onSaved) onSaved(item); });
 const seen = {};
 /* the file drops spaces and blank lines at the end of a title or body, so notes are compared the way the file stores them.
@@ -1148,8 +1148,9 @@ function tkSave(path, change, message) {
     else if (tab === "Home") loadHome().catch(() => {});
   });
 }
-function tickTask(n) {
-  const r = tk.rows[n], to = r && r.st === "Done" ? "Open" : "Done";
+/* a check-off is offered back by the toast for 8 seconds, as on the laptop; back is the status Undo puts back */
+function tickTask(n, back) {
+  const r = tk.rows[n], to = back || (r && r.st === "Done" ? "Open" : "Done");
   if (!r) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
   tkSave(r.f, lines => {
@@ -1159,7 +1160,8 @@ function tickTask(n) {
     cells[t.col + 1] = ` ${to} `;
     lines[hit.i] = cells.join("|");
     return hit;
-  }, `Phone: ${to === "Done" ? "done" : "reopen"} "${r.title}"`);
+  }, `Phone: ${back ? "undo done" : to === "Done" ? "done" : "reopen"} "${r.title}"`);
+  if (to === "Done") { undoNote = null; undoTask = { f: r.f, title: r.title, i: r.i, was: r.st }; toast("Checked off"); }
   if (to === "Done" && rcMark.test(r.note)) recurSync();
 }
 /* a day button on an opened card rewrites the task's Day in place, as the laptop's timing picker does */
@@ -2195,6 +2197,11 @@ document.addEventListener("click", e => {
     deleteNote(id, { title: $("ntitle").value, body: noteKeep($("nbody").value) });
     return;
   }
+  if (e.target.closest("#undo") && undoTask) {
+    const u = undoTask, n = tk.rows.filter(r => r.f === u.f && r.title === u.title && r.st === "Done").sort((a, b) => Math.abs(a.i - u.i) - Math.abs(b.i - u.i)).map(r => r.n)[0];
+    undoTask = null; $("toast").hidden = true;
+    if (n === undefined) status(`"${u.title}" changed on the laptop, so it was not reopened.`, "err"); else tickTask(n, u.was);
+  }
   if (e.target.closest("#undo") && undoNote) {
     const back = undoNote; undoNote = null; $("toast").hidden = true;
     notes.unshift(back); if (tab === "Notes" && !openId) showNoteList();
@@ -2204,7 +2211,7 @@ document.addEventListener("click", e => {
 /* deletes a note from the open editor or from a swipe in the list; typing not yet saved goes into the undo copy */
 function deleteNote(id, typed) {
   const gone = notes.find(x => x.id === id);
-  undoNote = gone ? { ...gone, ...typed } : null;
+  undoNote = gone ? { ...gone, ...typed } : null; undoTask = null;
   clearTimeout(saveTimer); openId = null; swOpen = null;
   notes = notes.filter(x => x.id !== id); showNoteList();
   toast("Note deleted");
@@ -2374,7 +2381,7 @@ document.addEventListener("visibilitychange", () => {
 });
 function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; }, 8000);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; undoTask = null; }, 8000);
 }
 let winTimer = null;
 function win({ em, head, sub, sad, party }) {
