@@ -780,12 +780,23 @@ function yoTick(i) {
   const now = yoAll(yo.data);
   if (now[1] && now[0] === now[1] && was[0] < was[1]) win();
 }
+/* a haptic tap: navigator.vibrate where there is one (Android); iOS Safari has none, but from iOS 18 a click on a hidden switch input's label gives the switch's tap.
+   strong is the win toast's pattern: a longer buzz, or three taps on iOS */
+let hapEl = null;
+function buzz(strong) {
+  if (navigator.vibrate) { navigator.vibrate(strong ? [40, 60, 40, 60, 80] : 12); return; }
+  if (!hapEl) {
+    hapEl = document.createElement("label"); hapEl.style.display = "none"; hapEl.innerHTML = '<input type="checkbox" switch>';
+    hapEl.addEventListener("click", e => e.stopPropagation()); document.body.append(hapEl); /* the tap handlers never see it */
+  }
+  hapEl.click(); if (strong) [130, 260].forEach(t => setTimeout(() => hapEl.click(), t));
+}
 /* the phone's win toast (index.html win()), for Yoni's finished day only */
 let winT = 0;
 function win() {
   const CF = ["#3fcf8e", "#8dabf9", "#f9c74f", "#f97066", "#c084fc"], el = $("win");
   el.innerHTML = `<div class="wst"><span class="em">👶🏻</span><div><b>Yoni's day is done</b><small>Every goal and routine complete</small></div></div><div class="wcf">${Array.from({ length: 40 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${CF[i % 5]};animation-delay:${(i % 7) * .07}s"></i>`).join("")}</div>`;
-  el.hidden = false; clearTimeout(winT); winT = setTimeout(() => { el.hidden = true; }, 3500);
+  el.hidden = false; buzz(true); clearTimeout(winT); winT = setTimeout(() => { el.hidden = true; }, 3500);
 }
 /* Clear empties every packing or daycare item's Done cell, as the desktop's Clear checks does */
 function yoClear(kind) {
@@ -1231,7 +1242,7 @@ document.addEventListener("click", ev => {
   /* an open Delete closes on any other tap */
   if (sh.swiped !== null && !at("[data-shdel]")) { sh.swiped = null; draw(); return; }
   if (at("[data-popx]")) { ts.pop = null; draw(); }
-  else if ((x = at("[data-shdel]"))) { const n = x.dataset.shdel; sh.swiped = null; sh.edit = null; save(SHOP_FILE, lines => shDel(lines, n), `Tablet: deleted "${n}" from the shopping list`); }
+  else if ((x = at("[data-shdel]"))) { const n = x.dataset.shdel; buzz(); sh.swiped = null; sh.edit = null; save(SHOP_FILE, lines => shDel(lines, n), `Tablet: deleted "${n}" from the shopping list`); }
   else if ((x = at("[data-shgot]"))) { const n = x.dataset.shgot, it = sh.d.items.find(i => i.name === n); if (it) save(SHOP_FILE, lines => shSet(lines, n, "Status", it.st === "Got" ? "On" : "Got"), `Tablet: ${it.st === "Got" ? "unchecked" : "got"} "${n}"`); }
   else if ((x = at("[data-shon]"))) { const n = x.dataset.shon, it = sh.d.items.find(i => i.name === n); if (it) save(SHOP_FILE, lines => shSet(lines, n, "Status", it.st ? "" : "On"), `Tablet: ${it.st ? "remove" : "add"} "${n}" ${it.st ? "from" : "to"} the shopping list`); }
   else if ((x = at("[data-shsec]"))) { sh.open[x.dataset.shsec] = !sh.open[x.dataset.shsec]; draw(); }
@@ -1253,10 +1264,10 @@ document.addEventListener("click", ev => {
   else if (at("[data-shsave]")) shSave();
   else if (at("[data-close]")) { ts.edit = null; ts.r = null; sh.edit = null; draw(); }
   else if (at("[data-save]")) saveSheet();
-  else if (at("[data-del]")) { const r = ts.r; ts.edit = null; ts.r = null; if (r) cbDel(r); else draw(); }
+  else if (at("[data-del]")) { const r = ts.r; ts.edit = null; ts.r = null; if (r) { buzz(); cbDel(r); } else draw(); }
   else if (at("[data-undo]")) cbUndo();
-  else if ((x = at("[data-done]"))) { const n = +x.dataset.done; x.innerHTML = sGlyph("Done", +x.querySelector("svg").getAttribute("width")); const row = x.closest("[data-row]"); if (row) row.classList.add("gone"); setTimeout(() => cbTick(n), 320); }
-  else if ((x = at("[data-yo]"))) yoTick(+x.dataset.yo);
+  else if ((x = at("[data-done]"))) { const n = +x.dataset.done; buzz(); x.innerHTML = sGlyph("Done", +x.querySelector("svg").getAttribute("width")); const row = x.closest("[data-row]"); if (row) row.classList.add("gone"); setTimeout(() => cbTick(n), 320); }
+  else if ((x = at("[data-yo]"))) { buzz(); yoTick(+x.dataset.yo); }
   else if ((x = at("[data-add]"))) openSheet(null, x.dataset.add);
   else if ((x = at("[data-edit]"))) { const r = cb.rows[+x.dataset.edit]; if (r) openSheet(r); }
   else if ((x = at("[data-go]")) && !setupMsg) { if (x.dataset.go === tab && tab === "Home") loadAll(); location.hash = x.dataset.go; }

@@ -1269,7 +1269,7 @@ function tkAct(act, a, el) {
   else if (act === "menu") { tk.menu = !tk.menu; drawTasks(); }
   else if (act === "cat" || act === "src") { tk[act] = a; tk.menu = false; drawTasks(); }
   else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
-  else if (act === "tick") tickTask(+a);
+  else if (act === "tick") { buzz(); tickTask(+a); }
   else if (act === "move") moveTask(tk.wide, a);
   else if (act === "pull") pullToday();
   else if (act === "yo") yoTick(+a);
@@ -1878,7 +1878,7 @@ function hbAct(act, k, a) {
     if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
     hbKeep();
     const before = hb.wk || {};
-    drawHabits(); hbWin(act, k, +a, f, before);
+    buzz(); drawHabits(); hbWin(act, k, +a, f, before);
     return;
   }
   drawHabits();
@@ -1993,6 +1993,7 @@ function yoTick(i) {
   const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "", was = yoAll(yo.data);
   if (!it) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  buzz();
   tkSave(FATHER_FILE, lines => {
     const all = yoRead(lines).all, hit = all.find(x => x.i === it.i && x.raw === it.raw) || all.find(x => x.h === it.h && x.raw === it.raw);
     if (!hit) throw new Error(`"${it.text}" changed on the laptop, so it was not saved. The list has been reloaded.`);
@@ -2214,7 +2215,7 @@ function deleteNote(id, typed) {
   undoNote = gone ? { ...gone, ...typed } : null; undoTask = null;
   clearTimeout(saveTimer); openId = null; swOpen = null;
   notes = notes.filter(x => x.id !== id); showNoteList();
-  toast("Note deleted");
+  buzz(); toast("Note deleted");
   commitNotes(list => { const i = list.findIndex(x => x.id === id); if (i >= 0) list.splice(i, 1); }, `Phone: delete "${gone ? gone.title || "Untitled" : id}"`);
 }
 /* swipe left on a note in the list to show its delete button; one note is open at a time */
@@ -2379,6 +2380,17 @@ document.addEventListener("visibilitychange", () => {
   else if (tab === "Habits" && !$("setup") && cfg().token) loadHabits().catch(() => {}); /* in place, so a half-filled form keeps its position */
   else if (!openId && !$("setup") && !tk.sheet && cfg().token) go(here());
 });
+/* a haptic tap: navigator.vibrate where there is one (Android); iOS Safari has none, but from iOS 18 a click on a hidden switch input's label gives the switch's tap.
+   strong is the win toast's pattern: a longer buzz, or three taps on iOS */
+let hapEl = null;
+function buzz(strong) {
+  if (navigator.vibrate) { navigator.vibrate(strong ? [40, 60, 40, 60, 80] : 12); return; }
+  if (!hapEl) {
+    hapEl = document.createElement("label"); hapEl.style.display = "none"; hapEl.innerHTML = '<input type="checkbox" switch>';
+    hapEl.addEventListener("click", e => e.stopPropagation()); document.body.append(hapEl); /* the tap handlers never see it */
+  }
+  hapEl.click(); if (strong) [130, 260].forEach(t => setTimeout(() => hapEl.click(), t));
+}
 function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; undoTask = null; }, 8000);
@@ -2390,7 +2402,7 @@ function win({ em, head, sub, sad, party }) {
   const el = $("win");
   el.className = "win" + (party ? " party" : "");
   el.innerHTML = `<div class="wst${sad ? " sad" : ""}"><span class="em">${em}</span><div><b>${esc(head)}</b><small>${esc(sub)}</small></div></div>${conf}`;
-  el.hidden = false; clearTimeout(winTimer); winTimer = setTimeout(() => { el.hidden = true; }, party ? 3500 : 2700);
+  el.hidden = false; buzz(true); clearTimeout(winTimer); winTimer = setTimeout(() => { el.hidden = true; }, party ? 3500 : 2700);
 }
 /* sw.js keeps a copy of the app so that it opens with no signal */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
