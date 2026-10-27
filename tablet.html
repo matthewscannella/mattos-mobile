@@ -782,14 +782,11 @@ function yoTick(i) {
 }
 /* a haptic tap: navigator.vibrate where there is one (Android); iOS Safari has none, but from iOS 18 a click on a hidden switch input's label gives the switch's tap.
    strong is the win toast's pattern: a longer buzz, or three taps on iOS */
-let hapEl = null;
 function buzz(strong) {
   if (navigator.vibrate) { navigator.vibrate(strong ? [40, 60, 40, 60, 80] : 12); return; }
-  if (!hapEl) {
-    hapEl = document.createElement("label"); hapEl.style.display = "none"; hapEl.innerHTML = '<input type="checkbox" switch>';
-    hapEl.addEventListener("click", e => e.stopPropagation()); document.body.append(hapEl); /* the tap handlers never see it */
-  }
-  hapEl.click(); if (strong) [130, 260].forEach(t => setTimeout(() => hapEl.click(), t));
+  /* a fresh switch each time, in the head so the tap handlers never see it, as the ios-haptics library does */
+  const tap = () => { const l = document.createElement("label"); l.ariaHidden = "true"; l.style.display = "none"; l.innerHTML = '<input type="checkbox" switch>'; document.head.append(l); l.click(); l.remove(); };
+  tap(); if (strong) [130, 260].forEach(t => setTimeout(tap, t));
 }
 /* the phone's win toast (index.html win()), for Yoni's finished day only */
 let winT = 0;
