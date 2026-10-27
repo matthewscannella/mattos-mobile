@@ -476,8 +476,8 @@ const wxTemp = f => {
   for (let i = 1; i < WX_COLD.length; i++) if (f <= WX_COLD[i][0]) { const [a, b] = WX_COLD[i - 1], [c, d] = WX_COLD[i]; return b + (d - b) * (f - a) / (c - a); }
   return 1;
 };
-const wxScore = (feel, p, code) => 100
-  * wxTemp(feel - (code === 2 ? 2 : code >= 3 ? 4 : 0))
+const wxScore = (feel, p, code, day) => 100
+  * wxTemp(feel + (!day ? 0 : code <= 1 ? 4 : code === 2 ? 2 : 0))
   * (p <= 20 ? 1 : Math.max(0, 1 - (p - 20) / 60))
   * (code <= 2 ? 1 : code === 3 ? .9 : code <= 48 ? .7 : code <= 55 ? .4 : code >= 71 && code <= 77 ? .35 : 0);
 const wx10 = s => Math.round(s / 10);
@@ -501,7 +501,7 @@ function wxHoursAt(i0, n) {
   for (let i = i0; i < i0 + n && i < h.time.length; i++) {
     if (h.temperature_2m[i] == null || h.weather_code[i] == null) continue;
     const p = h.precipitation_probability[i] ?? 0, feel = h.apparent_temperature[i] ?? h.temperature_2m[i];
-    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(Math.max(feel, h.temperature_2m[i] - 3), p, h.weather_code[i]) });
+    out.push({ h: +h.time[i].slice(11, 13), temp: Math.round(h.temperature_2m[i]), feel: Math.round(feel), p, code: h.weather_code[i], day: h.is_day[i] === 1, past: h.time[i].slice(0, 13) < wxNowKey(), score: wxScore(feel, p, h.weather_code[i], h.is_day[i] === 1) });
   }
   return out;
 }
