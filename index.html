@@ -118,6 +118,34 @@
   .hc { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 32px; padding: 6px 10px; border-radius: 10px; background: var(--raised); color: var(--tx); font-size: 13.5px; line-height: 18px; font-weight: 600; --cut: var(--raised); }
   .hc svg { flex: none; opacity: .85; }
   .hc small { flex: none; font-size: 12px; font-weight: 500; color: var(--mut); }
+  /* Home's hero, from mobileHomeHeroV5.html option 1: a navy card holding the weather line and the daylight bar */
+  .hero { --card: #141c33; background: var(--card); border-color: #24345e; }
+  .hero .rule { height: 1px; background: #24345e; margin: 14px -14px; }
+  /* the next 24 hours of daylight in one bar: each hour's box holds its score, green from 65 (a shown 7) and deeper with it; night folds into a striped notch */
+  .tbar { display: flex; gap: 3px; align-items: stretch; }
+  .tbar .col { flex: 1; display: grid; justify-items: center; align-content: start; gap: 6px; min-width: 0; }
+  .tbar .lab { font-size: 11px; line-height: 13px; height: 13px; color: var(--mut); white-space: nowrap; }
+  .tbar .now .lab { color: var(--acc); font-weight: 600; }
+  .tbar .sg { width: 100%; height: 30px; display: grid; place-items: center; border-radius: 6px; background: #1d2846; font-size: 12.5px; font-weight: 700; color: var(--mut); }
+  .tbar .sg.good { color: #fff; }
+  .tbar .night { flex: 0 0 34px; }
+  .tbar .night .sg { background: repeating-linear-gradient(135deg, #0e1117 0 4px, #191d27 4px 8px); color: #5d6474; }
+  .tbar .wi { height: 20px; display: grid; place-items: center; color: #fff; }
+  .tbar .t { font-size: 11.5px; line-height: 14px; color: var(--mut); }
+  /* the two small cards under the hero: today's events, which open Next Up, and today's workout, each with the days ahead small and grey */
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .mini { padding: 11px 12px 10px; border-radius: 14px; display: grid; align-content: start; gap: 7px; min-width: 0; }
+  .mh { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
+  .mh svg { color: var(--acc); }
+  .mh .go { margin-left: auto; color: #5d6474; }
+  .me { display: flex; gap: 8px; align-items: stretch; }
+  .me > i { flex: none; width: 3px; border-radius: 2px; background: var(--blue); }
+  .who-barri.me > i { background: #e87fa8; } .who-both.me > i { background: #a98bf0; }
+  .me b, .wo b { display: block; font-size: 13.5px; line-height: 18px; font-weight: 600; color: #fff; }
+  .me span, .wo span { display: block; font-size: 12px; line-height: 15px; color: var(--mut); }
+  .mini .none { font-size: 13px; line-height: 18px; color: var(--mut); }
+  .foot { border-top: 1px solid var(--rule); padding-top: 7px; margin-top: 1px; display: grid; gap: 2px; font-size: 11.5px; line-height: 15px; color: #5d6474; }
+  .foot div { display: flex; gap: 6px; min-width: 0; } .foot em { font-style: normal; width: 26px; flex: none; color: var(--mut); }
   .wxl .v { font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
   .wxl .t1 { font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; }
   .srcl { display: flex; align-items: center; gap: 7px; padding: 12px 2px 0; font-size: 12px; line-height: 16px; color: var(--mut); }
@@ -467,6 +495,22 @@
   .sec { border-top: 1px solid var(--line); padding: 4px 0 8px; }
   .sh { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 18px 7px 16px; font-size: 14px; font-weight: 600; color: var(--tx); }
   .sh .chev { color: var(--mut); margin-left: auto; transition: transform .15s; }
+  /* a figure at the right of a section's heading: the week's overall score, or the day the tasks are from */
+  .sh .ov { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .sh .ov.mut { color: var(--mut); font-weight: 500; }
+  .sh .ov + .chev { margin-left: 4px; }
+  /* Habits on Home: the Pair Grid, two categories to a row and the days logged last */
+  .pg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; padding: 6px 0 4px; }
+  .pc { display: grid; gap: 5px; min-width: 0; }
+  .pc .ph { display: flex; align-items: center; gap: 6px; font-size: 13.5px; line-height: 18px; }
+  .pc .ph .em { font-size: 14px; } .pc .ph .em.off { filter: grayscale(1); opacity: .35; }
+  .pc .ph .val { margin-left: auto; font-size: 12px; color: var(--mut); }
+  .pc.ok .ph .val { color: var(--done); font-weight: 600; }
+  .pc.ok .hbar i { background: var(--done); }
+  .dots { display: flex; gap: 3px; height: 6px; } .dots i { flex: 1; border-radius: 2px; background: var(--raised); } .dots i.on { background: var(--mut); }
+  /* when the evening shows two days of tasks, each day is a small grey label */
+  .rb .dl { padding: 8px 0 0; font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
+  .rb .dl:first-child { padding-top: 2px; }
   .hsq { width: 26px; height: 26px; border-radius: 8px; background: rgba(59, 110, 245, .18); color: var(--acc); display: grid; place-items: center; --cut: #131b33; }
   .sec.done .hsq { background: var(--done); color: var(--body); }
   .rb { margin: 0 16px 0 28px; padding: 2px 0 2px 14px; border-left: 2px solid var(--rule); border-radius: 0 0 2px 2px; --cut: var(--body); }
@@ -839,6 +883,15 @@ function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
   const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
   const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${wx10(x.score)}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
+  /* Home's daylight bar: the next 24 hours, up to 12 daylight hours, each run of night hours one notch */
+  const ap = h => `${h % 12 || 12}${h < 12 ? "a" : "p"}`, hs = wxFromNow(24), cols = [];
+  hs.forEach((x, k) => {
+    if (cols.filter(c => !c.night).length >= 12) return;
+    if (x.day) { cols.push({ html: `<div class="col${k ? "" : " now"}"><span class="lab num">${k ? ap(x.h) : "Now"}</span><span class="sg num${wxGood(x.score)}"${x.score >= 65 ? ` style="background:color-mix(in srgb, #3fcf8e ${Math.round(30 + wxFill(x.score) * 70)}%, var(--card))"` : ""}>${wx10(x.score)}</span><span class="wi">${wxIco(wxHourIcon(x), 20)}</span><span class="t num">${x.temp}°</span></div>` }); return; }
+    if (k && !hs[k - 1].day) return;
+    if (hs.slice(k).some(y => y.day)) cols.push({ night: true, html: `<div class="col night"><span class="lab"></span><span class="sg">${wxIco("moon", 13)}</span></div>` });
+  });
+  const bar = `<div class="tbar">${cols.map(c => c.html).join("")}</div>`;
   /* a tapped tile shows its hour by hour breakout beneath, as a tapped third of a Next Up pill does */
   const tiles = WX_BLOCKS.map((b, k) => { const B = wxBlock(td, b); return B ? `<button type="button" data-p="${td}|${k}" class="bk${wxGood(B.score)}${calPick === `${td}|${k}` ? " on" : ""}" style="--n:${wxStep(B.score)}"><span class="bl">${b.label}</span>${wxIco(wxIcon(B.code), 22)}<b class="num">${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}</b><span class="s num">Rain ${B.p}%</span><span class="sc num">${wx10(B.score)}<small>Outdoor score</small></span></button>` :`<div class="bk"><span class="bl">${b.label}</span><span class="s">Already past</span></div>`; }).join("");
   const days = Array.from({ length: 7 }, (_, i) => addDays(td, i)).filter(wxDay);
@@ -854,7 +907,7 @@ function calWeather() {
   /* the picked block's hour by hour breakout beneath, as in the desktop app's weather pop (pcalWxPop), scores shown out of 10 */
   const b = calPick && WX_BLOCKS[+pk], B = b && wxBlock(pd, b);
   const picked = B ? `<div class="pdet"><div class="pwh"><span class="s num"><b>${fullDay(pd)} · ${b.label}</b> ${wxLabel(B.code)}, ${B.lo === B.hi ? `${B.lo}°` : `${B.lo} to ${B.hi}°`}, rain ${B.p}%</span><span class="pill num${wxGood(B.score)}">Score ${wx10(B.score)}</span></div>${wxHours(pd, b.from, b.to).map(x => `<div class="pwr num${x.past ? " past" : ""}${wxGood(x.score)}"><span>${hr12(x.h)}</span>${wxIco(wxHourIcon(x), 18)}<span>${x.temp}°</span><span>${x.p}%</span><i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`).join("")}<div class="s" style="margin-top:4px">The score is the best hour still to come. Green from 7 up, gray below.</div></div>` : "";
-  return { head, strip, score: `<section><div class="h2">Outdoor Score Today</div><div class="bks">${tiles}</div>${pd === td ? picked : ""}</section>`,
+  return { head, strip, bar, score: `<section><div class="h2">Outdoor Score Today</div><div class="bks">${tiles}</div>${pd === td ? picked : ""}</section>`,
     week: `<section><div class="h2">Weather</div><div class="hps">${pills}</div>${picked}</section>`, source: "" };
 }
 function drawCalendar() {
@@ -1923,14 +1976,16 @@ const HC = {
   shirt: `<path ${F} d="M8.5 3 3 6l2 4.2 2-1V21h10V9.2l2 1L21 6l-5.5-3a3.5 3.5 0 0 1-7 0z"/>`
 };
 const hChip = (ico, text, sub, title) => `<div class="hc" title="${esc(title)}">${svg(HC[ico], 15)}<span class="grow ell">${esc(text)}</span>${sub ? `<small class="num">${esc(sub)}</small>` : ""}</div>`;
-function woToday(md) {
-  const k = new Date().toLocaleDateString("en-US", { weekday: "short" });
+/* the sample week: the given day's row, then the next two days that are not rest */
+function woWeek(md, td) {
+  const rows = {};
   let on = false;
   for (const l of md.split("\n")) {
     if (/^## /.test(l)) on = l.trim() === "## Sample Week";
-    else if (on && l.startsWith("|")) { const c = l.split("|").slice(1, -1).map(s => s.trim()); if (c[0] === k) return { what: c[1], where: c[2] || "" }; }
+    else if (on && l.startsWith("|")) { const c = l.split("|").slice(1, -1).map(s => s.trim()); rows[c[0]] = { what: c[1], where: c[2] || "" }; }
   }
-  return null;
+  const at = n => ({ d: addDays(td, n), ...rows[wkDay(addDays(td, n))] });
+  return { now: rows[wkDay(td)] || null, next: [1, 2, 3, 4, 5, 6].map(at).filter(x => x.what && !/^rest$/i.test(x.what)).slice(0, 2) };
 }
 /* clothes by the average feels-like temperature over the next 12 hours, then an umbrella, boots, or sunglasses as the sky calls for */
 function hWear() {
@@ -1954,11 +2009,15 @@ function drawHome() {
   const td = today(), late = new Date().getHours() >= 19, d0 = late ? addDays(td, 1) : td, ev = cal.events.filter(e => e.d === d0), ahead = cal.events.filter(e => e.d > d0), side = $("wk") ? $("wk").scrollLeft : 0;
   const wx = W ? calWeather() : { head: "", strip: "" }, show = s => esc(s.replace(/<br\s*\/?>/gi, " "));
   /* a done section's icon turns into a green square with a check */
-  const sec = (kind, done, body, to = kind) => `<div class="sec${home.shut[kind] ? " shut" : ""}${done ? " done" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${done ? svg(UI.check, 14, 4) : svg(TAB[kind], 15)}</span>${kind}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
-  const wo = woToday(home.workout);
+  const sec = (kind, done, body, to = kind, right = "") => `<div class="sec${home.shut[kind] ? " shut" : ""}${done ? " done" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${done ? svg(UI.check, 14, 4) : svg(TAB[kind], 15)}</span>${kind}${right}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
   const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
-  const woChip = hChip("fitness", wo ? wo.what : "No workout", wo ? wo.where : "", "Today's workout");
-  const top = `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${CB ? "" : woChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`;
+  const top = CB ? `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`
+    : `<div data-go="Today"><div class="big">${fullDay(td)}</div>${W ? `<div class="card hero">${wx.head}<div class="rule"></div>${wx.bar}</div>` : ""}</div>`;
+  /* the Calendar card: up to two of the day's events, then the next three days that have any, small and grey */
+  const days = [...new Set(ahead.map(e => e.d))].slice(0, 3).map(d => { const es = ahead.filter(e => e.d === d); return `<div><em>${wkDay(d)}</em><span class="ell">${esc(es[0].title)}${es.length > 1 ? `, +${es.length - 1}` : es[0].start ? `, ${esc(es[0].start)}` : ""}</span></div>`; }).join("");
+  const calCard = `<div class="card mini" data-go="Next Up"><div class="mh">${svg(HC.cal, 13)}${late ? "Tomorrow" : "Calendar"}<span class="go">${svg(UI.right, 13, 2.2)}</span></div>${ev.slice(0, 2).map(e => `<div class="me${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="none">${late ? "Nothing tomorrow" : "Nothing today"}</div>`}${ev.length > 2 ? `<div class="none num">+${ev.length - 2} more</div>` : ""}${days ? `<div class="foot num">${days}</div>` : ""}</div>`;
+  const wo = woWeek(home.workout, d0), rest = !wo.now || /^rest$/i.test(wo.now.what);
+  const woCard = `<div class="card mini"><div class="mh">${svg(HC.fitness, 13)}Workout</div><div class="wo"><b class="ell">${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? `<span>${esc(wo.now.where)}</span>` : ""}</div>${wo.next.length ? `<div class="foot">${wo.next.map(x => `<div><em>${wkDay(x.d)}</em><span class="ell">${esc(x.what)}${x.where ? `, ${esc(x.where)}` : ""}</span></div>`).join("")}</div>` : ""}</div>`;
   /* Yoni: a row for today's goals and one per part of the day, its ring filling blue as steps are done and green with a check once all are */
   const ring = 2 * Math.PI * 8, ok = c => { const f = c[1] ? c[0] / c[1] : 0; return f >= 1 ? `<span class="rk on">${svg(UI.check, 11, 4)}</span>` : !f ? `<span class="rk"></span>` : `<span class="rk arc"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="none" stroke="#3a4150" stroke-width="1.5"/><circle cx="9" cy="9" r="8" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-dasharray="${ring * f} ${ring}" transform="rotate(-90 9 9)" stroke-linecap="round"/></svg></span>`; };
   const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
@@ -1969,16 +2028,21 @@ function drawHome() {
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
-  const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}</div>${tkTag(r)}</div>`).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
+  const trow = r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}</div>${tkTag(r)}</div>`;
+  const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(trow).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
+  /* on Home the day sits quietly in the section's heading; days with nothing open are left out, and when two are left each gets a small grey label */
+  const hg = grps.filter(g => open.some(r => r.time === g)), dayName = grp => grp === day ? "Today" : grp, tkRight = hg.length === 1 ? `<span class="ov mut num">${dayName(hg[0])}, ${open.filter(r => r.time === hg[0]).length} open</span>` : "";
+  const tkHome = `<div class="tl">${hg.map(grp => { const mine = open.filter(r => r.time === grp); return (hg.length > 1 ? `<div class="dl num">${dayName(grp)}, ${mine.length} open</div>` : "") + (mine.length ? mine.map(trow).join("") : `<div class="row">No open tasks</div>`); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   if (CB) { cbHome(top, g, pc, full, now, grps[0], open, tasks, next); return; }
   /* Habits: the week's bars, each with its emoji in colour once the week's goal is met */
   const H = hbNow(), saved = hbFiled(td).st === "saved";
   const HE = { water: "💧", habits: "✅", food: "🥗", fitness: "💪🏻", mental: "🧠" };
-  /* the week's overall score first, graded in the scorecard colours */
-  const bars = `<div class="hbr all"><span class="nm">Overall</span><div class="hbar grow"><i style="width:${H.overall}%;background:${hbGrade(H.overall / 100)}"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${H.overall}%</span><span class="em"><span class="gd" style="background:${hbGrade(H.overall / 100)}"></span></span></div>` + H.cats.map(x => `<div class="hbr"><span class="nm">${x.c.name}</span><div class="hbar grow"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div><span class="val num">${x.tot} / ${x.target}</span><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span></div>`).join("");
+  /* the Pair Grid: the week's overall score in the heading, graded in the scorecard colours, then two categories to a row and the days logged */
+  const og = hbGrade(H.overall / 100), ovr = `<span class="ov num" style="color:${og}"><span class="gd" style="background:${og}"></span>${H.overall}%</span>`;
+  const bars = `<div class="pg">${H.cats.map(x => `<div class="pc${x.part >= 1 ? " ok" : ""}"><div class="ph"><span class="em${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span><span class="ell">${x.c.name}</span><span class="val num">${x.tot} / ${x.target}</span></div><div class="hbar"><i style="width:${x.part * 100}%"></i><u style="left:${H.logged / 7 * 100}%"></u></div></div>`).join("")}<div class="pc"><div class="ph"><span class="ell" style="color:var(--mut)">Days logged</span><span class="val num" style="color:var(--tx)">${H.logged} / 7</span></div><div class="dots">${[0, 1, 2, 3, 4, 5, 6].map(i => `<i class="${i < H.logged ? "on" : ""}"></i>`).join("")}</div></div></div>`;
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
-  $("main").innerHTML = `${top}<div class="rail">${sec("Yoni", allSet, yoni)}${sec("Habits", saved, bars)}${sec("Tasks", false, tasks)}${sec("Calendar", false, next, "Next Up")}${sec("Notes", false, list)}</div>`;
+  $("main").innerHTML = `${top}<div class="duo">${calCard}${woCard}</div><div class="rail">${sec("Yoni", allSet, yoni)}${sec("Habits", saved, bars, "Habits", ovr)}${sec("Tasks", false, tkHome, "Tasks", tkRight)}${sec("Notes", false, list)}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
