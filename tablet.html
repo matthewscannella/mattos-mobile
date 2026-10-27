@@ -270,7 +270,7 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .pill{height:22px;line-height:22px;padding:0 8px;border-radius:11px;background:var(--raised);font-size:11.5px;font-weight:600;color:var(--tx);white-space:nowrap}
 .pill.good{background:rgba(63,207,142,.16);color:var(--done)}
 
-/* Yoni: goal rings, a card per part of the day, the packing groups, and the daycare lists */
+/* Yoni: goal rings, a card per part of the day, and the packing and daycare groups */
 .rings{display:grid;gap:4px}
 .rg{display:flex;align-items:center;gap:12px;padding:4px 8px}
 .rg .ro{flex:none;width:52px;height:52px;border-radius:50%;border:1px solid var(--rule);display:grid;place-items:center;font-size:22px;position:relative;font-family:var(--emoji)}
@@ -290,11 +290,6 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .pks b{display:block;font-size:16px;line-height:20px;font-weight:600;color:#fff}
 .clr{font-size:14px;font-weight:600;color:var(--acc);padding:6px 4px 6px 12px}
 .clr.off{opacity:.35;pointer-events:none}
-.dc{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;padding:9px 0;border-top:1px solid var(--line)}
-.ach+.dc{border-top:0}
-.dc b{font-size:15px;line-height:20px;font-weight:600;color:var(--tx)}
-.dc .s{grid-column:1/2}
-.dc .pill{grid-row:1/3;grid-column:2;align-self:center}
 
 /* the one-time token card */
 .setup{max-width:520px;display:grid;gap:14px}
@@ -586,7 +581,7 @@ const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) re
 const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
 const yoNow = () => { const h = +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening"; };
 function yoRead(lines) {
-  const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], care: {}, all: [] };
+  const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], care: [], all: [] };
   let h = "", head = null;
   lines.forEach((line, i) => {
     const raw = line.replace(/\r$/, "").trim();
@@ -595,13 +590,11 @@ function yoRead(lines) {
     const c = raw.split("|").slice(1, -1).map(x => x.trim());
     if (!head) { head = c; return; }
     if (/^:?-+:?$/.test(c[0])) return;
-    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^Packing: (.+)$/);
-    const dc = h.match(/^Daycare: (.+)$/);
-    if (dc) { if (cell("Item")) (out.care[dc[1]] = out.care[dc[1]] || []).push({ text: cell("Item"), count: cell("Count"), det: cell("Details") }); return; }
+    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^(Packing|Daycare): (.+)$/);
     if (h !== "Daily Goals" && !part && !pk) return;
-    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), room: cell("Room"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[1] : "" };
+    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), room: cell("Room"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[2] : "" };
     if (!it.text) return;
-    (pk ? out.packs : part ? part[m[2] === "Routine" ? "steps" : "tasks"] : out.goals).push(it); out.all.push(it);
+    (pk ? out[pk[1] === "Daycare" ? "care" : "packs"] : part ? part[m[2] === "Routine" ? "steps" : "tasks"] : out.goals).push(it); out.all.push(it);
   });
   return out;
 }
@@ -760,12 +753,12 @@ function yoTick(i) {
     return hit;
   }, `Tablet: ${to ? "check" : "uncheck"} "${it.text}"`);
 }
-/* Clear empties every packing item's Done cell, as the desktop's Clear checks does */
-function yoClear() {
+/* Clear empties every packing or daycare item's Done cell, as the desktop's Clear checks does */
+function yoClear(kind) {
   save(FATHER_FILE, lines => {
-    yoRead(lines).packs.forEach(it => { const cells = lines[it.i].split("|"); if (cells[cells.length - 2].trim()) { cells[cells.length - 2] = " "; lines[it.i] = cells.join("|"); } });
+    yoRead(lines)[kind === "Daycare" ? "care" : "packs"].forEach(it => { const cells = lines[it.i].split("|"); if (cells[cells.length - 2].trim()) { cells[cells.length - 2] = " "; lines[it.i] = cells.join("|"); } });
     return true;
-  }, "Tablet: clear packing");
+  }, `Tablet: clear ${kind === "Daycare" ? "daycare" : "packing"}`);
 }
 /* a dropped card takes the lane's status, owner, or timing, and in Manual order moves to just above "before" (or below "after") in the file */
 const GCOL = { Status: "Status", Owner: "Owner", Timing: "Day" };
@@ -1022,13 +1015,11 @@ function partCard(p) {
 function yoniScreen() {
   const d = yo.data, v = view.yoni;
   let inner;
-  if (v === "Packing") {
-    const groups = [...new Set(d.packs.map(x => x.g))].map(g => ({ g, m: d.packs.filter(x => x.g === g) })), c = yoCount(d.packs), pct = c[1] ? Math.round(c[0] / c[1] * 100) : 0, open = groups.filter(x => x.m.some(y => !y.on)).length;
+  if (v === "Packing" || v === "Daycare") {
+    const list = v === "Daycare" ? d.care : d.packs, groups = [...new Set(list.map(x => x.g))].map(g => ({ g, m: list.filter(x => x.g === g) })), c = yoCount(list), pct = c[1] ? Math.round(c[0] / c[1] * 100) : 0, open = groups.filter(x => x.m.some(y => !y.on)).length;
     inner = `<div style="display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;height:100%">
-      <section class="card" style="padding:10px 14px"><div class="pks"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${c[0]} of ${c[1]} packed</b><span class="s">${open ? `${open} group${open === 1 ? "" : "s"} still open` : "All packed"}</span></div><button class="clr${c[0] ? "" : " off"}" data-yoclr>Clear</button></div></section>
-      <div class="scroll" style="min-height:0"><div style="columns:3;column-gap:12px">${groups.map(({ g, m }) => { const k = yoCount(m); return `<section class="card" style="break-inside:avoid;margin-bottom:12px;padding:12px 14px 6px"><div class="ach" style="padding-bottom:6px"><span class="nmr">${esc(g)}</span><span class="ct num">${k.join(" / ")}</span><span class="ybar"><i style="width:${k[0] / k[1] * 100}%"></i></span></div>${m.map(it => `<button class="rw${it.on ? " done" : ""}" data-yo="${it.i}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span></button>`).join("")}</section>`; }).join("") || '<div class="empty">No packing list in the file.</div>'}</div></div></div>`;
-  } else if (v === "Daycare") {
-    inner = `<div class="scroll" style="height:100%"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start">${["Current", "Later"].map(k => { const L = d.care[k] || []; return `<section class="card"><div class="ach" style="padding-bottom:4px"><span class="nmr">${k === "Current" ? "Bring now" : "Later on"}</span><span class="ct num">${L.length} item${L.length === 1 ? "" : "s"}</span></div>${L.map(x => `<div class="dc"><b>${esc(x.text)}</b>${x.count ? `<span class="pill num">${esc(x.count)}</span>` : ""}${x.det ? `<span class="s">${esc(x.det)}</span>` : ""}</div>`).join("") || '<div class="empty">Nothing listed.</div>'}</section>`; }).join("")}</div></div>`;
+      <section class="card" style="padding:10px 14px"><div class="pks"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${c[0]} of ${c[1]} packed</b><span class="s">${open ? `${open} group${open === 1 ? "" : "s"} still open` : "All packed"}</span></div><button class="clr${c[0] ? "" : " off"}" data-yoclr="${v}">Clear</button></div></section>
+      <div class="scroll" style="min-height:0"><div style="columns:3;column-gap:12px">${groups.map(({ g, m }) => { const k = yoCount(m); return `<section class="card" style="break-inside:avoid;margin-bottom:12px;padding:12px 14px 6px"><div class="ach" style="padding-bottom:6px"><span class="nmr">${esc(g)}</span><span class="ct num">${k.join(" / ")}</span><span class="ybar"><i style="width:${k[0] / k[1] * 100}%"></i></span></div>${m.map(it => `<button class="rw${it.on ? " done" : ""}" data-yo="${it.i}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span></button>`).join("")}</section>`; }).join("") || `<div class="empty">No ${v === "Daycare" ? "daycare" : "packing"} list in the file.</div>`}</div></div></div>`;
   } else {
     const g = yoCount(d.goals);
     inner = `<div style="display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;height:100%">
@@ -1215,7 +1206,7 @@ document.addEventListener("click", ev => {
   else if ((x = at("[data-cwx]"))) { cs.cwx = cs.cwx === x.dataset.cwx ? null : x.dataset.cwx; draw(); }
   else if ((x = at("[data-wk]"))) { cs.wk = Math.max(0, Math.min(3, +x.dataset.wk)); cs.cwx = null; draw(); }
   else if ((x = at("[data-wx]"))) { const k = x.dataset.wx; if (tab !== "Weather") { cs.wx = k; location.hash = "Weather"; } else { cs.wx = cs.wx === k ? null : k; draw(); } }
-  else if (at("[data-yoclr]")) yoClear();
+  else if ((x = at("[data-yoclr]"))) yoClear(x.dataset.yoclr);
   else if ((x = at("[data-pop]"))) { ts.pop = ts.pop === x.dataset.pop ? null : x.dataset.pop; draw(); }
   else if ((x = at("[data-fpick]"))) { const L = view.tf[x.dataset.fpick], v = x.dataset.v; L.includes(v) ? L.splice(L.indexOf(v), 1) : L.push(v); keepView(); draw(); }
   else if ((x = at("[data-fclr]"))) { view.tf[x.dataset.fclr] = []; keepView(); draw(); }
