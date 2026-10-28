@@ -23,6 +23,8 @@
     document.querySelector('link[rel="icon"]').href = "tablet-icon-180.png";
     document.querySelector('link[rel="manifest"]').href = "cucubarri.webmanifest";
   }
+  /* the desktop app's peek panel (/mobile/?peek, served by the MattOS server): Home's cards only, read from the laptop's files */
+  if (/[?&]peek([=&]|$)/.test(location.search)) document.documentElement.classList.add("peek");
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,6 +58,8 @@
   .ws b { font-size: 19px; font-weight: 600; flex: 1; letter-spacing: -.01em; }
   .av { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--mut); display: grid; place-items: center; position: relative; cursor: pointer; }  .scr { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 0 16px 84px; -webkit-overflow-scrolling: touch; }
   .scr::-webkit-scrollbar { display: none; }
+  .peek .hd, .peek .tabs, .peek .fab, .peek .status, .peek #main > .big, .peek #main > .rail { display: none !important; }
+  .peek .scr { padding: 0 16px 16px; }
   /* the icons may sit partly over the home indicator's strip, as in native tab bars, so only part of the inset is added below them */
   :root { --tabpad: max(16px, calc(env(safe-area-inset-bottom) - 12px)); }
   .tabs { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px var(--tabpad); border-top: 1px solid var(--line); background: var(--side); }
@@ -687,7 +691,9 @@ const b64encode = text => { const bytes = new TextEncoder().encode(text); let bi
 const apiUrl = path => { const c = cfg(); return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`; };
 const headers = () => ({ Authorization: `Bearer ${cfg().token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" });
 const keep = (path, text) => store.set("file-" + path, JSON.stringify({ text, at: stamp() }));
+const PEEK = document.documentElement.classList.contains("peek");
 async function fetchFile(path) {
+  if (PEEK) { const r = await fetch("/mobile/data/" + path.split("/").map(encodeURIComponent).join("/"), { cache: "no-store" }); if (!r.ok) throw new Error(`${path.split("/").pop()} was not found.`); return { text: await r.text(), sha: null }; }
   const r = await fetch(apiUrl(path) + "?ref=main&t=" + Date.now(), { headers: headers(), cache: "no-store" });
   if (r.status === 401) throw new Error("The token was rejected. Open Settings and paste a new one.");
   if (r.status === 404) throw new Error(`${path.split("/").pop()} was not found. Check the repository name in Settings, and that the laptop has synced once.`);
@@ -2176,6 +2182,7 @@ async function loadHome() {
 }
 /* a row on Home opens its tab: Today and Next Up are the two views of Calendar */
 function homeGo(to) {
+  if (PEEK) { parent.peekGo(to); return; }
   if (to === "Tasks" && !CB) tk.view = to;
   else if (to === "Today" || to === "Next Up") { calView = to; to = "Calendar"; }
   go(to);
@@ -2198,7 +2205,7 @@ async function go(name) {
   history.replaceState(null, "", location.search + "#" + (CB ? lit : tab).toLowerCase());
   $("tabs").innerHTML = TAB_BAR.map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
   $("fab").hidden = true; $("scr").scrollTop = 0;
-  if (!cfg().token) return showSetup();
+  if (!cfg().token && !PEEK) return showSetup();
   status("Loading…");
   /* drawn at once from the copies kept on this phone, then again from the newest files */
   quick = true;
@@ -2229,7 +2236,7 @@ document.addEventListener("click", e => {
   const fold = e.target.closest("[data-fold]");
   if (fold) { home.shut[fold.dataset.fold] = !home.shut[fold.dataset.fold]; drawHome(); return; }
   const to = e.target.closest("[data-go]"), yk = e.target.closest('[data-tk="yo"]');
-  if (to && yk && to.contains(yk)) { tkAct("yo", yk.dataset.a, yk); return; } /* a step ticked on the Yoni square, not a tap through to Yoni */
+  if (to && yk && to.contains(yk) && !PEEK) { tkAct("yo", yk.dataset.a, yk); return; } /* a step ticked on the Yoni square, not a tap through to Yoni */
   if (to) { homeGo(to.dataset.go); return; }
   const k = e.target.closest("[data-tk]");
   if (k) { tkAct(k.dataset.tk, k.dataset.a, k); return; }
@@ -2465,7 +2472,9 @@ function win({ em, head, sub, sad, party }) {
   el.hidden = false; buzz(true); clearTimeout(winTimer); winTimer = setTimeout(() => { el.hidden = true; }, party ? 3500 : 2700);
 }
 /* sw.js keeps a copy of the app so that it opens with no signal */
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+/* in the desktop peek panel, Alt+. and Esc go to the desktop app, which closes the panel */
+if (PEEK) document.addEventListener("keydown", e => { try { parent.peekKey(e); } catch (err) { /* opened on its own */ } });
+if ("serviceWorker" in navigator && !PEEK) navigator.serviceWorker.register("sw.js").catch(() => {});
 $("fab").innerHTML = svg(UI.plus, 24, 2.6);
 if (CB) { $("hdname").textContent = "CucuBarri"; $("hdlogo").src = "tablet-icon-180.png"; }
 go(Object.keys(TAB).find(n => n.toLowerCase() === location.hash.slice(1)) || START);
