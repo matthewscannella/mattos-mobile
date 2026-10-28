@@ -132,8 +132,58 @@
   .tbar .night .sg { background: repeating-linear-gradient(135deg, #0e1117 0 4px, #191d27 4px 8px); color: #5d6474; }
   .tbar .wi { height: 20px; display: grid; place-items: center; color: #fff; }
   .tbar .t { font-size: 11.5px; line-height: 14px; color: var(--mut); }
-  /* the two small cards under the hero: today's events, which open Next Up, and today's workout, each with the days ahead small and grey */
-  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  /* Home's top, from mobileHomeTallWeatherV1.html option 3 and mobileHomeTodaySquaresV2.html: the weather down the left, Calendar and Today stacked on the right, then Yoni and Habits as two squares */
+  .qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .qsq { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* the weather card: navy, feels-like up top, the rest of today's daylight, a striped night notch, then the next morning */
+  .qwx { grid-row: 1 / 3; --card: #141c33; background: var(--card); border-color: #24345e; padding: 12px 12px 10px; display: flex; flex-direction: column; min-width: 0; }
+  .qwx .wh { display: flex; align-items: center; gap: 8px; color: #fff; }
+  .qwx .wh .v { font-size: 32px; line-height: 36px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
+  .qwx .wt { display: flex; align-items: center; gap: 7px; font-size: 13.5px; line-height: 18px; font-weight: 600; color: #fff; margin-top: 4px; }
+  .qwx .rule { height: 1px; background: #24345e; margin: 10px -12px 6px; }
+  .qhr { display: grid; grid-template-columns: 30px 28px 18px 1fr 14px; gap: 6px; align-items: center; font-size: 12.5px; line-height: 24px; color: var(--tx); }
+  .qhr .h { color: var(--mut); }
+  .qhr.now .h { color: var(--acc); font-weight: 600; }
+  .qhr i { height: 6px; border-radius: 3px; background: #1d2846; overflow: hidden; max-width: 44px; }
+  .qhr u { display: block; height: 100%; background: #5d6474; }
+  .qhr.good u { background: var(--done); }
+  .qhr span:last-child { text-align: right; color: var(--mut); }
+  .qhr.good span:last-child { color: var(--done); font-weight: 600; }
+  .qnt { display: flex; align-items: center; gap: 6px; margin: 3px 0; padding: 0 8px; height: 20px; border-radius: 6px; background: repeating-linear-gradient(135deg, #0e1117 0 4px, #191d27 4px 8px); font-size: 11px; color: #5d6474; }
+  /* Today: the workout first, then the top open tasks */
+  .qtd { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 12.5px; line-height: 17px; }
+  .qtd .qi { flex: none; width: 16px; height: 16px; display: grid; place-items: center; }
+  .qtd .ck { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #5d6474; }
+  .qtd.wk { padding-bottom: 7px; border-bottom: 1px solid var(--rule); }
+  .qtd.wk .qi { color: var(--acc); }
+  .qtd.wk b { font-weight: 600; color: #fff; }
+  .qtd.wk em { font-style: normal; color: var(--mut); }
+  /* the squares; a heading's icon turns into a green check once today is all set (Yoni) or saved (Habits) */
+  .qbox { aspect-ratio: 1 / 1; padding: 11px 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .mh .ic.ok { color: var(--done); }
+  .qk { display: flex; align-items: baseline; gap: 5px; }
+  .qk b { font-size: 26px; line-height: 30px; font-weight: 700; color: #fff; letter-spacing: -.02em; }
+  .qk span { font-size: 12px; color: var(--mut); }
+  .qk.ok b { color: var(--done); }
+  .qdots { display: flex; gap: 6px; }
+  .qdot { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--rule); display: grid; place-items: center; font-size: 16px; background: var(--raised); filter: grayscale(1); opacity: .55; }
+  .qdot.on { filter: none; opacity: 1; border-color: rgba(63, 207, 142, .45); background: rgba(63, 207, 142, .12); }
+  .qnow { margin-top: auto; font-size: 11.5px; line-height: 15px; color: var(--mut); }
+  .qnow b { color: var(--tx); font-weight: 600; }
+  .qnow i { display: block; height: 4px; border-radius: 2px; background: var(--raised); overflow: hidden; margin-top: 4px; } .qnow u { display: block; height: 100%; background: var(--done); }
+  /* Habits: the week's five categories, set low in the square with tight gaps. A bar is blue on the week's pace, orange behind it,
+     and green, with its emoji in colour, once the week's goal is met; the tick is the pace */
+  .mh .ov { margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; }
+  .qwm { flex: 1; display: grid; align-content: end; gap: 10px; min-height: 0; }
+  .qwr { display: grid; grid-template-columns: 16px 1fr auto; gap: 6px; align-items: center; font-size: 11.5px; line-height: 14px; color: var(--mut); }
+  .qwr .e { font-size: 12px; text-align: center; }
+  .qwr .e.off { filter: grayscale(1); opacity: .5; }
+  .qwr b { font-weight: 600; color: var(--tx); }
+  .qwr.ok b { color: var(--done); }
+  .qbar { position: relative; height: 6px; border-radius: 3px; background: var(--raised); }
+  .qbar u { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--acc); }
+  .qbar s { position: absolute; top: -2px; bottom: -2px; width: 1.5px; margin-left: -1px; background: var(--mut); text-decoration: none; }
+  .qwr.behind .qbar u { background: #f79a3e; } .qwr.ok .qbar u { background: var(--done); }
   .mini { padding: 11px 12px 10px; border-radius: 14px; display: grid; align-content: start; gap: 7px; min-width: 0; }
   .mh { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
   .mh svg { color: var(--acc); }
@@ -141,8 +191,8 @@
   .me { display: flex; gap: 8px; align-items: stretch; }
   .me > i { flex: none; width: 3px; border-radius: 2px; background: var(--blue); }
   .who-barri.me > i { background: #e87fa8; } .who-both.me > i { background: #a98bf0; }
-  .me b, .wo b { display: block; font-size: 13.5px; line-height: 18px; font-weight: 600; color: #fff; }
-  .me span, .wo span { display: block; font-size: 12px; line-height: 15px; color: var(--mut); }
+  .me b { display: block; font-size: 13.5px; line-height: 18px; font-weight: 600; color: #fff; }
+  .me span { display: block; font-size: 12px; line-height: 15px; color: var(--mut); }
   .mini .none { font-size: 13px; line-height: 18px; color: var(--mut); }
   .foot { border-top: 1px solid var(--rule); padding-top: 7px; margin-top: 1px; display: grid; gap: 2px; font-size: 11.5px; line-height: 15px; color: #5d6474; }
   .foot div { display: flex; gap: 6px; min-width: 0; } .foot em { font-style: normal; width: 26px; flex: none; color: var(--mut); }
@@ -372,7 +422,7 @@
   .hfr + .hfr { border-top: 1px solid var(--line); }
   .hfr .lb { width: 104px; flex: none; font-size: 15px; }
   .hseg { flex: 1; display: flex; background: var(--raised); border-radius: 9px; padding: 2px; }
-  .hseg :is(button, label) { flex: 1; height: 34px; border-radius: 7px; text-align: center; font-size: 13px; font-weight: 500; color: var(--mut); }
+  .hseg :is(button, label) { flex: 1; height: 34px; border-radius: 7px; display: grid; place-items: center; font-size: 13px; font-weight: 500; color: var(--mut); }
   .hseg :is(button, label).good { background: rgba(63, 207, 142, .22); color: var(--done); font-weight: 600; }
   .hseg :is(button, label).bad { background: rgba(249, 112, 102, .2); color: var(--flag); font-weight: 600; }
   .pips { display: flex; gap: 8px; padding: 8px 0; }
@@ -498,15 +548,6 @@
   .sh .ov { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
   .sh .ov.mut { color: var(--mut); font-weight: 500; }
   .sh .ov + .chev { margin-left: 4px; }
-  /* Habits on Home: the Pair Grid, two categories to a row and the days logged last */
-  .pg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; padding: 6px 0 4px; }
-  .pc { display: grid; gap: 5px; min-width: 0; }
-  .pc .ph { display: flex; align-items: center; gap: 6px; font-size: 13.5px; line-height: 18px; }
-  .pc .ph .em { font-size: 14px; } .pc .ph .em.off { filter: grayscale(1); opacity: .35; }
-  .pc .ph .val { margin-left: auto; font-size: 12px; color: var(--mut); }
-  .pc.ok .ph .val { color: var(--done); font-weight: 600; }
-  .pc.ok .hbar i { background: var(--done); }
-  .dots { display: flex; gap: 3px; height: 6px; } .dots i { flex: 1; border-radius: 2px; background: var(--raised); } .dots i.on { background: var(--mut); }
   /* when the evening shows two days of tasks, each day is a small grey label */
   .rb .dl { padding: 8px 0 0; font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
   .rb .dl:first-child { padding-top: 2px; }
@@ -2053,19 +2094,13 @@ function drawHome() {
   const sec = (kind, done, body, to = kind, right = "") => `<div class="sec${home.shut[kind] ? " shut" : ""}${done ? " done" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${done ? svg(UI.check, 14, 4) : svg(TAB[kind], 15)}</span>${kind}${right}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
   const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
   const top = CB ? `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`
-    : `<div data-go="Today"><div class="big">${fullDay(td)}</div>${W ? `<div class="card hero">${wx.head}<div class="rule"></div>${wx.bar}</div>` : ""}</div>`;
+    : `<div class="big">${fullDay(td)}</div>`;
   /* the Calendar card: up to two of the day's events, then the next three days that have any, small and grey */
   const days = [...new Set(ahead.map(e => e.d))].slice(0, 3).map(d => { const es = ahead.filter(e => e.d === d); return `<div><em>${wkDay(d)}</em><span class="ell">${esc(es[0].title)}${es.length > 1 ? `, +${es.length - 1}` : es[0].start ? `, ${esc(es[0].start)}` : ""}</span></div>`; }).join("");
   const calCard = `<div class="card mini" data-go="Next Up"><div class="mh">${svg(HC.cal, 13)}${late ? "Tomorrow" : "Calendar"}<span class="go">${svg(UI.right, 13, 2.2)}</span></div>${ev.slice(0, 2).map(e => `<div class="me${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="none">${late ? "Nothing tomorrow" : "Nothing today"}</div>`}${ev.length > 2 ? `<div class="none num">+${ev.length - 2} more</div>` : ""}${days ? `<div class="foot num">${days}</div>` : ""}</div>`;
   const wo = woWeek(home.workout, d0), rest = !wo.now || /^rest$/i.test(wo.now.what);
-  const woCard = `<div class="card mini"><div class="mh">${svg(HC.fitness, 13)}Workout</div><div class="wo"><b class="ell">${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? `<span>${esc(wo.now.where)}</span>` : ""}</div>${wo.next.length ? `<div class="foot">${wo.next.map(x => `<div><em>${wkDay(x.d)}</em><span class="ell">${esc(x.what)}${x.where ? `, ${esc(x.where)}` : ""}</span></div>`).join("")}</div>` : ""}</div>`;
-  /* Yoni: a row for today's goals and one per part of the day, its ring filling blue as steps are done and green with a check once all are */
-  const ring = 2 * Math.PI * 8, ok = c => { const f = c[1] ? c[0] / c[1] : 0; return f >= 1 ? `<span class="rk on">${svg(UI.check, 11, 4)}</span>` : !f ? `<span class="rk"></span>` : `<span class="rk arc"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="none" stroke="#3a4150" stroke-width="1.5"/><circle cx="9" cy="9" r="8" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-dasharray="${ring * f} ${ring}" transform="rotate(-90 9 9)" stroke-linecap="round"/></svg></span>`; };
   const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
   const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
-  const yr = (name, c, body, cls = "") => `<div class="yr${full(c) ? " on" : ""}${cls}"><span class="nm">${name}</span><div class="grow">${body}</div><span class="val num">${c[0]}/${c[1]}</span>${ok(c)}</div>`;
-  const yoni = yr("Goals", g, `<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span>`)
-    + YO_PARTS.map((p, i) => yr(p === "Evening" ? "Night" : p, pc[i], `<div class="hbar"><i style="width:${pc[i][1] ? pc[i][0] / pc[i][1] * 100 : 0}%"></i></div>`, p === now && !full(pc[i]) ? " now" : "")).join("");
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
