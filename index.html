@@ -160,7 +160,7 @@
   .qtd.qw b { font-weight: 600; color: #fff; }
   .qtd.qw em { font-style: normal; color: var(--mut); }
   /* the squares; a heading's icon turns into a green check once today is all set (Yoni) or saved (Habits) */
-  .qbox { aspect-ratio: 1 / 1; padding: 11px 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .qbox { aspect-ratio: 1 / 1; padding: 11px 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; overflow: hidden; }
   .mh .ic.ok { color: var(--done); }
   /* once today is all set (Yoni) or saved (Habits) the whole square turns green */
   .qbox.set { background: linear-gradient(160deg, rgba(63, 207, 142, .16), rgba(63, 207, 142, .05)); border-color: rgba(63, 207, 142, .35); }
@@ -178,7 +178,7 @@
   .qnx { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
   .qnx .lab { font-size: 10.5px; line-height: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5d6474; }
   .qnx .lst { display: flex; flex-direction: column; gap: 5px; }
-  .qnx .row { display: flex; align-items: center; gap: 7px; font-size: 12.5px; line-height: 17px; min-width: 0; color: var(--tx); }
+  .qnx .row { display: flex; align-items: center; gap: 7px; font-size: 12.5px; line-height: 17px; min-width: 0; min-height: 0; color: var(--tx); }
   .qnx .row.on .t { color: #5d6474; text-decoration: line-through; }
   .qnx .row .w { margin-left: auto; flex: none; font-size: 11px; color: #5d6474; }
   .qnx .ck { position: relative; flex: none; width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid #5d6474; display: grid; place-items: center; }
@@ -1972,7 +1972,7 @@ function yoRead(lines) {
   return out;
 }
 /* open is the parts unfolded; on is the Eastern date it was last set to the part of the day it is now; rooms is the finished parts tapped open again */
-const yo = { lines: [], data: yoRead([]), open: {}, rooms: {}, on: "", view: "Routines", packed: false, held: new Set() };
+const yo = { lines: [], data: yoRead([]), open: {}, rooms: {}, on: "", view: "Routines", packed: false };
 const yoCount = list => [list.filter(x => x.on).length, list.length];
 /* the day's whole list for the win stamp: every Daily Goal and every routine step and task */
 const yoAll = d => yoCount([...d.goals, ...YO_PARTS.flatMap(p => [...d.parts[p].steps, ...d.parts[p].tasks])]);
@@ -2027,7 +2027,6 @@ function yoTick(i) {
   const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "", was = yoAll(yo.data);
   if (!it) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
-  if (tab === "Home") yo.held.add(it.h + it.text);
   buzz();
   tkSave(FATHER_FILE, lines => {
     const all = yoRead(lines).all, hit = all.find(x => x.i === it.i && x.raw === it.raw) || all.find(x => x.h === it.h && x.raw === it.raw);
@@ -2128,9 +2127,9 @@ function drawHome() {
   const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 3);
   const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
   /* Yoni: the goals in the heading, a Day to Night timeline of the four parts, then the next three steps from the part under way, each ticked here.
-     A step ticked from Home stays in the list, crossed out, until the app is next opened */
+     A ticked step leaves the list and the next open one moves up */
   const YO_TL = ["#f7d26a", "#f59e6b", "#6d7fe0", "#4fb3c9"];
-  const ups = YO_PARTS.slice(YO_PARTS.indexOf(now)).flatMap(p => yo.data.parts[p].steps).filter(x => !x.on || yo.held.has(x.h + x.text)).slice(0, 3);
+  const ups = YO_PARTS.slice(YO_PARTS.indexOf(now)).flatMap(p => yo.data.parts[p].steps).filter(x => !x.on).slice(0, 3);
   const tl = `<div class="qtl"><div class="tl">${pc.map((x, k) => `<i style="--c:${YO_TL[k]}"><u style="width:${x[1] ? x[0] / x[1] * 100 : 0}%"></u></i>`).join("")}</div><div class="tlb num">${pc.map(x => `<span>${x[0]}/${x[1]}</span>`).join("")}</div></div>`;
   const up = it => `<div class="row${it.on ? " on" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}"><span class="ck${it.on ? " on" : ""}"></span><span class="t ell">${esc(it.text.replace(/^\*\*(.+)\*\*$/, "$1"))}</span>${it.when ? `<span class="w num">${esc(it.when.replace(/\s*[AP]M$/i, ""))}</span>` : ""}</div>`;
   const yoSq = `<div class="card qbox${allSet ? " set" : ""}" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span></div>${tl}<div class="qnx"><div class="lab">Next up</div><div class="lst">${ups.map(up).join("") || `<div class="none">All steps done</div>`}</div></div></div>`;
