@@ -271,6 +271,7 @@
   .dh b { font-size: 17px; line-height: 22px; font-weight: 700; letter-spacing: -.01em; color: var(--done); }
   .dh span { font-size: 13px; color: var(--mut); }
   .dh .dhb { margin-left: auto; align-self: center; height: 30px; padding: 0 12px; border-radius: 15px; background: var(--raised); color: var(--acc); font-size: 13.5px; font-weight: 600; }
+  .dh .dhb + .dhb { margin-left: 6px; }
   .tc { display: flex; align-items: center; gap: 6px; min-height: 48px; margin-bottom: 6px; padding: 6px 10px 6px 3px; border-radius: 12px; background: var(--card); }
   .tc.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   .tt { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
@@ -1071,8 +1072,9 @@ function drawTasks() {
     const today = TK_TIMES[(new Date().getDay() + 6) % 7], now = tkPartNow();
     /* today's parts all show, even when empty, so a task can be dragged into any of them; a part that has passed is greyed */
     const parts = all => all.filter(r => !r.part).map(card).join("") + TK_PARTS.map((p, i) => `<div class="ph${i < now ? " past" : i === now ? " now" : ""}" data-p="${p}">${p}</div>` + all.filter(r => r.part === p).map(r => i < now ? card(r).replace('class="tr', 'class="tr past') : card(r)).join("")).join("");
-    /* the open tasks left on earlier days of this week; the button on today's heading moves them all to today */
-    const late = tkLate().length, pull = late && !offline ? `<button type="button" class="dhb" data-tk="pull">Move ${late} earlier here</button>` : "";
+    /* the open tasks left on earlier days of this week; the button on today's heading moves them all to today.
+       From 6pm a second button moves today's and earlier open tasks to tomorrow (Next Week on a Sunday) */
+    const late = tkLate().length, eve = tkTonight().length, pull = offline ? "" : (late ? `<button type="button" class="dhb" data-tk="pull">Move ${late} earlier here</button>` : "") + (eve ? `<button type="button" class="dhb" data-tk="pullnext">Move ${eve} to tomorrow</button>` : "");
     body = TK_TIMES.map(tm => {
       const all = tk.rows.filter(r => r.time === tm && inSrc(r) && open(r));
       return all.length || tm === today ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span>${tm === today ? pull : ""}</div>` + (tm === today ? parts(all) : all.map(card).join("")) : "";
@@ -1209,8 +1211,9 @@ function moveTask(n, to) {
 }
 /* the open tasks shown on days before today, and the button that rewrites each one's Day to today, one save per file */
 const tkLate = () => { const d = (new Date().getDay() + 6) % 7; return tk.rows.filter(r => r.st !== "Done" && (tk.src === "All" || r.cb) && TK_TIMES.indexOf(r.time) < d); };
-function pullToday() {
-  const late = tkLate(), to = TK_TIMES[(new Date().getDay() + 6) % 7];
+const tkTonight = () => { const d = (new Date().getDay() + 6) % 7; return new Date().getHours() < 18 ? [] : tk.rows.filter(r => r.st !== "Done" && (tk.src === "All" || r.cb) && TK_TIMES.indexOf(r.time) <= d); };
+function pullToday(next) {
+  const d = (new Date().getDay() + 6) % 7, late = next ? tkTonight() : tkLate(), to = TK_TIMES[next ? d + 1 : d];
   if (!late.length) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
   tk.wide = null;
@@ -1299,6 +1302,7 @@ function tkAct(act, a, el) {
   else if (act === "tick") { buzz(); tickTask(+a); }
   else if (act === "move") moveTask(tk.wide, a);
   else if (act === "pull") pullToday();
+  else if (act === "pullnext") pullToday(true);
   else if (act === "yo") yoTick(+a);
   else if (act === "fold") { const k = el.dataset.done ? "rooms" : "open"; yo[k][a] = !yo[k][a]; drawYoni(); }
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
