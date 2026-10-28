@@ -133,8 +133,8 @@
   .tbar .wi { height: 20px; display: grid; place-items: center; color: #fff; }
   .tbar .t { font-size: 11.5px; line-height: 14px; color: var(--mut); }
   /* Home's top, from mobileHomeTallWeatherV1.html option 3 and mobileHomeTodaySquaresV2.html: the weather down the left, Calendar and Today stacked on the right, then Yoni and Habits as two squares */
-  .qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .qsq { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .qgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .qsq { margin-top: 8px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   /* the weather card: navy, feels-like up top, the rest of today's daylight, a striped night notch, then the next morning */
   .qwx { grid-row: 1 / 3; --card: #141c33; background: var(--card); border-color: #24345e; padding: 12px 12px 10px; display: flex; flex-direction: column; min-width: 0; }
   .qwx .wh { display: flex; align-items: center; gap: 8px; color: #fff; }
@@ -154,10 +154,10 @@
   .qtd { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 12.5px; line-height: 17px; }
   .qtd .qi { flex: none; width: 16px; height: 16px; display: grid; place-items: center; }
   .qtd .ck { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #5d6474; }
-  .qtd.wk { padding-bottom: 7px; border-bottom: 1px solid var(--rule); }
-  .qtd.wk .qi { color: var(--acc); }
-  .qtd.wk b { font-weight: 600; color: #fff; }
-  .qtd.wk em { font-style: normal; color: var(--mut); }
+  .qtd.qw { padding-bottom: 7px; border-bottom: 1px solid var(--rule); }
+  .qtd.qw .qi { color: var(--acc); }
+  .qtd.qw b { font-weight: 600; color: #fff; }
+  .qtd.qw em { font-style: normal; color: var(--mut); }
   /* the squares; a heading's icon turns into a green check once today is all set (Yoni) or saved (Habits) */
   .qbox { aspect-ratio: 1 / 1; padding: 11px 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .mh .ic.ok { color: var(--done); }
@@ -184,7 +184,7 @@
   .qbar u { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--acc); }
   .qbar s { position: absolute; top: -2px; bottom: -2px; width: 1.5px; margin-left: -1px; background: var(--mut); text-decoration: none; }
   .qwr.behind .qbar u { background: #f79a3e; } .qwr.ok .qbar u { background: var(--done); }
-  .mini { padding: 11px 12px 10px; border-radius: 14px; display: grid; align-content: start; gap: 7px; min-width: 0; }
+  .mini { padding: 11px 12px 10px; border-radius: 14px; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 7px; min-width: 0; }
   .mh { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 15px; font-weight: 600; color: var(--mut); }
   .mh svg { color: var(--acc); }
   .mh .go { margin-left: auto; color: #5d6474; }
@@ -2115,7 +2115,7 @@ function drawHome() {
   }
   /* Today: the workout, then the top three open tasks; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
   const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 3);
-  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(HC.today, 13, 2.4)}${late ? "Tomorrow" : "Today"}${go}</div><div class="qtd wk"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}</div>`;
+  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(HC.today, 13, 2.4)}${late ? "Tomorrow" : "Today"}${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}</div>`;
   /* Yoni: today's goals as emoji dots, green once done, then the part of the day under way */
   const pn = pc[YO_PARTS.indexOf(now)];
   const yoSq = `<div class="card qbox" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni${go}</div><div class="qk${full(g) ? " ok" : ""}"><b class="num">${g[0]}</b><span>of ${g[1]} goals</span></div><div class="qdots">${yo.data.goals.map(x => `<span class="qdot${x.on ? " on" : ""}">${esc(x.em)}</span>`).join("")}</div><div class="qnow num"><b>${now === "Evening" ? "Night" : now}</b> · ${pn[0]} of ${pn[1]} steps<i><u style="width:${pn[1] ? pn[0] / pn[1] * 100 : 0}%"></u></i></div></div>`;
