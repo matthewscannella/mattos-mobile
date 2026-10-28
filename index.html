@@ -60,6 +60,9 @@
   .scr::-webkit-scrollbar { display: none; }
   .peek .hd, .peek .tabs, .peek .fab, .peek .status, .peek #main > .big, .peek #main > .rail { display: none !important; }
   .peek .scr { padding: 0 16px 16px; }
+  .peek .card[data-go]:hover { border-color: #2e3442; }
+  .peek .qwx[data-go]:hover { border-color: #34497f; }
+  .peek .qtd[data-tk]:hover .ck { border-color: var(--acc); }
   /* the icons may sit partly over the home indicator's strip, as in native tab bars, so only part of the inset is added below them */
   :root { --tabpad: max(16px, calc(env(safe-area-inset-bottom) - 12px)); }
   .tabs { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px var(--tabpad); border-top: 1px solid var(--line); background: var(--side); }
@@ -703,6 +706,8 @@ async function fetchFile(path) {
   return { text, sha: j.sha };
 }
 async function putFile(path, text, sha, message) {
+  /* the peek panel saves to the laptop's file, and the desktop app reads it again at once */
+  if (PEEK) { const r = await fetch("/mobile/data/" + path.split("/").map(encodeURIComponent).join("/"), { method: "POST", body: text }); if (!r.ok) throw new Error("Save failed on the laptop."); try { parent.refreshRegistries(); } catch (e) { /* opened on its own */ } return "local"; }
   const r = await fetch(apiUrl(path), { method: "PUT", headers: { ...headers(), "Content-Type": "application/json" }, body: JSON.stringify({ message, content: b64encode(text), sha, branch: "main" }) });
   if (r.status === 409 || r.status === 422) return null; /* someone else saved first: caller retries on the newer file */
   if (!r.ok) throw new Error(r.status === 403 ? "The token can't write to this repository. Give it Contents: Read and write." : `Save failed: GitHub returned ${r.status}.`);
@@ -2131,7 +2136,7 @@ function drawHome() {
   }
   /* Tasks: the workout, then the top three open tasks; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
   const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 3);
-  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
+  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"${PEEK ? ` data-tk="tick" data-a="${r.n}"` : ""}><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
   /* Yoni: the goals in the heading, a Day to Night timeline of the four parts, then the next three steps from the part under way, each ticked here.
      A ticked step leaves the list and the next open one moves up */
   const YO_TL = ["#f7d26a", "#f59e6b", "#6d7fe0", "#4fb3c9"];
@@ -2235,8 +2240,8 @@ document.addEventListener("click", e => {
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
   const fold = e.target.closest("[data-fold]");
   if (fold) { home.shut[fold.dataset.fold] = !home.shut[fold.dataset.fold]; drawHome(); return; }
-  const to = e.target.closest("[data-go]"), yk = e.target.closest('[data-tk="yo"]');
-  if (to && yk && to.contains(yk) && !PEEK) { tkAct("yo", yk.dataset.a, yk); return; } /* a step ticked on the Yoni square, not a tap through to Yoni */
+  const to = e.target.closest("[data-go]"), yk = e.target.closest('[data-tk="yo"], [data-tk="tick"]');
+  if (to && yk && to.contains(yk)) { tkAct(yk.dataset.tk, yk.dataset.a, yk); return; } /* a step ticked on the Yoni square (or, in the peek panel, a task on the Tasks card), not a tap through */
   if (to) { homeGo(to.dataset.go); return; }
   const k = e.target.closest("[data-tk]");
   if (k) { tkAct(k.dataset.tk, k.dataset.a, k); return; }
@@ -2472,7 +2477,7 @@ function win({ em, head, sub, sad, party }) {
   el.hidden = false; buzz(true); clearTimeout(winTimer); winTimer = setTimeout(() => { el.hidden = true; }, party ? 3500 : 2700);
 }
 /* sw.js keeps a copy of the app so that it opens with no signal */
-/* in the desktop peek panel, Alt+. and Esc go to the desktop app, which closes the panel */
+/* in the desktop peek panel, Alt+Right and Esc go to the desktop app, which closes the panel */
 if (PEEK) document.addEventListener("keydown", e => { try { parent.peekKey(e); } catch (err) { /* opened on its own */ } });
 if ("serviceWorker" in navigator && !PEEK) navigator.serviceWorker.register("sw.js").catch(() => {});
 $("fab").innerHTML = svg(UI.plus, 24, 2.6);
