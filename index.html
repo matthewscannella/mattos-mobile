@@ -162,20 +162,30 @@
   /* the squares; a heading's icon turns into a green check once today is all set (Yoni) or saved (Habits) */
   .qbox { aspect-ratio: 1 / 1; padding: 11px 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .mh .ic.ok { color: var(--done); }
-  .qk { display: flex; align-items: baseline; gap: 5px; }
-  .qk b { font-size: 26px; line-height: 30px; font-weight: 700; color: #fff; letter-spacing: -.02em; }
-  .qk span { font-size: 12px; color: var(--mut); }
-  .qk.ok b { color: var(--done); }
   /* once today is all set (Yoni) or saved (Habits) the whole square turns green */
   .qbox.set { background: linear-gradient(160deg, rgba(63, 207, 142, .16), rgba(63, 207, 142, .05)); border-color: rgba(63, 207, 142, .35); }
   .qbox.set .mh { color: var(--done); }
-  .qbox.set .qk b, .qbox.set .qwr b { color: var(--done); }
-  .qdots { display: flex; gap: 6px; }
-  .qdot { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--rule); display: grid; place-items: center; font-size: 16px; background: var(--raised); filter: grayscale(1); opacity: .55; }
-  .qdot.on { filter: none; opacity: 1; border-color: rgba(63, 207, 142, .45); background: rgba(63, 207, 142, .12); }
-  .qnow { margin-top: auto; font-size: 11.5px; line-height: 15px; color: var(--mut); }
-  .qnow b { color: var(--tx); font-weight: 600; }
-  .qnow i { display: block; height: 4px; border-radius: 2px; background: var(--raised); overflow: hidden; margin-top: 4px; } .qnow u { display: block; height: 100%; background: var(--done); }
+  .qbox.set .qwr b { color: var(--done); }
+  /* Yoni: the goals' emojis in the heading, a timeline of the four parts of the day in Day to Night colours with each part's count under it,
+     then the next three steps, set low so the last one lines up with the last Habits row */
+  .mh .ge { margin-left: auto; font-size: 11px; letter-spacing: 1px; }
+  .mh .ge .off { filter: grayscale(1); opacity: .4; }
+  .qtl { margin-top: 5px; }
+  .qtl .tl, .qtl .tlb { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .qtl .tl i { height: 8px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--c) 22%, var(--raised)); }
+  .qtl .tl u { display: block; height: 100%; background: var(--c); transition: width .25s; }
+  .qtl .tlb { margin-top: 4px; font-size: 9.5px; line-height: 12px; color: #5d6474; text-align: center; }
+  .qnx { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
+  .qnx .lab { font-size: 10.5px; line-height: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5d6474; }
+  .qnx .lst { display: flex; flex-direction: column; gap: 5px; }
+  .qnx .row { display: flex; align-items: center; gap: 7px; font-size: 12.5px; line-height: 17px; min-width: 0; color: var(--tx); }
+  .qnx .row.on .t { color: #5d6474; text-decoration: line-through; }
+  .qnx .row .w { margin-left: auto; flex: none; font-size: 11px; color: #5d6474; }
+  .qnx .ck { position: relative; flex: none; width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid #5d6474; display: grid; place-items: center; }
+  .qnx .ck::before { content: ""; position: absolute; inset: -8px; }
+  .qnx .ck.on { background: var(--done); border-color: var(--done); }
+  .qnx .ck.on::after { content: ""; width: 6px; height: 3px; border: solid #0a0c11; border-width: 0 0 1.6px 1.6px; transform: rotate(-45deg) translate(1px, -1px); }
+  .qnx .none { font-size: 12px; color: var(--mut); }
   /* Habits: the week's five categories, set low in the square with tight gaps. A bar is blue on the week's pace, orange behind it,
      and green, with its emoji in colour, once the week's goal is met; the tick is the pace */
   .mh .ov { margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; }
@@ -1962,7 +1972,7 @@ function yoRead(lines) {
   return out;
 }
 /* open is the parts unfolded; on is the Eastern date it was last set to the part of the day it is now; rooms is the finished parts tapped open again */
-const yo = { lines: [], data: yoRead([]), open: {}, rooms: {}, on: "", view: "Routines", packed: false };
+const yo = { lines: [], data: yoRead([]), open: {}, rooms: {}, on: "", view: "Routines", packed: false, held: new Set() };
 const yoCount = list => [list.filter(x => x.on).length, list.length];
 /* the day's whole list for the win stamp: every Daily Goal and every routine step and task */
 const yoAll = d => yoCount([...d.goals, ...YO_PARTS.flatMap(p => [...d.parts[p].steps, ...d.parts[p].tasks])]);
@@ -2017,6 +2027,7 @@ function yoTick(i) {
   const it = yo.data.all.find(x => x.i === i), to = it && !it.on ? yoDay() : "", was = yoAll(yo.data);
   if (!it) return;
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  if (tab === "Home") yo.held.add(it.h + it.text);
   buzz();
   tkSave(FATHER_FILE, lines => {
     const all = yoRead(lines).all, hit = all.find(x => x.i === it.i && x.raw === it.raw) || all.find(x => x.h === it.h && x.raw === it.raw);
@@ -2116,9 +2127,13 @@ function drawHome() {
   /* Tasks: the workout, then the top three open tasks; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
   const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 3);
   const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
-  /* Yoni: today's goals as emoji dots, green once done, then the part of the day under way */
-  const pn = pc[YO_PARTS.indexOf(now)];
-  const yoSq = `<div class="card qbox${allSet ? " set" : ""}" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni${go}</div><div class="qk${full(g) ? " ok" : ""}"><b class="num">${g[0]}</b><span>of ${g[1]} goals</span></div><div class="qdots">${yo.data.goals.map(x => `<span class="qdot${x.on ? " on" : ""}">${esc(x.em)}</span>`).join("")}</div><div class="qnow num"><b>${now}</b> · ${pn[0]} of ${pn[1]} steps<i><u style="width:${pn[1] ? pn[0] / pn[1] * 100 : 0}%"></u></i></div></div>`;
+  /* Yoni: the goals in the heading, a Day to Night timeline of the four parts, then the next three steps from the part under way, each ticked here.
+     A step ticked from Home stays in the list, crossed out, until the app is next opened */
+  const YO_TL = ["#f7d26a", "#f59e6b", "#6d7fe0", "#4fb3c9"];
+  const ups = YO_PARTS.slice(YO_PARTS.indexOf(now)).flatMap(p => yo.data.parts[p].steps).filter(x => !x.on || yo.held.has(x.h + x.text)).slice(0, 3);
+  const tl = `<div class="qtl"><div class="tl">${pc.map((x, k) => `<i style="--c:${YO_TL[k]}"><u style="width:${x[1] ? x[0] / x[1] * 100 : 0}%"></u></i>`).join("")}</div><div class="tlb num">${pc.map(x => `<span>${x[0]}/${x[1]}</span>`).join("")}</div></div>`;
+  const up = it => `<div class="row${it.on ? " on" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}"><span class="ck${it.on ? " on" : ""}"></span><span class="t ell">${esc(it.text.replace(/^\*\*(.+)\*\*$/, "$1"))}</span>${it.when ? `<span class="w num">${esc(it.when.replace(/\s*[AP]M$/i, ""))}</span>` : ""}</div>`;
+  const yoSq = `<div class="card qbox${allSet ? " set" : ""}" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span></div>${tl}<div class="qnx"><div class="lab">Next up</div><div class="lst">${ups.map(up).join("") || `<div class="none">All steps done</div>`}</div></div></div>`;
   /* Habits: the week's overall score in the heading, graded in the scorecard colours, then Fitness, Mental, Food, Water, and Habits against the week's pace */
   const H = hbNow(), saved = hbFiled(td).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
   const HE = { water: "💧", habits: "🥕", food: "🥗", fitness: "💪🏻", mental: "🧠" };
@@ -2214,7 +2229,8 @@ document.addEventListener("click", e => {
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
   const fold = e.target.closest("[data-fold]");
   if (fold) { home.shut[fold.dataset.fold] = !home.shut[fold.dataset.fold]; drawHome(); return; }
-  const to = e.target.closest("[data-go]");
+  const to = e.target.closest("[data-go]"), yk = e.target.closest('[data-tk="yo"]');
+  if (to && yk && to.contains(yk)) { tkAct("yo", yk.dataset.a, yk); return; } /* a step ticked on the Yoni square, not a tap through to Yoni */
   if (to) { homeGo(to.dataset.go); return; }
   const k = e.target.closest("[data-tk]");
   if (k) { tkAct(k.dataset.tk, k.dataset.a, k); return; }
