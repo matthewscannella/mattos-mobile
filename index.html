@@ -132,7 +132,7 @@
   .tbar .night .sg { background: repeating-linear-gradient(135deg, #0e1117 0 4px, #191d27 4px 8px); color: #5d6474; }
   .tbar .wi { height: 20px; display: grid; place-items: center; color: #fff; }
   .tbar .t { font-size: 11.5px; line-height: 14px; color: var(--mut); }
-  /* Home's top, from mobileHomeTallWeatherV1.html option 3 and mobileHomeTodaySquaresV2.html: the weather down the left, Calendar and Today stacked on the right, then Yoni and Habits as two squares */
+  /* Home's top, from mobileHomeTallWeatherV1.html option 3 and mobileHomeTodaySquaresV2.html: the weather down the left, Calendar and Tasks stacked on the right, then Yoni and Habits as two squares */
   .qgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   .qsq { margin-top: 8px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   /* the weather card: navy, feels-like up top, the rest of today's daylight, a striped night notch, then the next morning */
@@ -150,11 +150,12 @@
   .qhr span:last-child { text-align: right; color: var(--mut); }
   .qhr.good span:last-child { color: var(--done); font-weight: 600; }
   .qnt { display: flex; align-items: center; gap: 6px; margin: 3px 0; padding: 0 8px; height: 20px; border-radius: 6px; background: repeating-linear-gradient(135deg, #0e1117 0 4px, #191d27 4px 8px); font-size: 11px; color: #5d6474; }
-  /* Today: the workout first, then the top open tasks */
+  /* Tasks: the workout first, then the top open tasks, then the top note */
   .qtd { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 12.5px; line-height: 17px; }
   .qtd .qi { flex: none; width: 16px; height: 16px; display: grid; place-items: center; }
   .qtd .ck { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #5d6474; }
   .qtd.qw { padding-bottom: 7px; border-bottom: 1px solid var(--rule); }
+  .qtd.qn { padding-top: 7px; border-top: 1px solid var(--rule); } .qtd.qn .qi { font-size: 12px; }
   .qtd.qw .qi { color: var(--acc); }
   .qtd.qw b { font-weight: 600; color: #fff; }
   .qtd.qw em { font-style: normal; color: var(--mut); }
@@ -174,7 +175,7 @@
   /* Habits: the week's five categories, set low in the square with tight gaps. A bar is blue on the week's pace, orange behind it,
      and green, with its emoji in colour, once the week's goal is met; the tick is the pace */
   .mh .ov { margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; }
-  .qwm { flex: 1; display: grid; align-content: end; gap: 10px; min-height: 0; }
+  .qwm { flex: 1; display: grid; align-content: end; gap: 12px; min-height: 0; }
   .qwr { display: grid; grid-template-columns: 16px 1fr auto; gap: 6px; align-items: center; font-size: 11.5px; line-height: 14px; color: var(--mut); }
   .qwr .e { font-size: 12px; text-align: center; }
   .qwr .e.off { filter: grayscale(1); opacity: .5; }
@@ -2047,6 +2048,7 @@ const HC = {
   cal: `<path ${F} d="M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path ${C} d="M3 10h18"/><path ${K(2.6)} d="M8 2.5v3M16 2.5v3"/>`,
   fitness: `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v4M21.5 10v4M6 12h12"/>`,
   today: `<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/>`,
+  pencil: `<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/><path d="m14.5 5.5 3 3"/>`,
   shirt: `<path ${F} d="M8.5 3 3 6l2 4.2 2-1V21h10V9.2l2 1L21 6l-5.5-3a3.5 3.5 0 0 1-7 0z"/>`
 };
 const hChip = (ico, text, sub, title) => `<div class="hc" title="${esc(title)}">${svg(HC[ico], 15)}<span class="grow ell">${esc(text)}</span>${sub ? `<small class="num">${esc(sub)}</small>` : ""}</div>`;
@@ -2089,7 +2091,7 @@ function drawHome() {
     : `<div class="big">${fullDay(td)}</div>`;
   /* the Calendar card: up to two of the day's events, then the next three days that have any, small and grey */
   const days = [...new Set(ahead.map(e => e.d))].slice(0, 3).map(d => { const es = ahead.filter(e => e.d === d); return `<div><em>${wkDay(d)}</em><span class="ell">${esc(es[0].title)}${es.length > 1 ? `, +${es.length - 1}` : es[0].start ? `, ${esc(es[0].start)}` : ""}</span></div>`; }).join("");
-  const calCard = `<div class="card mini" data-go="Next Up"><div class="mh">${svg(HC.cal, 13)}${late ? "Tomorrow" : "Calendar"}<span class="go">${svg(UI.right, 13, 2.2)}</span></div>${ev.slice(0, 2).map(e => `<div class="me${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="none">${late ? "Nothing tomorrow" : "Nothing today"}</div>`}${ev.length > 2 ? `<div class="none num">+${ev.length - 2} more</div>` : ""}${days ? `<div class="foot num">${days}</div>` : ""}</div>`;
+  const calCard = `<div class="card mini" data-go="Next Up"><div class="mh">${svg(HC.cal, 13)}Calendar<span class="go">${svg(UI.right, 13, 2.2)}</span></div>${ev.slice(0, 2).map(e => `<div class="me${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="none">${late ? "Nothing tomorrow" : "Nothing today"}</div>`}${ev.length > 2 ? `<div class="none num">+${ev.length - 2} more</div>` : ""}${days ? `<div class="foot num">${days}</div>` : ""}</div>`;
   const wo = woWeek(home.workout, d0), rest = !wo.now || /^rest$/i.test(wo.now.what);
   const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
   const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
@@ -2117,15 +2119,15 @@ function drawHome() {
     });
     wxCard = `<div class="card qwx" data-go="Today">${cur ? `<div class="wh">${wxIco(wxIcon(cur.code), 30)}<span class="v num">${cur.feel}°</span></div><div class="wt"><span class="ell">${wxLabel(cur.code)}</span>${wxTag()}</div>` : ""}<div class="s num">H ${d.hi}° L ${d.lo}°</div><div class="rule"></div>${rows.join("")}</div>`;
   }
-  /* Today: the workout, then the top three open tasks; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
+  /* Tasks: the workout, then the top three open tasks; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
   const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 3);
-  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(HC.today, 13, 2.4)}${late ? "Tomorrow" : "Today"}${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}</div>`;
+  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(HC.pencil, 13, 2.2)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
   /* Yoni: today's goals as emoji dots, green once done, then the part of the day under way */
   const pn = pc[YO_PARTS.indexOf(now)];
   const yoSq = `<div class="card qbox" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni${go}</div><div class="qk${full(g) ? " ok" : ""}"><b class="num">${g[0]}</b><span>of ${g[1]} goals</span></div><div class="qdots">${yo.data.goals.map(x => `<span class="qdot${x.on ? " on" : ""}">${esc(x.em)}</span>`).join("")}</div><div class="qnow num"><b>${now === "Evening" ? "Night" : now}</b> · ${pn[0]} of ${pn[1]} steps<i><u style="width:${pn[1] ? pn[0] / pn[1] * 100 : 0}%"></u></i></div></div>`;
   /* Habits: the week's overall score in the heading, graded in the scorecard colours, then Fitness, Mental, Food, Water, and Habits against the week's pace */
   const H = hbNow(), saved = hbFiled(td).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
-  const HE = { water: "💧", habits: "✅", food: "🥗", fitness: "💪🏻", mental: "🧠" };
+  const HE = { water: "💧", habits: "🥕", food: "🥗", fitness: "💪🏻", mental: "🧠" };
   const hbSq = `<div class="card qbox" data-go="Habits"><div class="mh">${saved ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Habits, 13)}Habits<span class="ov num" style="color:${og}"><span class="gd" style="background:${og}"></span>${H.overall}%</span></div><div class="qwm">${["fitness", "mental", "food", "water", "habits"].map(k => H.cats.find(x => x.c.k === k)).map(x => `<div class="qwr${x.part >= 1 ? " ok" : x.part < pace ? " behind" : ""}"><span class="e${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span><i class="qbar"><u style="width:${x.part * 100}%"></u><s style="left:${pace * 100}%"></s></i><b class="num">${x.tot}/${x.target}</b></div>`).join("")}</div></div>`;
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
   $("main").innerHTML = `${top}<div class="qgrid">${wxCard}${calCard}${todayCard}</div><div class="qsq">${yoSq}${hbSq}</div><div class="rail">${sec("Tasks", false, tkHome, "Tasks", tkRight)}${sec("Notes", false, list)}</div>`;
