@@ -554,6 +554,8 @@ const CUCU_FILE = "11🏖️-weekend/cucuBarriRegistry.md";
 const STATS = ["Open", "WIP", "Blocked", "Done"], OWNERS = ["MS", "BB", "Both"];
 const TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
 const dayName = () => new Date().toLocaleDateString("en-US", { weekday: "long" });
+/* a new task starts on today, or from 6pm on tomorrow (Sunday evening goes to Next Week) */
+const addDay = () => TIMES[(new Date().getDay() + 6) % 7 + (new Date().getHours() >= 18 ? 1 : 0)];
 const tShort = t => t === dayName() ? "Today" : t === "Next Week" ? "Next wk" : t === "Backlog" ? "Later" : t.slice(0, 3);
 const tLabel = t => t === dayName() ? "Today" : t;
 /* the timings from today onwards: today, the next six days, then Next Week and Backlog */
@@ -962,7 +964,7 @@ function keepText() { const n = $("fName"), t = $("fNote"), s = $("shName"); if 
 function openSheet(r, add) {
   ts.pop = null;
   if (r) { ts.edit = r.n; ts.r = r; ts.f = { st: r.st, owner: r.owner, time: r.time, title: r.title, note: r.note }; }
-  else { const [g, k] = add.split(":"); ts.edit = "new"; ts.r = null; ts.f = { st: g === "Status" ? k : "Open", owner: g === "Owner" ? k : "MS", time: g === "Timing" ? k : dayName(), title: "", note: "" }; }
+  else { const [g, k] = add.split(":"); ts.edit = "new"; ts.r = null; ts.f = { st: g === "Status" ? k : "Open", owner: g === "Owner" ? k : "MS", time: g === "Timing" ? k : addDay(), title: "", note: "" }; }
   draw();
   if (!r) setTimeout(() => { const n = $("fName"); if (n) n.focus(); }, 0);
 }
