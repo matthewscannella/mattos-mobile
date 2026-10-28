@@ -1931,11 +1931,13 @@ function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("
    A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
    Goals, steps and tasks are added on the laptop only ---------- */
 const FATHER_FILE = "17👪-family/02👶🏻-father/fatherRegistry.md";
-const YO_PARTS = ["Morning", "Afternoon", "Evening"];
+const YO_PARTS = ["Morning", "Afternoon", "Bed Time", "Dream Feed"];
 const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
 const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
 const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
-const yoNow = () => { const h = +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening"; };
+const yoNow = () => { const [h, m] = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hourCycle: "h23" }).format(new Date()).split(":").map(Number), t = h * 60 + m; return t < 720 ? "Morning" : t < 1170 ? "Afternoon" : t < 1290 ? "Bed Time" : "Dream Feed"; };
+/* a step's text: "Label: action" shows its label in bold, and one wrapped in ** is bold throughout */
+const yoTx = s => { const b = /^\*\*(.+)\*\*$/.exec(s), k = s.indexOf(": "); return b ? `<b>${esc(b[1])}</b>` : k > 0 ? `<b>${esc(s.slice(0, k))}</b>${esc(s.slice(k))}` : esc(s); };
 /* every row has its line i, its text as written and the heading h it sits under; all is the goals, steps and tasks in file order */
 function yoRead(lines) {
   const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], care: [], all: [] };
@@ -1947,9 +1949,9 @@ function yoRead(lines) {
     const c = raw.split("|").slice(1, -1).map(x => x.trim());
     if (!head) { head = c; return; }
     if (/^:?-+:?$/.test(c[0])) return;
-    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^(Packing|Daycare): (.+)$/);
+    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+(?: \w+)?) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^(Packing|Daycare): (.+)$/);
     if (h !== "Daily Goals" && !part && !pk) return;
-    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), room: cell("Room"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[2] : "" };
+    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[2] : "" };
     if (!it.text) return;
     (pk ? out[pk[1] === "Daycare" ? "care" : "packs"] : part ? part[m[2] === "Routine" ? "steps" : "tasks"] : out.goals).push(it); out.all.push(it);
   });
@@ -1967,19 +1969,8 @@ function yoniBody() {
   const list = yo.view === "Daycare" ? d.care : d.packs, pc = yoCount(list);
   const seg = segBar(["Routines", "Packing", "Daycare"], yo.view, "tk", "yoview");
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
-  const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when) || "After"}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
-  /* a routine row with a Room is a round item, listed under a header for its time and room with the room's count, which turns green once the room is done */
-  const partRows = P => {
-    let last = "";
-    const out = P.steps.map(it => {
-      if (!it.room) { last = ""; return rows([it], true); }
-      const k = it.when + "|" + it.room, grp = P.steps.filter(x => x.room && x.when + "|" + x.room === k), c = yoCount(grp);
-      const done = c[0] === c[1], head = k === last ? "" : `<div class="sub${done ? " on" : ""}">${esc(it.when)} - ${esc(it.room)}<span class="num">${done ? "✓ " : ""}${c.join("/")}</span></div>`;
-      last = k;
-      return head + rows([it], false);
-    }).join("") || rows([], true);
-    return out + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : "");
-  };
+  const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${it.when ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${yoTx(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
+  const partRows = P => (rows(P.steps, true)) + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : "");
   if (yo.view === "Packing" || yo.view === "Daycare") {
     const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = list.filter(x => !x.on), done = list.filter(x => x.on);
     const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span><span class="g">${esc(it.g)}</span></button>`;
@@ -2123,7 +2114,7 @@ function drawHome() {
   const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
   /* Yoni: today's goals as emoji dots, green once done, then the part of the day under way */
   const pn = pc[YO_PARTS.indexOf(now)];
-  const yoSq = `<div class="card qbox" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni${go}</div><div class="qk${full(g) ? " ok" : ""}"><b class="num">${g[0]}</b><span>of ${g[1]} goals</span></div><div class="qdots">${yo.data.goals.map(x => `<span class="qdot${x.on ? " on" : ""}">${esc(x.em)}</span>`).join("")}</div><div class="qnow num"><b>${now === "Evening" ? "Night" : now}</b> · ${pn[0]} of ${pn[1]} steps<i><u style="width:${pn[1] ? pn[0] / pn[1] * 100 : 0}%"></u></i></div></div>`;
+  const yoSq = `<div class="card qbox" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni${go}</div><div class="qk${full(g) ? " ok" : ""}"><b class="num">${g[0]}</b><span>of ${g[1]} goals</span></div><div class="qdots">${yo.data.goals.map(x => `<span class="qdot${x.on ? " on" : ""}">${esc(x.em)}</span>`).join("")}</div><div class="qnow num"><b>${now}</b> · ${pn[0]} of ${pn[1]} steps<i><u style="width:${pn[1] ? pn[0] / pn[1] * 100 : 0}%"></u></i></div></div>`;
   /* Habits: the week's overall score in the heading, graded in the scorecard colours, then Fitness, Mental, Food, Water, and Habits against the week's pace */
   const H = hbNow(), saved = hbFiled(td).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
   const HE = { water: "💧", habits: "🥕", food: "🥗", fitness: "💪🏻", mental: "🧠" };
@@ -2137,7 +2128,7 @@ function drawHome() {
 function cbHome(top, g, pc, full, now, grp, open, tasks, next) {
   const side = $("wk") ? $("wk").scrollLeft : 0, hq = k => `<span class="hsq">${svg(TAB[k], 15)}</span>`, all = [g, ...pc];
   const done = all.reduce((a, x) => a + x[0], 0), of = all.reduce((a, x) => a + x[1], 0), left = sh.d.items.filter(x => x.st === "On");
-  const yt = `<div class="tile" data-go="Yoni"><div class="th">${hq("Yoni")}Yoni<span class="n">${now === "Evening" ? "Night" : now}</span></div><div class="kpi num">${done}<small> / ${of} done</small></div><div class="ln ge ell">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</div><div class="tsg">${pc.map(x => `<i class="${full(x) ? "on" : x[0] ? "half" : ""}"></i>`).join("")}</div></div>`;
+  const yt = `<div class="tile" data-go="Yoni"><div class="th">${hq("Yoni")}Yoni<span class="n">${now}</span></div><div class="kpi num">${done}<small> / ${of} done</small></div><div class="ln ge ell">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</div><div class="tsg">${pc.map(x => `<i class="${full(x) ? "on" : x[0] ? "half" : ""}"></i>`).join("")}</div></div>`;
   const st = `<div class="tile" data-go="Shopping"><div class="th">${hq("Shopping")}Shopping</div><div class="kpi num">${left.length}<small> left</small></div>${left.slice(0, 3).map((x, i) => `<div class="ln ell${i === 2 ? " mut" : ""}">${esc(x.name)}</div>`).join("") || `<div class="ln mut">Nothing on the list</div>`}</div>`;
   const tt = `<div class="tile wide" data-go="Tasks"><div class="th">${hq("Tasks")}Tasks<span class="n num">${grp ? `${grp}, ${open.filter(r => r.time === grp).length} open` : "All done"}</span></div>${grp ? tasks.replace(/<div class="dh">.*?<\/div>/, "") : `<div class="row">No open tasks</div>`}</div>`;
   const nt = `<div class="tile wide" data-go="Next Up"><div class="th">${hq("Calendar")}Next Up</div>${next}</div>`;

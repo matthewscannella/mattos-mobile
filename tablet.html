@@ -590,11 +590,13 @@ const cbLive = o => { const ord = timeOrder(); return cb.rows.filter(r => r.st !
 
 /* ---------- Yoni: the phone's yoRead and yoTick (index.html ~1387-1482) ---------- */
 const FATHER_FILE = "17👪-family/02👶🏻-father/fatherRegistry.md";
-const YO_PARTS = ["Morning", "Afternoon", "Evening"];
+const YO_PARTS = ["Morning", "Afternoon", "Bed Time", "Dream Feed"];
 const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
 const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
 const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
-const yoNow = () => { const h = +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening"; };
+const yoNow = () => { const [h, m] = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hourCycle: "h23" }).format(new Date()).split(":").map(Number), t = h * 60 + m; return t < 720 ? "Morning" : t < 1170 ? "Afternoon" : t < 1290 ? "Bed Time" : "Dream Feed"; };
+/* a step's text: "Label: action" shows its label in bold, and one wrapped in ** is bold throughout */
+const yoTx = s => { const b = /^\*\*(.+)\*\*$/.exec(s), k = s.indexOf(": "); return b ? `<b>${esc(b[1])}</b>` : k > 0 ? `<b>${esc(s.slice(0, k))}</b>${esc(s.slice(k))}` : esc(s); };
 function yoRead(lines) {
   const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], care: [], all: [] };
   let h = "", head = null;
@@ -605,9 +607,9 @@ function yoRead(lines) {
     const c = raw.split("|").slice(1, -1).map(x => x.trim());
     if (!head) { head = c; return; }
     if (/^:?-+:?$/.test(c[0])) return;
-    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^(Packing|Daycare): (.+)$/);
+    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+(?: \w+)?) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^(Packing|Daycare): (.+)$/);
     if (h !== "Daily Goals" && !part && !pk) return;
-    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), room: cell("Room"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[2] : "" };
+    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[2] : "" };
     if (!it.text) return;
     (pk ? out[pk[1] === "Daycare" ? "care" : "packs"] : part ? part[m[2] === "Routine" ? "steps" : "tasks"] : out.goals).push(it); out.all.push(it);
   });
@@ -857,18 +859,10 @@ function homeWx() {
     <div class="sub" style="margin-top:8px">Next 7 Days<span class="n">Tap a score</span></div>
     <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px">${pills}</div></section>`;
 }
-/* the part of the day it is now: a round row per step, rows with a Room under a header for their time and room, then the part's tasks */
+/* the part of the day it is now: a round row per step, its time shown where one is set, then the part's tasks */
 function partRows(P) {
-  const row = (it, step) => `<button class="rw${it.on ? " done" : ""}" data-yo="${it.i}">${box(it.on, step)}${step ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${esc(it.text)}</span></button>`;
-  let last = "";
-  const steps = P.steps.map(it => {
-    if (!it.room) { last = ""; return row(it, true); }
-    const k = it.when + "|" + it.room, grp = P.steps.filter(x => x.room && x.when + "|" + x.room === k), c = yoCount(grp);
-    const hd = k === last ? "" : `<div class="ysub${c[0] === c[1] ? " on" : ""}">${esc(it.when)} - ${esc(it.room)}<span class="n num">${c[0] === c[1] ? "✓ " : ""}${c.join("/")}</span></div>`;
-    last = k;
-    return hd + row(it, false);
-  }).join("");
-  return (steps + (P.tasks.length ? `<div class="ysub">Tasks</div>${P.tasks.map(it => row(it, false)).join("")}` : "")) || '<div class="empty">Nothing set for this part of the day.</div>';
+  const row = (it, step) => `<button class="rw${it.on ? " done" : ""}" data-yo="${it.i}">${box(it.on, step)}${it.when ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${yoTx(it.text)}</span></button>`;
+  return (P.steps.map(it => row(it, true)).join("") + (P.tasks.length ? `<div class="ysub">Tasks</div>${P.tasks.map(it => row(it, false)).join("")}` : "")) || '<div class="empty">Nothing set for this part of the day.</div>';
 }
 function homeYoni() {
   const d = yo.data, now = yoNow(), P = d.parts[now], c = yoCount([...P.steps, ...P.tasks]), g = yoCount(d.goals);
@@ -1047,7 +1041,7 @@ function weatherScreen() {
     <section class="card"><div class="h2">Next 7 Days<span>Hoboken, NJ</span></div><div class="wxw"><div class="hps">${pills}</div><div class="inl">${cs.wx ? wxHead(cs.wx) : '<span class="s">Tap a score to see its hours.</span>'}</div></div></section></div>`;
 }
 
-/* ---------- Yoni: Routines (goals and the three parts of the day), Packing, and Daycare, from fatherRegistry.md ---------- */
+/* ---------- Yoni: Routines (goals and the four parts of the day), Packing, and Daycare, from fatherRegistry.md ---------- */
 function partCard(p) {
   const P = yo.data.parts[p], c = yoCount([...P.steps, ...P.tasks]), now = p === yoNow();
   return `<section class="card part${now ? " now" : ""}" style="display:flex;flex-direction:column;min-height:0"><div class="ach"><span class="nmr">${p}${now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></div><div class="scroll" style="flex:1;min-height:0">${partRows(P)}</div></section>`;
@@ -1064,7 +1058,7 @@ function yoniScreen() {
     const g = yoCount(d.goals);
     inner = `<div style="display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;height:100%">
       <section class="card" style="padding:12px"><div class="h2" style="padding-top:0;padding-bottom:6px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div><div class="rings" style="grid-template-columns:repeat(${Math.max(4, d.goals.length)},minmax(0,1fr))">${d.goals.map(x => `<button class="rg${x.on ? " on" : ""}" data-yo="${x.i}"><span class="ro">${esc(x.em)}</span><div class="ell"><b class="num">${esc([x.target, x.unit].filter(Boolean).join(" "))}</b><i class="ell">${esc(x.text)}</i></div></button>`).join("") || '<div class="empty">No daily goals in the file.</div>'}</div></section>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;min-height:0">${YO_PARTS.map(partCard).join("")}</div></div>`;
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;min-height:0">${YO_PARTS.map(partCard).join("")}</div></div>`;
   }
   return head("Yoni", `<div style="margin-left:24px">${segBar(["Routines", "Packing", "Daycare"], v, "yoni")}</div>`) + `<div class="body">${inner}</div>`;
 }
