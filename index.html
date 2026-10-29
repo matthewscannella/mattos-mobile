@@ -347,7 +347,7 @@
   .sheet { position: absolute; inset: 0; z-index: 5; }
   .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); }
   .bs { position: absolute; left: 0; right: 0; bottom: var(--kb, 0px); max-height: calc(var(--vvh, 100dvh) - 12px); overflow-y: auto; scrollbar-width: none; display: grid; gap: 12px; background: var(--side); border-top: 1px solid var(--rule); border-radius: 22px 22px 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom) + 16px); }
-  .sheet.kb .bs { padding-bottom: 12px; }
+  .sheet.kb .bs { padding-bottom: 20px; }
   .bs::-webkit-scrollbar { display: none; }
   .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--mut); opacity: .5; margin: 0 auto; }
   .bs h3 { margin: 0; font-size: 17px; font-weight: 600; color: #fff; }
@@ -1301,7 +1301,7 @@ function openSheet() {
     <div class="fl"><span>Person</span><div class="opts">${TK_OWNERS.map(w => o("w", w, w, w === (CB ? "BB" : "MS")).replace('class="o', `class="o who ${w}`)).join("")}</div></div></div>`}
     ${idea ? `<label class="fl"><span>Note</span><input class="in" id="tk-n" placeholder="Add a note…" autocomplete="off" enterkeyhint="done"></label>` : ""}
     <div class="fb"><button type="button" class="btn" data-tk="cancel">Cancel</button><button type="submit" class="btn primary grow">Add ${tk.sheet}</button></div></form>`;
-  $("sheet").hidden = false; fitSheet(); $("tk-x").focus();
+  $("sheet").hidden = false; fitSheet(); $("tk-x").focus({ preventScroll: true }); [150, 400, 800].forEach(ms => setTimeout(fitSheet, ms));
 }
 /* a new task goes to the CucuBarri board on CucuBarri, or on Matt's Tasks screen with the CucuBarri filter on */
 const tkCb = () => CB || (tab === "Tasks" && tk.src === "CucuBarri");
@@ -1325,14 +1325,16 @@ function saveSheet() {
 function fitSheet() {
   const v = window.visualViewport, s = $("sheet");
   if (!v || s.hidden) return;
-  /* while the keyboard is up the sheet's own bottom is measured against the visible area's, since the frame can sit below the window (fitFrame),
-     and the safe-area padding gives way to a small gap so the whole button shows above the keyboard */
+  /* while the keyboard is up the sheet is lifted by the largest of three measures of the covered height, since iOS differs on whether
+     the page's coordinates start at the window or the visible area, and the frame can sit below the window (fitFrame); the safe-area
+     padding gives way to a cushion so the whole button row shows above the keyboard */
   const up = innerHeight - v.height - v.offsetTop > 0, bs = s.querySelector(".bs");
   s.classList.toggle("kb", up);
   s.style.setProperty("--vvh", Math.round(v.height) + "px");
   if (!up || !bs) { s.style.setProperty("--kb", "0px"); return; }
-  const now = parseFloat(s.style.getPropertyValue("--kb")) || 0;
-  s.style.setProperty("--kb", Math.max(0, Math.round(now + bs.getBoundingClientRect().bottom - v.offsetTop - v.height)) + "px");
+  const now = parseFloat(s.style.getPropertyValue("--kb")) || 0, b = bs.getBoundingClientRect().bottom;
+  const kb = Math.max(now + b - v.offsetTop - v.height, now + b - v.height, document.body.getBoundingClientRect().height - v.offsetTop - v.height);
+  s.style.setProperty("--kb", Math.max(0, Math.ceil(kb)) + "px");
 }
 if (window.visualViewport) ["resize", "scroll"].forEach(n => window.visualViewport.addEventListener(n, fitSheet));
 /* in the Home Screen app in portrait the page takes the 100vh height when the window is shorter than it (html.tall) */
