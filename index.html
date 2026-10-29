@@ -2517,7 +2517,7 @@ function toast(msg) {
   $("toastmsg").textContent = msg; $("toast").hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; undoTask = null; }, 8000);
 }
-/* the check-off toast (taskWinToastV1, Confetti Headline): a popping check, the name, the count, and a bar that fills to the new share. Undo shows for tasks only */
+/* the check-off toast (taskWinToastV1, Confetti Headline): a popping check, the name, the count, and a bar that fills to the new share. Undo shows for tasks only, and it all goes after 2.5 seconds */
 function winToast({ title, meta, from, to, undo }) {
   const pc = n => Math.round(Math.max(0, Math.min(1, n)) * 100) + "%";
   toast(""); $("toast").classList.add("tick"); $("undo").hidden = !undo;
