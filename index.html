@@ -2521,6 +2521,7 @@ function toast(msg) {
 function winToast({ title, meta, from, to, undo }) {
   const pc = n => Math.round(Math.max(0, Math.min(1, n)) * 100) + "%";
   toast(""); $("toast").classList.add("tick"); $("undo").hidden = !undo;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; undoTask = null; }, 2500);
   $("toastmsg").innerHTML = `<i class="wok"></i><b class="ell">${esc(title)}</b><small>${esc(meta)}</small><em class="wbar" style="--from:${pc(from)};--to:${pc(to)}"><i></i></em>`;
 }
 /* today's tasks in the ticked task's file are those set for today plus anything else checked off today and still done, kept on the phone by date since tasks have no done date */

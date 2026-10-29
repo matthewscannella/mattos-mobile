@@ -738,7 +738,7 @@ function taskWin(r) {
   if (n === of) win({ em: "🎉", head: "Day cleared", sub: `All ${of} card${of === 1 ? "" : "s"} done. Enjoy the evening.` });
 }
 let prog = null, progT = 0;
-function progShow(p) { prog = p; clearTimeout(progT); progT = setTimeout(() => { prog = null; draw(); }, 8000); draw(); }
+function progShow(p) { prog = p; clearTimeout(progT); progT = setTimeout(() => { prog = null; if (undoCard && undoCard.done) undoCard = null; draw(); }, 2500); draw(); }
 /* a card's cells as the file holds them: a blank Owner for both of us, and no pipes or line breaks in the text */
 const cbEnc = s => String(s || "").replace(/\|/g, "/").replace(/\r?\n/g, " ").trim();
 const cbCells = f => ({ Status: f.st, Owner: f.owner === "Both" ? "" : f.owner, Day: f.time, Task: cbEnc(f.title), Note: cbEnc(f.note) });
