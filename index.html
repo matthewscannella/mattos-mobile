@@ -71,6 +71,8 @@
   .tab.on .w { background: var(--blue); color: #fff; --cut: var(--blue); }
   .fab { position: absolute; right: 16px; bottom: calc(var(--tabpad) + 70px); width: 54px; height: 54px; border-radius: 16px; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0, 0, 0, .5); z-index: 3; }
   .fab:active { filter: brightness(.9); }
+  /* on Matt's Yoni tab the add button opens Huckleberry instead: its logo on white, ringed in its lime */
+  .fab.huck { background: #fff; box-shadow: 0 0 0 3px #cfcb00, 0 6px 18px rgba(0, 0, 0, .5); }
 
   /* ---------- shared text, cards and buttons ---------- */
   .status { font-size: 12.5px; line-height: 16px; color: var(--mut); padding: 8px 2px 0; }
@@ -2205,10 +2207,15 @@ function homeGo(to) {
   go(to);
 }
 /* the add button on Home, Calendar, Habits, and Yoni adds a task, whichever of Tasks and Ideas was last open */
+/* except on Matt's Yoni tab, where it runs the iOS Shortcut "Open Huckleberry", which opens that app */
+const HUCK = !CB;
+const HUCK_URL = "shortcuts://run-shortcut?name=" + encodeURIComponent("Open Huckleberry");
+const HUCK_LOGO = `<svg width="34" height="34" viewBox="80 100 290 245" aria-hidden="true"><path fill="#cfcb00" d="M90 117c48-1 88 3 106 17 13 10 22 26 26 41-49 2-98-13-132-58z"/><path fill="#cfcb00" d="M358 117c-48-1-88 3-106 17-13 10-22 26-26 41 49 2 98-13 132-58z"/><circle fill="#2dbcd6" cx="224" cy="260" r="78"/></svg>`;
+function openHuckleberry() { location.href = HUCK_URL; }
 function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view = v; }
 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
-const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: HUCK ? openHuckleberry : homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Home";
 /* the tab to reload: on CucuBarri, Tasks held on its Shopping view is the Shopping tab */
 const here = () => CB && tab === "Tasks" && tk.view === "Shopping" ? "Shopping" : tab;
@@ -2222,6 +2229,8 @@ async function go(name) {
   history.replaceState(null, "", location.search + "#" + (CB ? lit : tab).toLowerCase());
   $("tabs").innerHTML = TAB_BAR.map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
   $("fab").hidden = true; $("scr").scrollTop = 0;
+  const hb = HUCK && tab === "Yoni";
+  $("fab").classList.toggle("huck", hb); $("fab").innerHTML = hb ? HUCK_LOGO : svg(UI.plus, 24, 2.6); $("fab").setAttribute("aria-label", hb ? "Open Huckleberry" : "Add");
   if (!cfg().token && !PEEK) return showSetup();
   status("Loading…");
   /* drawn at once from the copies kept on this phone, then again from the newest files */
@@ -2492,7 +2501,6 @@ function win({ em, head, sub, sad, party }) {
 /* in the desktop peek panel, Alt+Right and Esc go to the desktop app, which closes the panel */
 if (PEEK) document.addEventListener("keydown", e => { try { parent.peekKey(e); } catch (err) { /* opened on its own */ } });
 if ("serviceWorker" in navigator && !PEEK) navigator.serviceWorker.register("sw.js").catch(() => {});
-$("fab").innerHTML = svg(UI.plus, 24, 2.6);
 if (CB) { $("hdname").textContent = "CucuBarri"; $("hdlogo").src = "tablet-icon-180.png"; }
 go(Object.keys(TAB).find(n => n.toLowerCase() === location.hash.slice(1)) || START);
 </script>
