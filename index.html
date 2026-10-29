@@ -614,10 +614,10 @@
   .toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
   .toast span { flex: 1; }
   /* the check-off toast (taskWinToastV1, Confetti Headline, winToast()): a popping check, the name, the count, and a bar that fills; a finished set gets the win toast's party */
-  .toast.win #toastmsg { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 12px; align-items: center; min-width: 0; }
-  .toast.win #toastmsg > :not(.wok) { grid-column: 2; }
-  .toast.win b { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--hi); }
-  .toast.win small { font-size: 12.5px; line-height: 16px; color: var(--mut); }
+  .toast.tick #toastmsg { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 12px; align-items: center; min-width: 0; }
+  .toast.tick #toastmsg > :not(.wok) { grid-column: 2; }
+  .toast.tick b { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--hi); }
+  .toast.tick small { font-size: 12.5px; line-height: 16px; color: var(--mut); }
   .wok { grid-row: span 3; width: 22px; height: 22px; border-radius: 11px; background: var(--done); display: grid; place-items: center; position: relative; animation: wPop .45s ease-out; }
   .wok::after { content: ""; width: 5px; height: 9px; border: solid var(--body); border-width: 0 2.4px 2.4px 0; transform: rotate(45deg) translate(-1px, -1px); }
   .wok::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--done); opacity: 0; animation: wRing .6s ease-out; }
@@ -2520,7 +2520,7 @@ function toast(msg) {
 /* the check-off toast (taskWinToastV1, Confetti Headline): a popping check, the name, the count, and a bar that fills to the new share. Undo shows for tasks only */
 function winToast({ title, meta, from, to, undo }) {
   const pc = n => Math.round(Math.max(0, Math.min(1, n)) * 100) + "%";
-  toast(""); $("toast").classList.add("win"); $("undo").hidden = !undo;
+  toast(""); $("toast").classList.add("tick"); $("undo").hidden = !undo;
   $("toastmsg").innerHTML = `<i class="wok"></i><b class="ell">${esc(title)}</b><small>${esc(meta)}</small><em class="wbar" style="--from:${pc(from)};--to:${pc(to)}"><i></i></em>`;
 }
 /* today's tasks in the ticked task's file are those set for today plus anything else checked off today and still done, kept on the phone by date since tasks have no done date */
