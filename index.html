@@ -1701,7 +1701,7 @@ const MED_LAYERS = [
     notes.forEach(m => {
       const g = c.createGain(), f = c.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 650; f.Q.value = .5;
       g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(v, at + 6.3); g.gain.setValueAtTime(v, at + 14); g.gain.linearRampToValueAtTime(0, end);
-      [-7, 7].forEach(d => { const o = c.createOscillator(); o.type = "sawtooth"; o.frequency.value = medHz(m); o.detune.value = d; o.connect(f); o.start(at); o.stop(end + .1); });
+      [-2, 2].forEach(d => { const o = c.createOscillator(); o.type = "sawtooth"; o.frequency.value = medHz(m); o.detune.value = d; o.connect(f); o.start(at); o.stop(end + .1); });
       f.connect(g); medSend(g, .6);
     });
   } },
@@ -1744,12 +1744,12 @@ function medFeed() {
   const el = med.ctx.currentTime - med.t0;
   med.layers.forEach(x => { while (x.t < Math.min(el + 1, MED_LEN - 4)) { x.l.step.call(x, med.t0 + x.t); x.t += x.l.gap(); } });
 }
-/* the chime: a round temple bell; the hold chime sits a fifth above the inhale and exhale chimes */
+/* the chime: a round temple bell with in-tune overtones; the hold chime sits a fifth above, and the inhale and exhale chimes play louder so the song does not bury them */
 function medChime(at, hold) {
-  const c = med.ctx, f = hold ? 247.5 : 165, wet = c.createGain(); wet.gain.value = .25; wet.connect(med.dverb);
-  [[1, 1], [1.5, .4, .6], [2.95, .22, .45], [4.1, .08, .3]].forEach(([r, v, dm = 1]) => {
+  const c = med.ctx, f = hold ? 247.22 : 164.81, wet = c.createGain(); wet.gain.value = .25; wet.connect(med.dverb);
+  [[1, 1], [1.5, .4, .6], [3, .22, .45], [4, .08, .3]].forEach(([r, v, dm = 1]) => {
     const o = c.createOscillator(), g = c.createGain(), end = at + .85 * dm; o.frequency.value = f * r;
-    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.4 * v, at + .004); g.gain.exponentialRampToValueAtTime(.0001, end);
+    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.4 * v * (hold ? 1 : 2.2), at + .004); g.gain.exponentialRampToValueAtTime(.0001, end);
     o.connect(g); g.connect(med.dingVol); g.connect(wet); o.start(at); o.stop(end + .05);
   });
 }
