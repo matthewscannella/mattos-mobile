@@ -194,6 +194,18 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .toast{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);width:440px;display:flex;align-items:center;gap:12px;background:var(--raised);border:1px solid var(--rule);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:6}
 .toast span{flex:1}
 .toast button{color:var(--acc);font-weight:600;padding:4px 6px}
+/* the phone's check-off toast (index.html .toast.win), larger: a popping check, the name, the count, and a bar that fills */
+.toast.win>span{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:14px;align-items:center;min-width:0}
+.toast.win>span>:not(.wok){grid-column:2}
+.toast.win b{font-size:16px;line-height:20px;font-weight:600;color:var(--hi)}
+.toast.win small{font-size:14px;line-height:18px;color:var(--mut)}
+.wok{grid-row:span 3;width:24px;height:24px;border-radius:12px;background:var(--done);display:grid;place-items:center;position:relative;animation:wPop .45s ease-out}
+.wok::after{content:"";width:5px;height:10px;border:solid var(--body);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.wok::before{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--done);opacity:0;animation:wRing .6s ease-out}
+.wbar{display:block;height:5px;margin-top:7px;border-radius:3px;background:var(--body);overflow:hidden}
+.wbar i{display:block;height:100%;width:var(--to);border-radius:3px;background:var(--blue);animation:wFill .6s cubic-bezier(.2,.8,.2,1) .1s both}
+@keyframes wRing{0%{transform:scale(.6);opacity:.8}100%{transform:scale(1.8);opacity:0}}
+@keyframes wFill{from{width:var(--from)}}
 /* the phone's win toast (index.html .win), larger: a green bar where the toast sits whose emoji pops, and confetti once Yoni's day is done */
 .win{position:fixed;inset:0;z-index:9;pointer-events:none;overflow:hidden}
 .win[hidden]{display:none}
@@ -709,7 +721,24 @@ function cbTick(n) {
     setCell(lines, hit.i, t.col + 1, "Done");
     return hit;
   }, `Tablet: done "${r.title}"`);
+  taskWin(r);
 }
+/* today's cards are those set for today plus anything else checked off today and still done, kept on the tablet by date since cards have no done date.
+   The last of them brings the party stamp */
+function taskWin(r) {
+  if (offline) return;
+  const d =new Date().toDateString(), day = dayName();
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem("mattos.winDay") || "null"); } catch (e) { /* start the day afresh */ }
+  if (!s || s.d !== d) s = { d, t: [] };
+  if (!s.t.includes(r.title)) { s.t.push(r.title); localStorage.setItem("mattos.winDay", JSON.stringify(s)); }
+  const pool = cb.rows.filter(x => x.title && (x.time === day || (x.st === "Done" && s.t.includes(x.title))));
+  const n = pool.filter(x => x.st === "Done").length, of = pool.length;
+  progShow({ title: r.title, meta: `${n} of ${of} done today`, from: (n - 1) / of, to: n / of });
+  if (n === of) win({ em: "🎉", head: "Day cleared", sub: `All ${of} card${of === 1 ? "" : "s"} done. Enjoy the evening.` });
+}
+let prog = null, progT = 0;
+function progShow(p) { prog = p; clearTimeout(progT); progT = setTimeout(() => { prog = null; draw(); }, 8000); draw(); }
 /* a card's cells as the file holds them: a blank Owner for both of us, and no pipes or line breaks in the text */
 const cbEnc = s => String(s || "").replace(/\|/g, "/").replace(/\r?\n/g, " ").trim();
 const cbCells = f => ({ Status: f.st, Owner: f.owner === "Both" ? "" : f.owner, Day: f.time, Task: cbEnc(f.title), Note: cbEnc(f.note) });
@@ -747,12 +776,13 @@ let undoCard = null, toastT = 0;
 function undoKeep(u) { if (offline) return; undoCard = u; clearTimeout(toastT); toastT = setTimeout(() => { undoCard = null; draw(); }, 8000); }
 function cbDel(r) {
   const prev = cb.rows[r.n - 1];
+  prog = null;
   undoKeep({ raw: r.raw, after: prev ? prev.raw : null, title: r.title });
   save(CUCU_FILE, lines => { const { hit } = cbFind(lines, r); lines.splice(hit.i, 1); return hit; }, `Tablet: delete "${r.title}"`);
 }
 function cbUndo() {
   const u = undoCard;
-  undoCard = null; clearTimeout(toastT);
+  undoCard = null; prog = null; clearTimeout(toastT);
   if (!u) return;
   if (u.done) {
     save(CUCU_FILE, lines => {
@@ -781,18 +811,24 @@ function yoTick(i) {
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Tablet: ${to ? "check" : "uncheck"} "${it.text}"`);
-  const now = yoAll(yo.data);
-  if (now[1] && now[0] === now[1] && was[0] < was[1]) win();
+  /* a checked step shows its part's count, and the part's last step the party stamp; the day's last goal or routine gets the day's stamp instead */
+  const now = yoAll(yo.data), m = it.h.match(/^(.+) (?:Routine|Tasks)$/), P = m && yo.data.parts[m[1]];
+  if (now[1] && now[0] === now[1] && was[0] < was[1]) { win({ em: "👶🏻", head: "Yoni's day is done", sub: "Every goal and routine complete" }); return; }
+  if (!to || !P || offline) return;
+  const [n, of] = yoCount([...P.steps, ...P.tasks]);
+  if (n === of) win({ em: YO_EM[m[1]], head: `${m[1]} done`, sub: `All ${of} step${of === 1 ? "" : "s"} complete` });
+  else progShow({ title: it.text.replace(/\*\*/g, ""), meta: `${m[1]}: ${n} of ${of} done`, from: (n - 1) / of, to: n / of });
 }
+const YO_EM = { Morning: "🌅", Afternoon: "☀️", "Bed Time": "🌙", "Dream Feed": "🍼" };
 /* a haptic tap where navigator.vibrate exists (Android tablets); iPads have no haptic hardware. strong is the win toast's longer pattern */
 function buzz(strong) {
   if (navigator.vibrate) navigator.vibrate(strong ? [40, 60, 40, 60, 80] : 12);
 }
-/* the phone's win toast (index.html win()), for Yoni's finished day only */
+/* the phone's win toast (index.html win()) with its party, for a finished day of cards, part of Yoni's day, or Yoni's whole day */
 let winT = 0;
-function win() {
+function win({ em, head, sub }) {
   const CF = ["#3fcf8e", "#8dabf9", "#f9c74f", "#f97066", "#c084fc"], el = $("win");
-  el.innerHTML = `<div class="wst"><span class="em">👶🏻</span><div><b>Yoni's day is done</b><small>Every goal and routine complete</small></div></div><div class="wcf">${Array.from({ length: 40 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${CF[i % 5]};animation-delay:${(i % 7) * .07}s"></i>`).join("")}</div>`;
+  el.innerHTML = `<div class="wst"><span class="em">${em}</span><div><b>${esc(head)}</b><small>${esc(sub)}</small></div></div><div class="wcf">${Array.from({ length: 40 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${CF[i % 5]};animation-delay:${(i % 7) * .07}s"></i>`).join("")}</div>`;
   el.hidden = false; buzz(true); clearTimeout(winT); winT = setTimeout(() => { el.hidden = true; }, 3500);
 }
 /* Clear empties every packing or daycare item's Done cell, as the desktop's Clear checks does */
@@ -949,7 +985,10 @@ function shSave() {
   sh.edit = null;
   if (n && n !== e.name) save(SHOP_FILE, lines => shRename(lines, e.name, n), `Tablet: renamed "${e.name}" to "${n}" in the shopping list`); else draw();
 }
-const toast = () => undoCard ? `<div class="toast"><span class="ell">${undoCard.done ? "Checked off" : "Task deleted"}</span><button data-undo>Undo</button></div>` : "";
+/* a check-off shows the phone's check-off toast (index.html winToast) instead of its words: a popping check, the name, the count, and a bar that fills */
+const pc = n => Math.round(Math.max(0, Math.min(1, n)) * 100) + "%";
+const toast = () => prog ? `<div class="toast win"><span><i class="wok"></i><b class="ell">${esc(prog.title)}</b><small>${esc(prog.meta)}</small><em class="wbar" style="--from:${pc(prog.from)};--to:${pc(prog.to)}"><i></i></em></span>${undoCard ? "<button data-undo>Undo</button>" : ""}</div>`
+  : undoCard ? `<div class="toast"><span class="ell">${undoCard.done ? "Checked off" : "Task deleted"}</span><button data-undo>Undo</button></div>` : "";
 function tasksScreen() {
   return head("Tasks") + tasksBar() + `<div class="body">${view.tasks === "Board" ? boardView() : listView()}</div>${popMenu()}`;
 }

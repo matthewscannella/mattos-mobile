@@ -611,6 +611,18 @@
 
   .toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
   .toast span { flex: 1; }
+  /* the check-off toast (taskWinToastV1, Confetti Headline, winToast()): a popping check, the name, the count, and a bar that fills; a finished set gets the win toast's party */
+  .toast.win #toastmsg { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 12px; align-items: center; min-width: 0; }
+  .toast.win #toastmsg > :not(.wok) { grid-column: 2; }
+  .toast.win b { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--hi); }
+  .toast.win small { font-size: 12.5px; line-height: 16px; color: var(--mut); }
+  .wok { grid-row: span 3; width: 22px; height: 22px; border-radius: 11px; background: var(--done); display: grid; place-items: center; position: relative; animation: wPop .45s ease-out; }
+  .wok::after { content: ""; width: 5px; height: 9px; border: solid var(--body); border-width: 0 2.4px 2.4px 0; transform: rotate(45deg) translate(-1px, -1px); }
+  .wok::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--done); opacity: 0; animation: wRing .6s ease-out; }
+  .wbar { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--body); overflow: hidden; }
+  .wbar i { display: block; height: 100%; width: var(--to); border-radius: 2px; background: var(--blue); animation: wFill .6s cubic-bezier(.2, .8, .2, 1) .1s both; }
+  @keyframes wRing { 0% { transform: scale(.6); opacity: .8; } 100% { transform: scale(1.8); opacity: 0; } }
+  @keyframes wFill { from { width: var(--from); } }
   /* the win toast (mobileWinToastV1, Green Pop): a green bar where the toast sits whose emoji pops; sad turns it red and droops the emoji, party adds confetti */
   .win { position: fixed; inset: 0; z-index: 7; pointer-events: none; overflow: hidden; }
   .wst { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: #10261d; border: 1px solid #1f5a3f; border-radius: 12px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); animation: wIn .3s ease-out both, wOut .3s ease-in 2.3s forwards; }
@@ -1225,7 +1237,7 @@ function tickTask(n, back) {
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Phone: ${back ? "undo done" : to === "Done" ? "done" : "reopen"} "${r.title}"`);
-  if (to === "Done") { undoNote = null; undoTask = { f: r.f, title: r.title, i: r.i, was: r.st }; toast("Checked off"); }
+  if (to === "Done") { undoNote = null; undoTask = { f: r.f, title: r.title, i: r.i, was: r.st }; taskWin(r); }
   if (to === "Done" && rcMark.test(r.note)) recurSync();
 }
 /* a day button on an opened card rewrites the task's Day in place, as the laptop's timing picker does */
@@ -2061,12 +2073,17 @@ function yoTick(i) {
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Phone: ${to ? "check" : "uncheck"} "${it.text}"`);
-  yoWin(was);
+  yoWin(was, it, to);
 }
-/* the party stamp, once the last goal or routine of the day is checked */
-function yoWin(was) {
-  const now = yoAll(yo.data);
-  if (now[1] && now[0] === now[1] && was[0] < was[1]) win({ em: "👶🏻", head: "Yoni's day is done", sub: "Every goal and routine complete", pct: 1, was: was[0] / was[1], party: true });
+/* a checked step shows its part's count in the win toast, and the part's last step the party stamp; the day's last goal or routine gets the day's stamp instead */
+const YO_EM = { Morning: "🌅", Afternoon: "☀️", "Bed Time": "🌙", "Dream Feed": "🍼" };
+function yoWin(was, it, to) {
+  const now = yoAll(yo.data), m = it.h.match(/^(.+) (?:Routine|Tasks)$/), P = m && yo.data.parts[m[1]];
+  if (now[1] && now[0] === now[1] && was[0] < was[1]) { win({ em: "👶🏻", head: "Yoni's day is done", sub: "Every goal and routine complete", pct: 1, was: was[0] / was[1], party: true }); return; }
+  if (!to || !P) return;
+  const [n, of] = yoCount([...P.steps, ...P.tasks]);
+  if (n === of) win({ em: YO_EM[m[1]], head: `${m[1]} done`, sub: `All ${of} step${of === 1 ? "" : "s"} complete`, party: true });
+  else winToast({ title: it.text.replace(/\*\*/g, ""), meta: `${m[1]}: ${n} of ${of} done`, from: (n - 1) / of, to: n / of });
 }
 
 /* ---------- Home: the Calendar screen's date, today's card and hours, the Yoni card, then a rail section each for Habits, Tasks, Calendar and Notes.
@@ -2485,8 +2502,27 @@ document.addEventListener("click", e => {
   setTimeout(() => { const ev = new MouseEvent("click", { bubbles: true }); hapLater.add(ev); e.target.dispatchEvent(ev); });
 }, true);
 function toast(msg) {
+  $("toast").className = "toast"; $("undo").hidden = false;
   $("toastmsg").textContent = msg; $("toast").hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; undoNote = null; undoTask = null; }, 8000);
+}
+/* the check-off toast (taskWinToastV1, Confetti Headline): a popping check, the name, the count, and a bar that fills to the new share. Undo shows for tasks only */
+function winToast({ title, meta, from, to, undo }) {
+  const pc = n => Math.round(Math.max(0, Math.min(1, n)) * 100) + "%";
+  toast(""); $("toast").classList.add("win"); $("undo").hidden = !undo;
+  $("toastmsg").innerHTML = `<i class="wok"></i><b class="ell">${esc(title)}</b><small>${esc(meta)}</small><em class="wbar" style="--from:${pc(from)};--to:${pc(to)}"><i></i></em>`;
+}
+/* today's tasks in the ticked task's file are those set for today plus anything else checked off today and still done, kept on the phone by date since tasks have no done date */
+function taskWin(r) {
+  const d = new Date().toDateString(), day = TK_TIMES[(new Date().getDay() + 6) % 7];
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem("mattos.winDay") || "null"); } catch (e) { /* start the day afresh */ }
+  if (!s || s.d !== d) s = { d, t: [] };
+  if (!s.t.includes(r.title)) { s.t.push(r.title); localStorage.setItem("mattos.winDay", JSON.stringify(s)); }
+  const pool = tk.rows.filter(x => x.f === r.f && x.title && (x.time === day || (x.st === "Done" && s.t.includes(x.title))));
+  const n = pool.filter(x => x.st === "Done").length, of = pool.length;
+  winToast({ title: r.title, meta: `${n} of ${of} done today`, from: (n - 1) / of, to: n / of, undo: true });
+  if (n === of) win({ em: "🎉", head: "Day cleared", sub: `All ${of} task${of === 1 ? "" : "s"} done. Enjoy the evening.`, party: true });
 }
 let winTimer = null;
 function win({ em, head, sub, sad, party }) {
