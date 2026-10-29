@@ -329,6 +329,7 @@
   .tr .cp { width: 34px; padding-top: var(--pad); text-align: center; font-size: var(--es); line-height: var(--tl); }
   /* a task shows its owner, MS, BB, or CC, or a faint dash while it has none */
   .cp.ow { font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--mut); }
+  .cp.ow.MS { color: #8dabf9; } .cp.ow.BB { color: #7fd0e8; } .cp.ow.CC { color: #d97757; }
   .cp.ow.none { opacity: .5; }
   .tr.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   .tl .tr { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -346,6 +347,7 @@
   .sheet { position: absolute; inset: 0; z-index: 5; }
   .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); }
   .bs { position: absolute; left: 0; right: 0; bottom: var(--kb, 0px); max-height: calc(var(--vvh, 100dvh) - 12px); overflow-y: auto; scrollbar-width: none; display: grid; gap: 12px; background: var(--side); border-top: 1px solid var(--rule); border-radius: 22px 22px 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom) + 16px); }
+  .sheet.kb .bs { padding-bottom: 12px; }
   .bs::-webkit-scrollbar { display: none; }
   .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--mut); opacity: .5; margin: 0 auto; }
   .bs h3 { margin: 0; font-size: 17px; font-weight: 600; color: #fff; }
@@ -362,12 +364,12 @@
   .in.bugpad { padding-right: 46px; }
   .o.bug { position: absolute; right: 5px; top: 5px; height: 32px; width: 36px; padding: 0; justify-content: center; font-size: 16px; background: none; filter: grayscale(1); opacity: .45; }
   .o.bug.on { background: var(--raised); filter: none; opacity: 1; }
-  /* Board and Person share a line; each person has a color, faded until picked */
+  /* Board and Person share a line; each person has the web app's owner color, faint until picked */
   .frow { display: flex; flex-wrap: wrap; gap: 12px; }
   .frow > .fl:last-child { margin-left: auto; }
-  .o.who { --c: var(--blue); background: color-mix(in srgb, var(--c) 22%, transparent); color: color-mix(in srgb, var(--c) 70%, var(--mut)); }
-  .o.who.on { background: var(--c); color: #fff; }
-  .o.who.MS { --c: #3b82f6; } .o.who.BB { --c: #ec4899; } .o.who.CC { --c: #22c55e; }
+  .o.who { --c: var(--acc); background: color-mix(in srgb, var(--c) 8%, transparent); color: var(--c); opacity: .35; }
+  .o.who.on { background: color-mix(in srgb, var(--c) 22%, transparent); box-shadow: inset 0 0 0 1px var(--c); opacity: 1; }
+  .o.who.MS { --c: #8dabf9; } .o.who.BB { --c: #7fd0e8; } .o.who.CC { --c: #d97757; }
   .o .nm { display: none; }
   .o.on .nm { display: inline; }
   .fb { display: flex; gap: 8px; }
@@ -1136,7 +1138,7 @@ const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw
 /* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
 const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
 /* the right of a task row: its owner, or a faint dash while it has none */
-const tkTag = r => `<span class="cp ow${r.own ? "" : " none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
+const tkTag = r => `<span class="cp ow ${r.own ? esc(r.own) : "none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
   const [t, i, y, s, c] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null)]);
@@ -1323,10 +1325,14 @@ function saveSheet() {
 function fitSheet() {
   const v = window.visualViewport, s = $("sheet");
   if (!v || s.hidden) return;
-  /* while the keyboard is up it is measured from the frame's bottom, which can sit below the window's (fitFrame) */
-  const kb = innerHeight - v.height - v.offsetTop;
-  s.style.setProperty("--kb", (kb > 0 ? Math.max(0, Math.round(document.body.getBoundingClientRect().height - v.height - v.offsetTop)) : 0) + "px");
+  /* while the keyboard is up the sheet's own bottom is measured against the visible area's, since the frame can sit below the window (fitFrame),
+     and the safe-area padding gives way to a small gap so the whole button shows above the keyboard */
+  const up = innerHeight - v.height - v.offsetTop > 0, bs = s.querySelector(".bs");
+  s.classList.toggle("kb", up);
   s.style.setProperty("--vvh", Math.round(v.height) + "px");
+  if (!up || !bs) { s.style.setProperty("--kb", "0px"); return; }
+  const now = parseFloat(s.style.getPropertyValue("--kb")) || 0;
+  s.style.setProperty("--kb", Math.max(0, Math.round(now + bs.getBoundingClientRect().bottom - v.offsetTop - v.height)) + "px");
 }
 if (window.visualViewport) ["resize", "scroll"].forEach(n => window.visualViewport.addEventListener(n, fitSheet));
 /* in the Home Screen app in portrait the page takes the 100vh height when the window is shorter than it (html.tall) */
@@ -1360,8 +1366,11 @@ function tkAct(act, a, el) {
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
   else if (act === "yopacked") { yo.packed = !yo.packed; drawYoni(); }
   else if (act === "yoclear") yoClear(a);
-  /* the Bug button in the task field switches on and off */
-  else if (act === "opt" && el.dataset.k === "b") { el.classList.toggle("on"); el.setAttribute("aria-pressed", el.classList.contains("on")); }
+  /* the Bug button in the task field switches on and off; a bug goes to CC by default, and back to MS when unmarked */
+  else if (act === "opt" && el.dataset.k === "b") {
+    const on = el.classList.toggle("on"); el.setAttribute("aria-pressed", on);
+    $("sheet").querySelectorAll(".o.who").forEach(b => { b.classList.toggle("on", b.dataset.a === (on ? "CC" : "MS")); b.setAttribute("aria-pressed", b.classList.contains("on")); });
+  }
   else if (act === "opt") el.parentNode.querySelectorAll(".o").forEach(b => { b.classList.toggle("on", b === el); b.setAttribute("aria-pressed", b === el); });
   else if (act === "cancel") closeSheet();
   else if (act.startsWith("sh")) shAct(act, a);
