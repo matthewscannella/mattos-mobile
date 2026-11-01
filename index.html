@@ -65,7 +65,7 @@
   .peek .qtd[data-tk]:hover .ck { border-color: var(--acc); }
   /* the icons may sit partly over the home indicator's strip, as in native tab bars, so only part of the inset is added below them */
   :root { --tabpad: max(16px, calc(env(safe-area-inset-bottom) - 12px)); }
-  .tabs { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px var(--tabpad); border-top: 1px solid var(--line); background: var(--side); }
+  .tabs { flex: none; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 8px 6px var(--tabpad); border-top: 1px solid var(--line); background: var(--side); }
   .tab { display: grid; justify-items: center; }
   .tab .w { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: var(--mut); --cut: var(--side); }
   .tab.on .w { background: var(--blue); color: #fff; --cut: var(--blue); }
@@ -416,10 +416,11 @@
   .savebar .spg { flex: 1; align-self: center; font-size: 14px; color: var(--mut); }
   .savebar .sv.shd { flex: none; padding: 0 18px; }
 
-  /* ---------- Strength, Tasks' fifth view (strengthTrackerV3, with the week as rounded squares as in Lumina's habit streaks) ---------- */
-  .gyk { display: flex; align-items: center; gap: 6px; padding: 14px 2px 8px; font-size: 17px; font-weight: 600; color: var(--hi); }
-  .gyw { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; line-height: 14px; color: var(--mut); margin-bottom: 22px; }
-  .gyd { display: grid; place-items: center; height: 36px; margin-top: 5px; border-radius: 9px; background: var(--raised); color: #fff; transition: background .3s; }
+  /* ---------- Strength, CucuBarri's Strength tab (strengthTrackerV3, with the week as rounded squares as in Lumina's habit streaks; the title as in strengthHomeV1, Large Title) ---------- */
+  .gyt { display: flex; align-items: center; gap: 8px; padding: 22px 2px 0; } .gyt h2 { flex: 1; margin: 0; font-size: 28px; line-height: 34px; font-weight: 700; color: var(--hi); letter-spacing: -.02em; }
+  .gyk { display: flex; align-items: center; gap: 6px; padding: 8px 2px 10px; font-size: 15px; font-weight: 600; color: var(--mut); }
+  .gyw { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; line-height: 14px; color: var(--mut); margin-bottom: 44px; }
+  .gyd { display: grid; place-items: center; width: 100%; height: 36px; margin-top: 5px; border-radius: 9px; background: var(--raised); color: #fff; transition: background .3s; }
   .gyd.done { background: var(--done); } .gyd.part { background: #f5c542; } .gyd.miss { background: var(--flag); } .gyd.rest { background: #b48cf5; }
   .gyd.today { box-shadow: 0 0 0 2px var(--body), 0 0 0 3px var(--acc); }
   .gyd.glow { animation: gyglow 1.2s ease-out; }
@@ -734,10 +735,11 @@ const TAB = {
   Notes: `<path ${FS} d="M4 4h16v10.5L14.5 20H4z"/><path ${C} d="M20.5 14h-6.5v6.5"/>`,
   Yoni: `<circle ${F} cx="12" cy="13.5" r="8.3"/><circle ${F} cx="3.6" cy="13.8" r="1.9"/><circle ${F} cx="20.4" cy="13.8" r="1.9"/><path ${K(2.4)} d="M12 5.4c-.9-2.3 1.4-3.7 3.2-2.3"/><path fill="none" stroke="var(--cut)" stroke-width="2.6" d="M8.9 12.6h.01M15.1 12.6h.01"/><path ${C} d="M9.6 16.4c1.4 1.3 3.4 1.3 4.8 0"/>`
 };
+TAB.Strength = `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v4M21.5 10v4M6 12h12"/>`;
 TAB.Shopping = `<path ${K(2.6)} d="M2 3.5h3l.8 3"/><path ${FS} d="M5.8 6.5h15.4l-2 8.5H7.6z"/><circle ${F} cx="9" cy="19.6" r="1.9"/><circle ${F} cx="17.6" cy="19.6" r="1.9"/>`;
-/* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home. CucuBarri's Shopping tab is Tasks held on its Shopping view */
+/* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home. CucuBarri's Shopping and Strength tabs are Tasks held on those views */
 const CB = document.documentElement.classList.contains("cb");
-const TAB_BAR = CB ? ["Home", "Calendar", "Tasks", "Shopping", "Yoni"] : ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
+const TAB_BAR = CB ? ["Home", "Calendar", "Tasks", "Shopping", "Strength", "Yoni"] : ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
 const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`,bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
@@ -1149,7 +1151,7 @@ function tkParse() {
 function drawTasks() {
   if (tk.view === "Shopping") { drawShop(); return; }
   leaveHabits();
-  if (tk.view === "Strength") { drawStrength(); return; } /* the Done shopping bar */
+  if (tk.view === "Strength") { drawStrength(); return; }
   /* Ideas filter by category, and Tasks by source: All Tasks, or the CucuBarri board's alone */
   const idea = tk.view === "Ideas", key = idea ? "cat" : "src", on = tk[key], open = r => r.st !== "Done";
   const inCat = x => tk.cat === "All" || x.cat === tk.cat, inSrc = tkIn;
@@ -1186,13 +1188,13 @@ function drawTasks() {
 }
 /* the switch at the top, as on Calendar; its buttons carry data-{kind}="{act}" with the view in data-a */
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
-/* Tasks, Ideas, Notes, Shopping, and Strength, shown as emojis; Notes is its own screen, so its button opens it */
-const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒", Strength: "💪" };
+/* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
+const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
 /* the right of a task row: its owner, or a faint dash while it has none */
 const tkTag = r => `<span class="cp ow ${r.own ? esc(r.own) : "none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
-  const [t, i, y, s, c, g] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null), CB ? null : readFile(GY_FILE).catch(() => null)]);
+  const [t, i, y, s, c, g] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null), CB ? readFile(GY_FILE).catch(() => null) : null]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
   tk.lines = t.text.split("\n"); if (c) tk.clines = c.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); if (g) gy.lines = g.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
@@ -1623,7 +1625,7 @@ function shAddTyped() {
   const x = $("sh-x"); if (x) x.focus();
 }
 
-/* ---------- Strength, Tasks' fifth view: 06💪-physical/strengthRegistry.md. The Routine table holds the exercises, and the Log table one line per day:
+/* ---------- Strength, CucuBarri's Strength tab: 06💪-physical/strengthRegistry.md. The Routine table holds the exercises, and the Log table one line per day:
    Done names the exercises ticked, and Rest is Yes on a rest day. There are no make-ups: a missed or partly done day ends the streak, and a rest day holds it ---------- */
 const GY_FILE = "06💪-physical/strengthRegistry.md";
 const gy = { lines: [], ex: [], log: [], edit: false, sheet: null, t: null, left: 0 };
@@ -1682,7 +1684,8 @@ function gyStreak() {
   }
 }
 const GY_MOON = `<path ${F} d="M15.9 2.4a9.7 9.7 0 1 0 5.7 13.4 7.8 7.8 0 0 1-5.7-13.4z"/>`;
-const GY_FROWN = `<circle ${F} cx="8.6" cy="9.6" r="1.6"/><circle ${F} cx="15.4" cy="9.6" r="1.6"/><path d="M7.6 17c2.4-2.6 6.4-2.6 8.8 0"/>`;
+const GY_FROWN = `<circle cx="12" cy="12" r="9.5"/><circle ${F} cx="8.8" cy="9.6" r="1.4"/><circle ${F} cx="15.2" cy="9.6" r="1.4"/><path d="M8.6 16.4c1.9-1.9 4.9-1.9 6.8 0"/>`;
+const GY_SPIN = `<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/>`;
 const GY_EDIT = `<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>`;
 function drawStrength() {
   $("fab").hidden = true;
@@ -1690,9 +1693,9 @@ function drawStrength() {
   const t = today(), e = gyEntry(t), rest = !!(e && e.rest), mon = new Date();
   mon.setDate(mon.getDate() - (mon.getDay() + 6) % 7);
   const week = Array.from({ length: 7 }, (_, k) => { const d = new Date(mon); d.setDate(mon.getDate() + k); return isoDay(d); });
-  const icon = { done: svg(UI.check, 16, 3.2), rest: svg(GY_MOON, 16), miss: svg(GY_FROWN, 18, 2) };
+  const icon = { done: svg(UI.check, 16, 3.2), rest: svg(GY_MOON, 16), miss: svg(GY_FROWN, 20, 2), part: svg(GY_SPIN, 16, 2.4) };
   const sq = (d, k) => { const s = gyStat(d), now = d === t; return `<div>${"MTWTFSS"[k]}<${now ? `button type="button" data-tk="gyrest" aria-label="Today. Tap to ${rest ? "undo the rest day" : "mark a rest day"}"` : "span"} class="gyd ${s}${now ? " today" : ""}">${s && !(now && s === "miss") ? icon[s] : ""}</${now ? "button" : "span"}></div>`; };
-  const bar = tkBar("Strength", `<button type="button" class="sq" data-tk="gyedit" aria-label="Edit routine">${svg(GY_EDIT, 18, 2)}</button>`);
+  const bar = `<div class="gyt"><h2>Physical Therapy</h2><button type="button" class="sq" data-tk="gyedit" aria-label="Edit routine">${svg(GY_EDIT, 18, 2)}</button></div>`;
   const body = gy.ex.length ? `<div class="gyk"><span>🔥</span><span class="num">${gyStreak()} day streak</span></div><div class="gyw">${week.map(sq).join("")}</div>
     <div class="${rest ? "gyrest" : ""}">${gy.ex.map((x, i) => { const on = !!e && e.done.includes(x.n); return `<div class="gyr${on ? " on" : ""}" data-tk="gyopen" data-a="${i}"><span class="e">${esc(x.e)}</span><div class="n"><b>${esc(x.n)}</b><span>${gyDose(x)}</span></div><button type="button" class="gyb" data-tk="gytick" data-hap data-a="${i}" aria-label="${esc(x.n)}: ${on ? "done. Tap to undo" : "tap to mark done"}"><span class="gyc">${svg(UI.check, 13, 3.2)}</span></button></div>`; }).join("")}</div>`
     : `<div class="empty">The strength routine was not found.</div>`;
@@ -2468,13 +2471,13 @@ function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
 const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: HUCK ? openHuckleberry : homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Home";
-/* the tab to reload: on CucuBarri, Tasks held on its Shopping view is the Shopping tab */
-const here = () => CB && tab === "Tasks" && tk.view === "Shopping" ? "Shopping" : tab;
+/* the tab to reload: on CucuBarri, Tasks held on its Shopping or Strength view is that tab */
+const here = () => CB && tab === "Tasks" && (tk.view === "Shopping" || tk.view === "Strength") ? tk.view : tab;
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
 async function go(name) {
   leave();
-  if (CB && (name === "Shopping" || name === "Tasks")) { tk.view = name; name = "Tasks"; }
+  if (CB && (name === "Shopping" || name === "Strength" || name === "Tasks")) { tk.view = name; name = "Tasks"; }
   tab = SCREENS[name] && (!CB || ["Home", "Yoni", "Tasks", "Calendar"].includes(name)) ? name : START;
   const lit = CB ? here() : tab === "Notes" ? "Tasks" : tab;
   history.replaceState(null, "", location.search + "#" + (CB ? lit : tab).toLowerCase());
