@@ -376,7 +376,7 @@
   .fb { display: flex; gap: 8px; }
   .fb .btn { padding: 11px 16px; font-weight: 600; }
 
-  /* ---------- Shopping, Tasks' fourth view (shoppingListMobileV3 option 2): one store section open at a time ---------- */
+  /* ---------- Shopping, Tasks' fourth view (shoppingListMobileV3 option 2): store sections open and close on their own ---------- */
   .seg .emo { font-size: 19px; }
   .shtop { display: flex; gap: 8px; margin: 2px 0 8px; }
   .shtop .seg { padding: 3px; border-radius: 11px; }
@@ -1509,8 +1509,8 @@ function shAdd(lines, name, sub) {
 /* Done shopping: everything in the cart comes off the list */
 function shClear(lines) { const got = shRead(lines).items.filter(x => x.st === "Got"); got.forEach(x => shSet(lines, x.name, "Status", "")); return got; }
 
-/* one: the section open on the list ("" for none, null picks the first unfinished one) */
-const sh = { lines: [], d: shRead([]), store: store.get("shop-store"), cat: false, one: null, open: {} };
+/* shut: the sections collapsed on the list (all start expanded); open: the sections expanded in the Catalog */
+const sh = { lines: [], d: shRead([]), store: store.get("shop-store"), cat: false, shut: {}, open: {} };
 /* while Shopping is open, the list is read again every 10 seconds, so two phones shopping together see each other's ticks.
    Skipped while a change is saving or an item is being typed */
 setInterval(async () => {
@@ -1535,9 +1535,8 @@ function drawShop() {
   }).join("");
   else {
     const live = secs.map(s => { const groups = s.groups.map(g => ({ k: g.k, items: g.items.filter(x => x.st) })).filter(g => g.items.length), all = groups.flatMap(g => g.items), n = all.filter(x => x.st === "Got").length; return { ...s, groups, all, n, fin: n === all.length }; }).filter(s => s.all.length);
-    if (sh.one === null || (sh.one && !live.some(s => s.name === sh.one))) { const f = live.find(s => !s.fin); sh.one = f ? f.name : live.length ? "" : null; }
     const row = x => `<button type="button" class="slr${x.st === "Got" ? " got" : ""}" data-tk="shgot" data-hap data-a="${esc(x.name)}"><span class="sck">${x.st === "Got" ? tick : ""}</span><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span>${x.q ? `<span class="sqty">${esc(x.q)}</span>` : ""}</button>`;
-    body = live.map(s => { const op = sh.one === s.name; return `<div class="scard${op ? " op" : ""}${s.fin ? " fin" : ""}"><button type="button" class="slg" data-tk="shone" data-a="${esc(s.name)}" aria-expanded="${op}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sn num">${s.fin ? `✓ All ${s.all.length}` : `${s.n} of ${s.all.length}`}</span>${svg(UI.right, 14, 2.4, "scv")}</button><div class="sprog"><i style="width:${s.n / s.all.length * 100}%"></i></div>${op ? s.groups.map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(row).join("")}`).join("") : ""}</div>`; }).join("")
+    body = live.map(s => { const op = !sh.shut[s.name]; return `<div class="scard${op ? " op" : ""}${s.fin ? " fin" : ""}"><button type="button" class="slg" data-tk="shone" data-a="${esc(s.name)}" aria-expanded="${op}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sn num">${s.fin ? `✓ All ${s.all.length}` : `${s.n} of ${s.all.length}`}</span>${svg(UI.right, 14, 2.4, "scv")}</button><div class="sprog"><i style="width:${s.n / s.all.length * 100}%"></i></div>${op ? s.groups.map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(row).join("")}`).join("") : ""}</div>`; }).join("")
       || `<div class="empty">The list is empty. Add an item above, or pick from the Catalog.</div>`;
   }
   $("main").innerHTML = tkBar("Shopping") + top + (sh.cat ? "" : add) + body;
@@ -1552,19 +1551,19 @@ function shSave(change, message) {
 }
 function shAct(act, a) {
   const it = sh.d.items.find(x => x.name === a);
-  if (act === "shstore") { sh.store = a; store.set("shop-store", a); sh.one = null; drawShop(); }
+  if (act === "shstore") { sh.store = a; store.set("shop-store", a); drawShop(); }
   else if (act === "shview") { sh.cat = a === "Catalog"; $("scr").scrollTop = 0; drawShop(); }
-  else if (act === "shone") { sh.one = sh.one === a ? "" : a; drawShop(); }
+  else if (act === "shone") { sh.shut[a] = !sh.shut[a]; drawShop(); }
   else if (act === "shsec") { sh.open[a] = !sh.open[a]; drawShop(); }
   else if (act === "shon" && it) shSave(lines => shSet(lines, a, "Status", it.st ? "" : "On"), `Phone: ${it.st ? "remove" : "add"} "${a}" ${it.st ? "from" : "to"} the shopping list`);
   else if (act === "shgot" && it) {
     const to = it.st === "Got" ? "On" : "Got";
-    /* checking off the last item of the open section opens the next unfinished one */
-    const s = shSecs(sh.d, shStore()).find(x => x.name === sh.one), rest = s ? s.groups.flatMap(g => g.items).filter(x => x.st && x.name !== a) : null;
-    if (to === "Got" && rest && rest.every(x => x.st === "Got")) sh.one = null;
+    /* checking off the last item of a section collapses it */
+    const s = shSecs(sh.d, shStore()).find(x => x.groups.some(g => g.items.some(i => i.name === a))), rest = s ? s.groups.flatMap(g => g.items).filter(x => x.st && x.name !== a) : null;
+    if (to === "Got" && rest && rest.every(x => x.st === "Got")) sh.shut[s.name] = true;
     shSave(lines => shSet(lines, a, "Status", to), `Phone: ${to === "Got" ? "got" : "unchecked"} "${a}"`);
   }
-  else if (act === "shdone" && sh.d.items.some(x => x.st === "Got")) { sh.one = null; shSave(shClear, "Phone: done shopping"); }
+  else if (act === "shdone" && sh.d.items.some(x => x.st === "Got")) { sh.shut = {}; shSave(shClear, "Phone: done shopping"); }
 }
 function shAddTyped() {
   const name = tkCell($("sh-x").value);
