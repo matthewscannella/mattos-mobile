@@ -335,9 +335,9 @@
   .tl .tr { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .tr.lift { z-index: 5; background: var(--raised); border-radius: 12px; box-shadow: 0 8px 22px rgba(0, 0, 0, .5); }
   .tr.lift::after { display: none; }
-  .tr .mv { gap: 5px; padding: 6px 0 2px; }
-  .tr .mv .o { height: 30px; padding: 0 9px; font-size: 13px; }
-  .tr .mv .o.gpt { display: grid; place-items: center; width: 30px; padding: 0; margin-left: auto; }
+  /* the day buttons and the ChatGPT button share one row, each as wide as the row allows */
+  .tr .mv { flex-wrap: nowrap; gap: 4px; padding: 6px 0 2px; }
+  .tr .mv .o { flex: 1 1 0; min-width: 0; justify-content: center; height: 30px; padding: 0; font-size: 13px; }
   /* the hairline under each row starts at the text */
   .tr::after { content: ""; position: absolute; left: calc(var(--cl) + var(--cs) + var(--gap)); right: 0; bottom: 0; height: 1px; transform: scaleY(.5); transform-origin: bottom; background: rgba(255, 255, 255, .1); }
   .idea { display: grid; gap: 4px; margin-bottom: 8px; padding: 11px 12px; border-radius: 14px; background: var(--card); }
