@@ -416,6 +416,50 @@
   .savebar .spg { flex: 1; align-self: center; font-size: 14px; color: var(--mut); }
   .savebar .sv.shd { flex: none; padding: 0 18px; }
 
+  /* ---------- Strength, Tasks' fifth view (strengthTrackerV3, with the week as rounded squares as in Lumina's habit streaks) ---------- */
+  .gyk { display: flex; align-items: center; gap: 6px; padding: 14px 2px 8px; font-size: 17px; font-weight: 600; color: var(--hi); }
+  .gyw { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; line-height: 14px; color: var(--mut); margin-bottom: 22px; }
+  .gyd { display: grid; place-items: center; height: 36px; margin-top: 5px; border-radius: 9px; background: var(--raised); color: #fff; transition: background .3s; }
+  .gyd.done { background: var(--done); } .gyd.part { background: #f5c542; } .gyd.miss { background: var(--flag); } .gyd.rest { background: #b48cf5; }
+  .gyd.today { box-shadow: 0 0 0 2px var(--body), 0 0 0 3px var(--acc); }
+  .gyd.glow { animation: gyglow 1.2s ease-out; }
+  @keyframes gyglow { 0% { box-shadow: 0 0 0 2px var(--body), 0 0 0 3px var(--acc), 0 0 0 0 rgba(63, 207, 142, .8); } 100% { box-shadow: 0 0 0 2px var(--body), 0 0 0 3px var(--acc), 0 0 0 22px rgba(63, 207, 142, 0); } }
+  .gyr { display: flex; align-items: center; gap: 12px; padding: 11px 0; position: relative; }
+  .gyr + .gyr::before { content: ""; position: absolute; left: 42px; right: 0; top: 0; height: 1px; transform: scaleY(.5); background: rgba(255, 255, 255, .1); }
+  .gyr .e { flex: none; width: 30px; text-align: center; font-size: 24px; }
+  .gyr .n { flex: 1; min-width: 0; } .gyr .n b { display: block; font-size: 15px; font-weight: 600; color: var(--hi); } .gyr .n span { font-size: 13px; color: var(--mut); }
+  .gyr.on .n b { color: var(--mut); }
+  .gyb { flex: none; align-self: stretch; display: flex; align-items: flex-end; padding: 0 2px 1px 12px; }
+  .gyc { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #3a4150; display: grid; place-items: center; color: transparent; position: relative; }
+  .gyr.on .gyc { background: var(--done); border-color: var(--done); color: var(--body); }
+  .gyrest .gyr { opacity: .4; pointer-events: none; }
+  @keyframes gypop { 0% { transform: scale(.5); } 60% { transform: scale(1.3); } 100% { transform: none; } }
+  @keyframes gybounce { 0%, 100% { transform: none; } 40% { transform: translateY(-10px) scale(1.2); } 70% { transform: translateY(2px); } }
+  @keyframes gyspark { from { opacity: 1; transform: translate(0, 0) scale(1); } to { opacity: 0; transform: translate(var(--x), var(--y)) scale(.4); } }
+  .gyr.hit .e { animation: gybounce .55s ease; } .gyr.hit .gyc { animation: gypop .4s ease; }
+  .gysp { position: absolute; left: 7px; top: 7px; width: 5px; height: 5px; border-radius: 50%; animation: gyspark .6s ease-out forwards; pointer-events: none; }
+  .gys .em { font-size: 20px; }
+  .gys h3 { display: flex; gap: 8px; align-items: center; }
+  .gys ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 20px; }
+  .gyring { position: relative; justify-self: center; }
+  .gyring svg { transform: rotate(-90deg); display: block; }
+  .gyring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; font-weight: 300; color: var(--hi); }
+  .gyf { position: absolute; inset: 0; z-index: 8; overflow: hidden; background: rgba(5, 12, 9, .94); display: grid; place-content: center; text-align: center; gap: 4px; animation: gyfade .35s ease-out both; }
+  .gyf .big { font-size: 64px; line-height: 70px; font-weight: 700; color: var(--hi); animation: gypop .6s ease-out .15s both; }
+  .gyf .lab { font-size: 15px; color: #8fd9b6; }
+  .gyf i { position: absolute; top: -12px; width: 6px; height: 10px; border-radius: 2px; animation: gyfall 2.6s ease-in both; }
+  @keyframes gyfade { from { opacity: 0; } }
+  @keyframes gyfall { 0% { opacity: 0; transform: translateY(0) rotate(0); } 10%, 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(100vh) rotate(540deg); } }
+  .gyback { display: flex; align-items: center; gap: 4px; height: 44px; color: var(--acc); font-size: 15px; font-weight: 600; }
+  .gye { padding: 12px 0; position: relative; } .gye + .gye::before { content: ""; position: absolute; left: 42px; right: 0; top: 0; height: 1px; transform: scaleY(.5); background: rgba(255, 255, 255, .1); }
+  .gye .h { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; } .gye .h .e { width: 30px; text-align: center; font-size: 24px; } .gye .h b { font-size: 15px; color: var(--hi); }
+  .gyctl { display: flex; gap: 8px; padding-left: 42px; flex-wrap: wrap; }
+  .gychip { padding: 6px 10px; border-radius: 9px; background: var(--raised); font-size: 13px; font-weight: 600; }
+  .gychip.on { background: var(--blue); color: #fff; }
+  .gystp { display: flex; align-items: center; gap: 8px; background: var(--card); border-radius: 10px; padding: 4px 6px 4px 10px; font-size: 13px; color: var(--mut); }
+  .gystp button { width: 26px; height: 26px; border-radius: 8px; background: var(--raised); display: grid; place-items: center; font-weight: 700; color: var(--tx); }
+  .gystp b { min-width: 20px; text-align: center; color: var(--hi); font-size: 14px; }
+
   /* ---------- Habits ---------- */
   /* one day's form, then the week as bars and as a grid by day. A day is a draft on this phone until Save is pressed */
   .scr.hbs { padding-bottom: 20px; }
@@ -1101,10 +1145,11 @@ let tkBusy = 0, tkFail = false;
 /* a row keeps its file, f; on Matt's phone the CucuBarri board's rows follow his own, numbered on from them */
 function tkParse() {
   const t = tkRead(tk.lines), own = t.rows.map(r => ({ ...r, f: TASK_FILE, cb: CB })), cb = CB ? [] : tkRead(tk.clines).rows.map(r => ({ ...r, f: CB_FILE, cb: true }));
-  tk.rows = [...own, ...cb].map((r, n) => ({ ...r, n })); tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); }
+  tk.rows = [...own, ...cb].map((r, n) => ({ ...r, n })); tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); const g = gyRead(gy.lines); gy.ex = g.ex; gy.log = g.log; }
 function drawTasks() {
   if (tk.view === "Shopping") { drawShop(); return; }
-  leaveHabits(); /* the Done shopping bar */
+  leaveHabits();
+  if (tk.view === "Strength") { drawStrength(); return; } /* the Done shopping bar */
   /* Ideas filter by category, and Tasks by source: All Tasks, or the CucuBarri board's alone */
   const idea = tk.view === "Ideas", key = idea ? "cat" : "src", on = tk[key], open = r => r.st !== "Done";
   const inCat = x => tk.cat === "All" || x.cat === tk.cat, inSrc = tkIn;
@@ -1141,15 +1186,15 @@ function drawTasks() {
 }
 /* the switch at the top, as on Calendar; its buttons carry data-{kind}="{act}" with the view in data-a */
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
-/* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
-const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
+/* Tasks, Ideas, Notes, Shopping, and Strength, shown as emojis; Notes is its own screen, so its button opens it */
+const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒", Strength: "💪" };
 /* the right of a task row: its owner, or a faint dash while it has none */
 const tkTag = r => `<span class="cp ow ${r.own ? esc(r.own) : "none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
-  const [t, i, y, s, c] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null)]);
+  const [t, i, y, s, c, g] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null), CB ? null : readFile(GY_FILE).catch(() => null)]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
-  tk.lines = t.text.split("\n"); if (c) tk.clines = c.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); tkParse();
+  tk.lines = t.text.split("\n"); if (c) tk.clines = c.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); if (g) gy.lines = g.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
   drawTasks();
   if (!quick && !t.at) recurSync();
@@ -1219,7 +1264,7 @@ async function recurSync() {
 }
 /* the change shows at once and is then saved on top of the newest file. If a save fails, the list is read again once nothing else is waiting */
 function tkSave(path, change, message) {
-  try { change(path === TASK_FILE ? tk.lines : path === CB_FILE ? tk.clines : path === IDEA_FILE ? tk.ilines : path === SHOP_FILE ? sh.lines : yo.lines); } catch (e) { /* the save below reports it */ }
+  try { change(path === TASK_FILE ? tk.lines : path === CB_FILE ? tk.clines : path === IDEA_FILE ? tk.ilines : path === SHOP_FILE ? sh.lines : path === GY_FILE ? gy.lines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
   if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
   tkBusy++;
@@ -1360,6 +1405,7 @@ function frameInfo() {
 /* iOS scrolls the whole page up to show a focused field and can leave it there when the keyboard closes */
 document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement || !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) window.scrollTo(0, 0); }, 50));
 function tkAct(act, a, el) {
+  if (act.startsWith("gy")) { gyAct(act, a, el); return; }
   if (act === "view") { tk.menu = false; tk.wide = null; if (a !== "Notes") tk.view = a; if (tab !== "Tasks" || a === "Notes") { go(a === "Notes" ? "Notes" : "Tasks"); return; } $("scr").scrollTop = 0; drawTasks(); }
   else if (act === "menu") { tk.menu = !tk.menu; drawTasks(); }
   else if (act === "cat" || act === "src") { tk[act] = a; tk.menu = false; drawTasks(); }
@@ -1575,6 +1621,156 @@ function shAddTyped() {
   if (!name) return;
   shSave(lines => shAdd(lines, name, "Other"), `Phone: add "${name}" to the shopping list`);
   const x = $("sh-x"); if (x) x.focus();
+}
+
+/* ---------- Strength, Tasks' fifth view: 06💪-physical/strengthRegistry.md. The Routine table holds the exercises, and the Log table one line per day:
+   Done names the exercises ticked, and Rest is Yes on a rest day. There are no make-ups: a missed or partly done day ends the streak, and a rest day holds it ---------- */
+const GY_FILE = "06💪-physical/strengthRegistry.md";
+const gy = { lines: [], ex: [], log: [], edit: false, sheet: null, t: null, left: 0 };
+function gyRead(lines) {
+  const ex = [], log = [], hd = {}, end = {};
+  let head = null, kind = "";
+  lines.forEach((line, i) => {
+    const t = line.replace(/\r$/, "").trim();
+    if (!t.startsWith("|")) { head = null; return; }
+    const c = t.split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { head = c; kind = c.includes("Exercise") ? "ex" : c.includes("Date") ? "log" : ""; if (kind) { hd[kind] = c; end[kind] = i; } return; }
+    if (!kind) return;
+    end[kind] = i;
+    if (/^:?-+:?$/.test(c[0])) return;
+    const cell = n => c[head.indexOf(n)] || "";
+    if (kind === "ex" && cell("Exercise")) ex.push({ i, e: cell("Emoji"), n: cell("Exercise"), min: +cell("Minutes") || 0, s: +cell("Sets") || 0, r: +cell("Reps") || 0, side: /yes/i.test(cell("Per Side")), st: cell("Steps").split(" / ").filter(Boolean) });
+    else if (kind === "log" && /^\d{4}-\d\d-\d\d$/.test(cell("Date"))) log.push({ i, d: cell("Date"), done: cell("Done").split(",").map(x => x.trim()).filter(Boolean), rest: /yes/i.test(cell("Rest")) });
+  });
+  return { ex, log, hd, end };
+}
+/* today's line, written whole, or added after the last line of the Log */
+function gyDay(lines, f) {
+  const t = gyRead(lines), d = today(), r = t.log.find(x => x.d === d);
+  if (!t.hd.log) throw new Error("The Log table was not found in strengthRegistry.md, so the change was not saved.");
+  const e = r ? { done: [...r.done], rest: r.rest } : { done: [], rest: false };
+  f(e);
+  const cells = { Date: d, Done: e.done.join(", "), Rest: e.rest ? "Yes" : "" }, cr = lines[t.end.log].endsWith("\r") ? "\r" : "";
+  const line = `| ${t.hd.log.map(h => cells[h] || "").join(" | ")} |`.replace(/ {2}\|/g, " |") + cr;
+  if (r) lines[r.i] = line; else lines.splice(t.end.log + 1, 0, line);
+  return e;
+}
+/* one cell of an exercise's row in the Routine, found again by its name */
+function gySet(lines, name, col, v) {
+  const t = gyRead(lines), x = t.ex.find(y => y.n === name), k = t.hd.ex ? t.hd.ex.indexOf(col) : -1;
+  if (!x || k < 0) throw new Error(`"${name}" was not found in the routine, so the change was not saved.`);
+  const cr = lines[x.i].endsWith("\r") ? "\r" : "", cells = lines[x.i].replace(/\r$/, "").split("|");
+  cells[k + 1] = ` ${v} `;
+  lines[x.i] = cells.join("|") + cr;
+  return x;
+}
+const gyDose = x => x.min ? `${x.min} min` : `${x.s} × ${x.r}${x.side ? " per side" : ""}`;
+const gyEntry = d => gy.log.find(x => x.d === d);
+const gyFull = e => !!e && gy.ex.length > 0 && gy.ex.every(x => e.done.includes(x.n));
+/* a day's square: done, rest, part, or miss; blank before the first logged day and after today */
+function gyStat(d) {
+  const e = gyEntry(d), first = gy.log.reduce((a, x) => x.d < a ? x.d : a, today());
+  if (d > today() || d < first) return "";
+  return !e ? "miss" : e.rest ? "rest" : gyFull(e) ? "done" : e.done.length ? "part" : "miss";
+}
+function gyStreak() {
+  let n = gyStat(today()) === "done" ? 1 : 0;
+  for (const day = new Date(); ;) {
+    day.setDate(day.getDate() - 1);
+    const s = gyStat(isoDay(day));
+    if (s === "done") n++; else if (s !== "rest") return n;
+  }
+}
+const GY_MOON = `<path ${F} d="M15.9 2.4a9.7 9.7 0 1 0 5.7 13.4 7.8 7.8 0 0 1-5.7-13.4z"/>`;
+const GY_FROWN = `<circle ${F} cx="8.6" cy="9.6" r="1.6"/><circle ${F} cx="15.4" cy="9.6" r="1.6"/><path d="M7.6 17c2.4-2.6 6.4-2.6 8.8 0"/>`;
+const GY_EDIT = `<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>`;
+function drawStrength() {
+  $("fab").hidden = true;
+  if (gy.edit) { drawGyEdit(); return; }
+  const t = today(), e = gyEntry(t), rest = !!(e && e.rest), mon = new Date();
+  mon.setDate(mon.getDate() - (mon.getDay() + 6) % 7);
+  const week = Array.from({ length: 7 }, (_, k) => { const d = new Date(mon); d.setDate(mon.getDate() + k); return isoDay(d); });
+  const icon = { done: svg(UI.check, 16, 3.2), rest: svg(GY_MOON, 16), miss: svg(GY_FROWN, 18, 2) };
+  const sq = (d, k) => { const s = gyStat(d), now = d === t; return `<div>${"MTWTFSS"[k]}<${now ? `button type="button" data-tk="gyrest" aria-label="Today. Tap to ${rest ? "undo the rest day" : "mark a rest day"}"` : "span"} class="gyd ${s}${now ? " today" : ""}">${s && !(now && s === "miss") ? icon[s] : ""}</${now ? "button" : "span"}></div>`; };
+  const bar = tkBar("Strength", `<button type="button" class="sq" data-tk="gyedit" aria-label="Edit routine">${svg(GY_EDIT, 18, 2)}</button>`);
+  const body = gy.ex.length ? `<div class="gyk"><span>🔥</span><span class="num">${gyStreak()} day streak</span></div><div class="gyw">${week.map(sq).join("")}</div>
+    <div class="${rest ? "gyrest" : ""}">${gy.ex.map((x, i) => { const on = !!e && e.done.includes(x.n); return `<div class="gyr${on ? " on" : ""}" data-tk="gyopen" data-a="${i}"><span class="e">${esc(x.e)}</span><div class="n"><b>${esc(x.n)}</b><span>${gyDose(x)}</span></div><button type="button" class="gyb" data-tk="gytick" data-hap data-a="${i}" aria-label="${esc(x.n)}: ${on ? "done. Tap to undo" : "tap to mark done"}"><span class="gyc">${svg(UI.check, 13, 3.2)}</span></button></div>`; }).join("")}</div>`
+    : `<div class="empty">The strength routine was not found.</div>`;
+  $("main").innerHTML = bar + body;
+}
+function drawGyEdit() {
+  $("main").innerHTML = `<button type="button" class="gyback" data-tk="gyback">${svg(UI.left, 20, 2.4)}Routine</button>` + gy.ex.map((x, i) => `<div class="gye"><div class="h"><span class="e">${esc(x.e)}</span><b>${esc(x.n)}</b></div><div class="gyctl">${x.min
+    ? [1, 2, 3, 5].map(m => `<button type="button" class="gychip${m === x.min ? " on" : ""}" data-tk="gymin" data-a="${i}" data-v="${m}">${m} min</button>`).join("")
+    : [["s", "Sets"], ["r", x.side ? "Reps per side" : "Reps"]].map(([f, l]) => `<span class="gystp">${l}<button type="button" data-tk="gystep" data-a="${i}" data-f="${f}" data-v="-1" aria-label="Fewer">−</button><b class="num">${x[f]}</b><button type="button" data-tk="gystep" data-a="${i}" data-f="${f}" data-v="1" aria-label="More">+</button></span>`).join("")}</div></div>`).join("");
+}
+/* an exercise's sheet: the ring and Start for a timed one, or its dose and Done, with the steps beneath */
+function gySheet(i) {
+  const x = gy.ex[i], sz = 150, rr = sz / 2 - 6, c = 2 * Math.PI * rr, tot = x.min * 60, p = x.min && gy.t ? 1 - gy.left / tot : 0;
+  const lab = x.min ? `${Math.floor(gy.left / 60)}:${p2(gy.left % 60)}` : gyDose(x).replace(" per side", "");
+  gy.sheet = i; tk.sheet = "Strength";
+  $("sheet").innerHTML = `<div class="dim" data-tk="gyclose"></div><div class="bs gys"><div class="grab"></div><h3><span class="em">${esc(x.e)}</span>${esc(x.n)}</h3>
+    <div class="gyring"><svg width="${sz}" height="${sz}"><circle cx="${sz / 2}" cy="${sz / 2}" r="${rr}" fill="none" stroke="#1b202b" stroke-width="8"/><circle id="gyarc" cx="${sz / 2}" cy="${sz / 2}" r="${rr}" fill="none" stroke="#3fcf8e" stroke-width="8" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" data-c="${c}"/></svg><b class="num" id="gylab">${lab}</b></div>
+    <button type="button" class="btn primary" id="gygo" data-tk="${x.min ? "gystart" : "gydone"}" data-a="${i}">${x.min ? "Start" : "Done"}</button><ol>${x.st.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>`;
+  $("sheet").hidden = false;
+}
+function gyStop() { clearInterval(gy.t); gy.t = null; }
+function gyClose() { gyStop(); gy.sheet = null; closeSheet(); }
+function gyTick(i) {
+  const x = gy.ex[i];
+  if (!x) return;
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  const was = gyEntry(today()), on = !!was && was.done.includes(x.n), full = !on && gy.ex.every(y => y.n === x.n || (was && was.done.includes(y.n)));
+  tkSave(GY_FILE, lines => gyDay(lines, e => { e.rest = false; e.done = on ? e.done.filter(n => n !== x.n) : [...e.done, x.n]; }), `Phone: ${on ? "undo" : "done"} "${x.n}"`);
+  if (on || tab !== "Tasks" || tk.view !== "Strength") return;
+  /* the tick bounces the emoji, pops the check, and throws a small burst of sparks */
+  const r = document.querySelector(`.gyr[data-a="${i}"]`), ck = r && r.querySelector(".gyc");
+  if (!r) return;
+  r.classList.add("hit"); buzz();
+  for (let j = 0; j < 10; j++) {
+    const s = document.createElement("span"), a = j / 10 * Math.PI * 2;
+    s.className = "gysp"; s.style.background = ["#3fcf8e", "#f5c542", "#8dabf9"][j % 3];
+    s.style.setProperty("--x", Math.cos(a) * 26 + "px"); s.style.setProperty("--y", Math.sin(a) * 26 + "px");
+    ck.appendChild(s);
+  }
+  /* the last tick of the day opens the celebration, with the new streak and confetti; a tap closes it */
+  if (full) setTimeout(() => {
+    tk.sheet = "Strength"; buzz(true);
+    $("sheet").innerHTML = `<div class="gyf" data-tk="gyclose"><div class="big num">🔥 ${gyStreak()}</div><div class="lab">Day done</div>${Array.from({ length: 34 }, (_, k) => `<i style="left:${(k * 37) % 100}%;background:${["#3fcf8e", "#f5c542", "#8dabf9", "#f97066", "#b48cf5"][k % 5]};animation-delay:${(k % 7) * .12}s"></i>`).join("")}</div>`;
+    $("sheet").hidden = false;
+  }, 700);
+  else { const d = document.querySelector(".gyd.today"); if (d) d.classList.add("glow"); }
+}
+function gyAct(act, a, el) {
+  const i = +a, x = gy.ex[i];
+  if (act === "gyopen" && x) { gy.left = x.min * 60; gySheet(i); }
+  else if (act === "gytick") { if (!(gyEntry(today()) || {}).rest) gyTick(i); }
+  else if (act === "gyclose") gyClose();
+  else if (act === "gyedit" || act === "gyback") { gy.edit = act === "gyedit"; $("scr").scrollTop = 0; drawStrength(); }
+  else if (act === "gyrest") {
+    const e = gyEntry(today());
+    if (gyFull(e) || offline) return;
+    tkSave(GY_FILE, lines => gyDay(lines, d => { d.rest = !d.rest; }), `Phone: ${e && e.rest ? "undo the rest day" : "rest day"}`);
+  }
+  else if (act === "gymin" && x) { const v = +el.dataset.v; if (v !== x.min && !offline) tkSave(GY_FILE, lines => gySet(lines, x.n, "Minutes", v), `Phone: ${x.n} to ${v} min`); }
+  else if (act === "gystep" && x) {
+    const f = el.dataset.f, v = Math.max(1, x[f] + +el.dataset.v);
+    if (v !== x[f] && !offline) tkSave(GY_FILE, lines => gySet(lines, x.n, f === "s" ? "Sets" : "Reps", v), `Phone: ${x.n} ${f === "s" ? "sets" : "reps"} to ${v}`);
+  }
+  else if (act === "gydone" && x) { gyClose(); if (!gyEntry(today())?.done.includes(x.n)) gyTick(i); }
+  else if (act === "gystart" && x) {
+    /* the ring and the time left change in place each second; at zero the phone buzzes, the sheet closes, and the exercise ticks */
+    if (gy.t) { gyStop(); el.textContent = "Start"; return; }
+    const tot = x.min * 60;
+    if (!gy.left) gy.left = tot;
+    el.textContent = "Pause";
+    gy.t = setInterval(() => {
+      gy.left = Math.max(0, gy.left - 1);
+      const arc = $("gyarc"), lab = $("gylab");
+      if (arc) arc.setAttribute("stroke-dasharray", `${+arc.dataset.c * (1 - gy.left / tot)} ${arc.dataset.c}`);
+      if (lab) lab.textContent = `${Math.floor(gy.left / 60)}:${p2(gy.left % 60)}`;
+      if (!gy.left) { gyClose(); buzz(true); if (!gyEntry(today())?.done.includes(x.n)) gyTick(i); }
+    }, 1000);
+  }
 }
 
 /* ---------- Habits: one day's form at a time. The week in progress is a row per day in habitsRegistry.md, the file the desktop's
