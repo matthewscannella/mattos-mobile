@@ -1670,7 +1670,10 @@ const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
 const hbOpen = () => hb.cur ? hb.cur.week : hbMonday(today());
 const hbLive = w => w === hbOpen();
 /* today as a day of a week, or the nearest day of it */
-const hbDayIn = w => [w, today(), addDays(w, 6)].sort()[1];
+/* until 4am the day to log is yesterday while it is not yet submitted, so a late night is logged on the day it belongs to */
+const hbLate = () => new Date().getHours() < 4;
+const hbTarget = () => { const y = addDays(today(), -1); return hbLate() && hbFiled(y).st !== "saved" && hbLive(hbMonday(y)) ? y : today(); };
+const hbDayIn = w => [w, hbTarget(), addDays(w, 6)].sort()[1];
 const hbList = a => a.length < 3 ? a.join(" and ") : `${a.slice(0, -1).join(", ")}, and ${a[a.length - 1]}`;
 const hbFiled = s => hb.cur && hb.cur.week === hbMonday(s) ? hb.cur.rows[hbIndex(s)] : { st: "", f: hwBlank() };
 const hbKeep = () => store.set("habit-drafts", JSON.stringify(hb.drafts));
@@ -1878,7 +1881,7 @@ async function loadHabits() {
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
   /* a draft for a week that can no longer be logged is dropped */
   hb.drafts = Object.fromEntries(Object.entries(hb.drafts).filter(([date]) => hbLive(hbMonday(date))).map(([date, d]) => [date, hwForm(d)]));
-  if (hb.on !== now) { hb.on = now; hb.week = hbOpen(); hb.day = hbDayIn(hb.week); }
+  if (hb.on !== now + hbLate()) { hb.on = now + hbLate(); hb.week = hbOpen(); hb.day = hbDayIn(hb.week); }
   status(f.at ? `Offline. Showing habits loaded ${f.at}; a draft is kept on this phone and can be saved once you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
   drawHabits(); $("fab").hidden = offline;
 }
@@ -2187,7 +2190,7 @@ function drawHome() {
   const up = it => `<div class="row${it.on ? " on" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}"><span class="ck${it.on ? " on" : ""}"></span><span class="t ell">${esc(it.text.replace(/^\*\*(.+)\*\*$/, "$1"))}</span>${it.when ? `<span class="w num">${esc(it.when.replace(/\s*[AP]M$/i, ""))}</span>` : ""}</div>`;
   const yoSq = `<div class="card qbox${allSet ? " set" : ""}" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span></div>${tl}<div class="qnx"><div class="lab">Next up</div><div class="lst">${ups.map(up).join("") || `<div class="none">All steps done</div>`}</div></div></div>`;
   /* Habits: the week's overall score in the heading, graded in the scorecard colours, then Fitness, Mental, Food, Water, and Habits against the week's pace */
-  const H = hbNow(), saved = hbFiled(td).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
+  const H = hbNow(), saved = hbFiled(hbTarget()).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
   const HE = { water: "💧", habits: "🥕", food: "🥗", fitness: "💪🏻", mental: "🧠" };
   const hbSq = `<div class="card qbox${saved ? " set" : ""}" data-go="Habits"><div class="mh">${saved ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Habits, 13)}Habits<span class="ov num" style="color:${og}"><span class="gd" style="background:${og}"></span>${H.overall}%</span></div><div class="qwm">${["fitness", "mental", "food", "water", "habits"].map(k => H.cats.find(x => x.c.k === k)).map(x => `<div class="qwr${x.part >= 1 ? " ok" : x.part < pace ? " behind" : ""}"><span class="e${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span><i class="qbar"><u style="width:${x.part * 100}%"></u><s style="left:${pace * 100}%"></s></i><b class="num">${x.tot}/${x.target}</b></div>`).join("")}</div></div>`;
   const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
