@@ -513,6 +513,11 @@
   .chip.good { background: rgba(63, 207, 142, .2); color: var(--done); }
   .chip.bad { background: rgba(249, 112, 102, .18); color: var(--flag); }
   .chip.mid { background: #2a3040; color: var(--tx); }
+  .chip.veg { background: #3fcf8e; color: #0a0c11; }
+  .chip.red { background: #f97066; color: #0a0c11; }
+  .hin { width: 64px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--tx); font: inherit; font-size: 15px; font-weight: 600; text-align: center; outline: none; }
+  .hin.wide { width: 96px; background: var(--raised); }
+  .hhold { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   .hstp { display: flex; align-items: center; gap: 10px; margin-left: auto; }
   .hstp :is(button, label) { width: 40px; height: 40px; border-radius: 10px; background: var(--raised); color: var(--tx); display: grid; place-items: center; }
   .hstp b { min-width: 64px; text-align: center; font-size: 15px; font-weight: 600; }
@@ -1785,8 +1790,8 @@ const hbCodes = (list, pts) => Object.fromEntries(list.split(" ").map((c, i) => 
 const HB_CATS = [
   { k: "water", name: "Water", target: 28, top: 4, codes: hbCodes("Bh Bi Bj Bk Bl", [.33, 1, 2, 3, 4]) },
   { k: "habits", name: "Habits", target: 28, top: 4, codes: hbCodes("Am An Ao Ap Aq Ar As At", [1, 0]) },
-  { k: "food", name: "Food", target: 23, top: 6, codes: hbCodes("Bm Bn Bo Bp Bq Br Bs Bt Bu Bv Bw Bx By Bz Ca Cb Cc Cd", [1, 0, -1]) },
-  { k: "fitness", name: "Fitness", target: 14, top: 3, codes: hbCodes("Au Av Aw Ax Ay Az", [1, 2, 3, 4, 5, 6]) },
+  { k: "food", name: "Food", target: 23, top: 6, codes: { ...hbCodes("Bm Bn Bo Bp Bq Br Bs Bt Bu Bv Bw Bx By Bz Ca Cb Cc Cd", [1, 0, -1]), ...hbCodes("Ea Eb Ec Ed", [2, -2]) } },
+  { k: "fitness", name: "Fitness", target: 14, top: 3, codes: { ...hbCodes("Au Av Aw Ax Ay Az", [1, 2, 3, 4, 5, 6]), ...hbCodes("Fa Fb Fc Fd Fe Ff", [2, 4, 6, 8, 10, 12]) } },
   { k: "mental", name: "Mental", target: 45, top: 15, codes: hbCodes("Da Db Dc Dd De Df", [5, 10, 15, 20, 25, 30]) }
 ];
 /* the By Day grid's shades, punitive: short of target is red, deeper red when well short, and green only for a full day. Fitness and Mental grade green by amount */
@@ -1796,8 +1801,10 @@ const HB_RULE = {
   food: v => v >= 3 ? "f" : v === 2 ? "gray" : v <= 0 ? "red2" : "red",
   fitness: v => v <= 0 ? "gray" : v <= 3 ? "l" : v === 4 ? "m" : "f", mental: v => v <= 0 ? "gray" : v <= 5 ? "l" : v < 15 ? "m" : "f"
 };
-/* the form's controls: a meal is healthy, neutral or unhealthy, and a habit is yes or no. The codes are how an archived week records each */
-const HB_MEALS = [["Breakfast", "Bm Bn Bo"], ["Lunch", "Bp Bq Br"], ["Snack", "Bs Bt Bu"], ["Dinner", "Bv Bw Bx"], ["Drink", "By Bz Ca"], ["Dessert", "Cb Cc Cd"]].map(m => ({ name: m[0], codes: m[1].split(" ") }));
+/* the form's controls: a meal is healthy, neutral or unhealthy, lunch and dinner also vegetarian or red meat, and a habit is yes or no. The codes are how an archived week records each.
+   Cardio is held in steps of 7.5 minutes; miles and weight are tracked only, as Mi and Wt tokens that match no scoring code */
+const HB_MEALS = [["Breakfast", "Bm Bn Bo"], ["Lunch", "Bp Bq Br"], ["Snack", "Bs Bt Bu"], ["Dinner", "Bv Bw Bx"], ["Drink", "By Bz Ca"], ["Dessert", "Cb Cc Cd"]].map(m => ({ name: m[0], codes: m[1].split(" "), x: { Lunch: { 2: "Ea", "-2": "Eb" }, Dinner: { 2: "Ec", "-2": "Ed" } }[m[0]] }));
+const hbMin = n => Math.floor(n * 7.5);
 /* col is the habit's column in habitsRegistry.md, as HW_RULES in mattOs.html; Stretching leads */
 const HB_RULES = [["Stretching", "As At", "Stretching"], ["Pain bodies", "Aq Ar", "Pain"], ["Posture", "Ao Ap", "Posture"], ["Anxiety", "Am An", "Anxiety"]].map(r => ({ name: r[0], codes: r[1].split(" "), col: r[2] }));
 /* the live week's targets are those of the latest archived week, then any goals in the history's Goals table set from a later Monday up to the week's own,
@@ -1812,7 +1819,8 @@ const hbScore = codes => Object.fromEntries(HB_CATS.map(c => [c.k, hbRound(codes
 /* an archived day's codes as the form, for showing it */
 function hbDecode(codes) {
   const s = hbScore(codes), pick = list => { const hit = codes.filter(x => list.includes(x)).pop(); return hit ? 1 - list.indexOf(hit) : null; };
-  return { water: Math.min(4, Math.round(s.water)), food: HB_MEALS.map(m => pick(m.codes)), rules: HB_RULES.map(r => pick(r.codes)), sets: s.fitness, med: s.mental };
+  const five = m => { const hit = Object.entries(m.x || {}).find(e => codes.includes(e[1])); return hit ? +hit[0] : pick(m.codes); }, cardio = codes.reduce((a, x) => a + ("Fa Fb Fc Fd Fe Ff".split(" ").indexOf(x) + 1), 0), tok = p => parseFloat((codes.find(x => x.startsWith(p)) || "").slice(2)) || 0;
+  return { water: Math.min(4, Math.round(s.water)), food: HB_MEALS.map(five), rules: HB_RULES.map(r => pick(r.codes)), sets: s.fitness - cardio * 2, cardio, miles: tok("Mi"), wt: tok("Wt") || null, med: s.mental };
 }
 /* the archive: rows are newest first, one per week, named by its Monday */
 function hbRead(lines) {
@@ -1844,12 +1852,13 @@ function hbGoals(lines) {
 /* the week in progress, read and written as hwParse and hwSerialize in mattOs.html: its Monday, then a row per day.
    Water is bottles, a meal 1, 0 or -1, a habit Yes or No, and a blank cell nothing entered; Status is Saved, Draft or blank */
 const HW_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const hwBlank = () => ({ water: 0, food: HB_MEALS.map(() => null), rules: HB_RULES.map(() => null), sets: 0, med: 0 });
-const hwForm = f => ({ water: f.water || 0, food: HB_MEALS.map((m, i) => (f.food || [])[i] ?? null), rules: HB_RULES.map((r, i) => ((f.rules || []).length === HB_RULES.length - 1 ? [null, ...f.rules] : f.rules || [])[i] ?? null), sets: f.sets || 0, med: f.med || 0 });
+const hwBlank = () => ({ water: 0, food: HB_MEALS.map(() => null), rules: HB_RULES.map(() => null), sets: 0, cardio: 0, miles: 0, wt: null, med: 0 });
+const hwForm = f => ({ water: f.water || 0, food: HB_MEALS.map((m, i) => (f.food || [])[i] ?? null), rules: HB_RULES.map((r, i) => ((f.rules || []).length === HB_RULES.length - 1 ? [null, ...f.rules] : f.rules || [])[i] ?? null), sets: f.sets || 0, cardio: f.cardio || 0, miles: f.miles || 0, wt: f.wt ?? null, med: f.med || 0 });
+const HB_STATE = { 2: "Vegetarian", 1: "Healthy", 0: "Neutral", "-1": "Unhealthy", "-2": "Red Meat" };
 const hwSum = list => list.reduce((a, v) => a + (v || 0), 0);
-const hwScore = f => ({ water: f.water, habits: hwSum(f.rules), food: hwSum(f.food), fitness: f.sets, mental: f.med });
-const hwLine = (day, f, st) => `| ${[day, f.water, ...f.food.map(v => v ?? ""), f.sets, f.med, ...f.rules.map(v => v == null ? "" : v ? "Yes" : "No"), st].join(" | ")} |`;
-const hwText = (week, rows) => `# Habits Registry\n\nThe HabitFlow week in progress for MattOS, written by the This Week tab of the app. One row per day: water in bottles, each meal as 1 (healthy), 0 (neutral), or -1 (unhealthy), resistance sets, meditation minutes, and each habit as Yes or No. A blank cell is nothing entered. Status is Saved, Draft, or blank.\n\n**Week of:** ${week}\n\n---\n\n## This Week\n\n| Day | Water | ${HB_MEALS.map(m => m.name).join(" | ")} | Sets | Minutes | ${HB_RULES.map(r => r.col).join(" | ")} | Status |\n|${"---|".repeat(11 + HB_RULES.length)}\n${HW_DAYS.map((d, n) => rows ? hwLine(d, rows[n].f, rows[n].st ? rows[n].st[0].toUpperCase() + rows[n].st.slice(1) : "") : hwLine(d, hwBlank(), "")).join("\n")}\n`;
+const hwScore = f => ({ water: f.water, habits: hwSum(f.rules), food: hwSum(f.food), fitness: f.sets + (f.cardio || 0) * 2, mental: f.med });
+const hwLine = (day, f, st) => `| ${[day, f.water, ...f.food.map(v => v ?? ""), f.sets, f.cardio || 0, f.miles ? f.miles.toFixed(2) : "", f.wt ?? "", f.med, ...f.rules.map(v => v == null ? "" : v ? "Yes" : "No"), st].join(" | ")} |`;
+const hwText = (week, rows) => `# Habits Registry\n\nThe HabitFlow week in progress for MattOS, written by the This Week tab of the app. One row per day: water in bottles, each meal as 1 (healthy), 0 (neutral), or -1 (unhealthy), with lunch and dinner also 2 (vegetarian) or -2 (red meat), resistance sets, cardio in steps of 7.5 minutes, miles, Sunday's weight in lb, meditation minutes, and each habit as Yes or No. A blank cell is nothing entered. Status is Saved, Draft, or blank.\n\n**Week of:** ${week}\n\n---\n\n## This Week\n\n| Day | Water | ${HB_MEALS.map(m => m.name).join(" | ")} | Sets | Cardio | Miles | Weight | Minutes | ${HB_RULES.map(r => r.col).join(" | ")} | Status |\n|${"---|".repeat(14 + HB_RULES.length)}\n${HW_DAYS.map((d, n) => rows ? hwLine(d, rows[n].f, rows[n].st ? rows[n].st[0].toUpperCase() + rows[n].st.slice(1) : "") : hwLine(d, hwBlank(), "")).join("\n")}\n`;
 /* a row's i is its line. A file in any other layout reads as no week, and is replaced on the first save, as on the desktop.
    Cells are found by their column name, so a week written before a habit was added still reads, with that habit blank, and is marked old */
 function hwRead(lines) {
@@ -1862,9 +1871,9 @@ function hwRead(lines) {
     const c = raw.split("|").slice(1, -1).map(x => x.trim()), col = name => c[head.indexOf(name)] ?? "";
     if (c[0] === "Day") head = c;
     if (rows.length > 6 || c[0] !== HW_DAYS[rows.length]) return;
-    rows.push({ i, st: /^(saved|draft)$/i.test(col("Status")) ? col("Status").toLowerCase() : "", f: { water: num(col("Water")) || 0, food: HB_MEALS.map(m => num(col(m.name))), rules: HB_RULES.map(r => yn(col(r.col))), sets: num(col("Sets")) || 0, med: num(col("Minutes")) || 0 } });
+    rows.push({ i, st: /^(saved|draft)$/i.test(col("Status")) ? col("Status").toLowerCase() : "", f: { water: num(col("Water")) || 0, food: HB_MEALS.map(m => num(col(m.name))), rules: HB_RULES.map(r => yn(col(r.col))), sets: num(col("Sets")) || 0, cardio: num(col("Cardio")) || 0, miles: num(col("Miles")) || 0, wt: num(col("Weight")), med: num(col("Minutes")) || 0 } });
   });
-  return week && rows.length === 7 ? { week, rows, old: HB_RULES.some(r => !head.includes(r.col)) } : null;
+  return week && rows.length === 7 ? { week, rows, old: HB_RULES.some(r => !head.includes(r.col)) || !["Cardio", "Miles", "Weight"].every(x => head.includes(x)) } : null;
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
@@ -2047,12 +2056,15 @@ function drawHabits() {
   const head = `<div class="hcard top"><div class="hsum">${ring}<div class="tx grow"><b>${fullDay(d.date)}</b>${sub ? `<span>${sub}</span>` : ""}</div><span class="hpill ${d.st}">${mine ? "Unsaved" : { draft: "Draft", saved: "Submitted", miss: "Skipped", "": "New" }[d.st]}</span></div>
     <div class="strip"><button type="button" class="nv" data-hb="week" data-a="-1" aria-label="Week before">${svg(UI.left, 16, 2.6)}</button>${days.map(x => `<button type="button" class="dy num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}"${x.date === d.date ? ' aria-current="true"' : ""}>${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b>${x.st && x.st !== "off" ? `<em class="${x.st}"></em>` : ""}</button>`).join("")}<button type="button" class="nv${last ? " off" : ""}" data-hb="week" data-a="1" aria-label="Week after"${last ? ' aria-disabled="true"' : ""}>${svg(UI.right, 16, 2.6)}</button></div></div>`;
   /* the form, in the order of the picked design: Water, Food, Fitness, Mental, then Habits */
-  const tone = v => v > 0 ? "good" : v < 0 ? "bad" : "mid", food = f.food.reduce((a, v) => a + (v || 0), 0);
+  const tone = v => v === 2 ? "veg" : v === -2 ? "red" : v > 0 ? "good" : v < 0 ? "bad" : "mid", food = f.food.reduce((a, v) => a + (v || 0), 0);
   const grp = (t, meta, body) => `<div class="hgl">${t}<span class="num">${meta}</span></div><div class="hcard">${body}</div>`;
-  const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${k === "cardio" ? hbMin(f[k]) : f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  /* miles: tap the number to type it, or hold a button to run small, then fast, then faster. Weight is typed, on Sundays only */
+  const miles = `<div class="hfr"><span class="lb">Miles</span><div class="hstp"><button type="button" class="hhold" data-hb="mile" data-hap data-a="-0.01" aria-label="Fewer miles">${svg(UI.minus, 18, 2.6)}</button><input class="hin num" data-hbin="miles" inputmode="decimal" value="${f.miles.toFixed(2)}" aria-label="Miles"><button type="button" class="hhold" data-hb="mile" data-hap data-a="0.01" aria-label="More miles">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  const weight = hbIndex(d.date) === 6 ? `<div class="hfr"><span class="lb">Weight</span><div class="hstp"><input class="hin wide num" data-hbin="wt" inputmode="decimal" placeholder="lb" value="${f.wt ?? ""}" aria-label="Weight in lb"></div></div>` : "";
   const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-hap data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
-    + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-hap data-k="${i}">${m.name}<i>${v == null ? "Tap" : v > 0 ? "Healthy" : v < 0 ? "Unhealthy" : "Neutral"}</i></button>`; }).join("")}</div>`)
-    + grp("Fitness", "", step("Resistance", "sets", "sets", 1)) + grp("Mental", "", step("Meditation", "med", "min", 5))
+    + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-hap data-k="${i}">${m.name}<i>${v == null ? "Tap" : HB_STATE[v]}</i></button>`; }).join("")}</div>`)
+    + grp("Fitness", `${hwScore(f).fitness} points`, step("Resistance", "sets", "sets", 1) + step("Cardio", "cardio", "min", 1) + (f.cardio ? miles : "") + weight) + grp("Mental", "", step("Meditation", "med", "min", 5))
     + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-hap data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
   const bars = `<div class="hbr all"><span style="width:16px;flex:none"></span><span class="nm">Overall</span><div class="hbar grow"><i style="width:${overall}%;background:${gc}"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${overall}%</span><span class="gd" style="background:${gc}"></span></div>` + HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
   /* one day's total for one category; a day with nothing logged is a dashed blank */
@@ -2092,6 +2104,7 @@ async function loadHabits() {
 }
 /* only the day's own row is rewritten, so every other line stays as the laptop wrote it. Save Draft writes it with Status Draft and Submit with Saved;
    a draft already in the file is submitted as it stands. The bar shows the time the file took it, so the screen can be left with confidence */
+const hbNewLow = (date, wt) => { const prior = [...hb.hist.flatMap(r => r.days.flat()).filter(x => x.startsWith("Wt")).map(x => +x.slice(2))].filter(Boolean); return prior.length && wt < Math.min(...prior); };
 function hbSave(kind) {
   const date = hb.day, week = hbMonday(date), di = hbIndex(date), filed = hbFiled(date), f = hb.drafts[date] || (kind === "Saved" && filed.st === "draft" ? filed.f : null);
   if (!f || hb.busy || !hbLive(week) || date > today()) return;
@@ -2105,7 +2118,8 @@ function hbSave(kind) {
     return f;
   }, `Phone: habits ${kind === "Draft" ? "draft " : ""}for ${fullDay(date)}`, (item, lines) => { hb.cur = hwRead(lines); hb.at[date] = stamp().split(", ").pop(); delete hb.drafts[date]; hbKeep(); }).then(item => {
     hb.busy = false;
-    if (item && kind === "Saved" && !CB) kindleToast();
+    if (item && kind === "Saved" && item.wt && hbNewLow(date, item.wt)) win({ em: "🎉", head: `New low: ${item.wt} lb`, sub: "Lightest weigh-in so far", party: true });
+    else if (item && kind === "Saved" && !CB) kindleToast();
     if (tab !== "Habits") return;
     if (!item) $("scr").scrollTop = 0; /* the reason is in the status line at the top; the draft is still here */
     drawHabits();
@@ -2114,9 +2128,11 @@ function hbSave(kind) {
 /* a day's form as the codes an archived week holds; a count is the fewest codes that add up to it. As hwCodes in mattOs.html */
 function hbEncode(f) {
   const out = [], many = (n, list) => { for (list = list.split(" "); n > 0; n -= list.length) out.push(list[Math.min(n, list.length) - 1]); };
-  HB_MEALS.forEach((m, i) => { if (f.food[i] != null) out.push(m.codes[1 - f.food[i]]); });
+  HB_MEALS.forEach((m, i) => { const v = f.food[i]; if (v != null) out.push(Math.abs(v) === 2 ? m.x[v] : m.codes[1 - v]); });
   HB_RULES.forEach((r, i) => { if (f.rules[i] != null) out.push(r.codes[1 - f.rules[i]]); });
-  many(f.water, "Bi Bj Bk Bl"); many(f.sets, "Au Av Aw Ax Ay Az"); many(Math.round(f.med / 5), "Da Db Dc Dd De Df");
+  many(f.water, "Bi Bj Bk Bl"); many(f.sets, "Au Av Aw Ax Ay Az"); many(f.cardio || 0, "Fa Fb Fc Fd Fe Ff"); many(Math.round(f.med / 5), "Da Db Dc Dd De Df");
+  if (f.miles) out.push("Mi" + f.miles.toFixed(2));
+  if (f.wt) out.push("Wt" + f.wt);
   return out.join(" ");
 }
 /* Close Week: the week in the file becomes a row at the top of the archive, each logged day as codes and then the targets it was graded against,
@@ -2172,9 +2188,10 @@ function hbAct(act, k, a) {
     /* any change makes the day a draft; changing it back to what is in the file drops the draft */
     const was = hbFiled(hb.day).f, f = hb.drafts[hb.day] || hwForm(was);
     if (act === "water") f.water = f.water === +a ? +a - 1 : +a;
-    else if (act === "cycle") { const o = [null, 1, 0, -1]; f.food[k] = o[(o.indexOf(f.food[k]) + 1) % o.length]; }
+    else if (act === "cycle") { const o = HB_MEALS[k].x ? [null, 2, 1, 0, -1, -2] : [null, 1, 0, -1]; f.food[k] = o[(o.indexOf(f.food[k]) + 1) % o.length]; }
+    else if (act === "mile") { if (Date.now() - hbHeld < 400) return; f.miles = hbRound(Math.max(0, f.miles + +a)); }
     else if (act === "set") f.rules[k] = f.rules[k] === +a ? null : +a;
-    else if (act === "inc") f[k] = Math.max(0, Math.min(k === "sets" ? 18 : 90, f[k] + +a));
+    else if (act === "inc") { f[k] = Math.max(0, Math.min(k === "sets" ? 18 : k === "cardio" ? 24 : 90, f[k] + +a)); if (k === "cardio" && !f.cardio) f.miles = 0; }
     if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
     hbKeep();
     const before = hb.wk || {};
@@ -2183,16 +2200,41 @@ function hbAct(act, k, a) {
   }
   drawHabits();
 }
-/* a stamp for every added set or meditation and every healthy meal, and a sad one for an unhealthy meal */
+/* typed miles and weight are drafts like any other change */
+function hbType(k, raw) {
+  if (!hbLive(hb.week) || hb.day > today() || hb.busy) return;
+  const was = hbFiled(hb.day).f, f = hb.drafts[hb.day] || hwForm(was), v = parseFloat(raw), ok = !isNaN(v) && v > 0;
+  if (k === "miles") f.miles = ok ? hbRound(v) : 0; else f.wt = ok ? hbRound(v) : null;
+  if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
+  hbKeep(); setTimeout(drawHabits, 200);
+}
+document.addEventListener("change", e => { const el = e.target.closest("[data-hbin]"); if (el) hbType(el.dataset.hbin, el.value); });
+/* holding a miles button: .01 at a time, then .05 after a second, then .25 after three. Only the number moves until release, so the button stays under the finger */
+let hbHeld = 0;
+document.addEventListener("pointerdown", e => {
+  const b = e.target.closest('[data-hb="mile"]');
+  if (!b || !hbLive(hb.week)) return;
+  const dir = Math.sign(+b.dataset.a), input = b.parentElement.querySelector("input"), t0 = Date.now();
+  let val = (hb.drafts[hb.day] || hbFiled(hb.day).f).miles, ran = false, timer = 0;
+  const stop = () => { clearTimeout(timer); removeEventListener("pointerup", stop); removeEventListener("pointercancel", stop);
+    if (!ran) return;
+    hbHeld = Date.now(); hbType("miles", String(val)); };
+  const tick = () => { ran = true; const t = Date.now() - t0, by = t > 3000 ? .25 : t > 1000 ? .05 : .01; val = hbRound(Math.max(0, val + dir * by)); input.value = val.toFixed(2); timer = setTimeout(tick, 70); };
+  timer = setTimeout(tick, 350);
+  addEventListener("pointerup", stop); addEventListener("pointercancel", stop);
+});
+/* a stamp for every added set, cardio step or meditation and every healthy meal, and a sad one for an unhealthy meal */
 const HB_MEAL_EM = ["🍳", "🥗", "🍎", "🍽️", "🥤", "🍨"];
 function hbWin(act, k, a, f, before) {
   const wk = c => { const [t, of] = hb.wk[c] || [0, 1], [w] = before[c] || [t]; return { t, of, pct: t / of, was: w / of }; };
   if (act === "inc" && a > 0) {
-    const c = k === "sets" ? "fitness" : "mental", w = wk(c);
-    win({ em: c === "fitness" ? "💪🏻" : "🧠", head: c === "fitness" ? `${f.sets} set${f.sets === 1 ? "" : "s"} logged` : `${f.med} min meditation`, sub: `${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
-  } else if (act === "cycle" && (f.food[k] === 1 || f.food[k] === -1)) {
+    const c = k === "med" ? "mental" : "fitness", w = wk(c);
+    win({ em: k === "cardio" ? "🏃🏻" : c === "fitness" ? "💪🏻" : "🧠", head: k === "cardio" ? `${hbMin(f.cardio)} min cardio` : c === "fitness" ? `${f.sets} set${f.sets === 1 ? "" : "s"} logged` : `${f.med} min meditation`, sub: `${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
+  } else if (act === "cycle" && f.food[k]) {
     const meal = HB_MEALS[k].name.toLowerCase(), w = wk("food");
-    if (f.food[k] === 1) win({ em: HB_MEAL_EM[k], head: `Healthy ${meal}`, sub: `Food ${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
+    if (f.food[k] === 2) win({ em: "🥦", head: `Vegetarian ${meal}`, sub: `Food ${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
+    else if (f.food[k] === -2) win({ em: "🥩", head: `Red meat ${meal}`, sub: "The next meal is a fresh start", pct: w.pct, was: w.was, sad: true });
+    else if (f.food[k] === 1) win({ em: HB_MEAL_EM[k], head: `Healthy ${meal}`, sub: `Food ${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
     else win({ em: "😔", head: `Unhealthy ${meal}`, sub: "The next meal is a fresh start", pct: w.pct, was: w.was, sad: true });
   }
 }
