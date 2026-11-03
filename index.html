@@ -892,7 +892,7 @@ function showNote(id) {
     <span class="s num">Edited ${esc(n.edited)}</span>
     <textarea id="nbody" placeholder="Start writing…" aria-label="Note"${ro}>${esc(noteShow(n.body))}</textarea></div>`;
   /* a bar above the tabs, like the Habits save bar: Done saves and goes back to the list */
-  $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del" data-hap>Delete</button>`) + `<button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
+  $("savebar").innerHTML = (offline ? "" : `<button class="sv ghost del" type="button" id="del" data-hap>Delete</button>`) + `<button class="sv ghost" type="button" id="ncopy" data-hap>Copy all</button><button class="sv ico" type="button" id="back">${svg(UI.check, 18, 2.6)}Done</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
   fitNote();
 }
@@ -2538,6 +2538,12 @@ document.addEventListener("click", e => {
   /* a tap on a swiped-open note closes it rather than opening it */
   if (n) { if (swOpen) { shutSwipe(); return; } showNote(n.dataset.id); return; }
   if (e.target.closest("#back")) { leaveNotes(); showNoteList(); return; }
+  /* Copy all copies the note's title and text as they stand on screen, then reads Copied for a moment */
+  const ncp = e.target.closest("#ncopy");
+  if (ncp) {
+    navigator.clipboard.writeText([$("ntitle").value, $("nbody").value].filter(Boolean).join("\n\n")).then(() => { ncp.textContent = "Copied"; ncp.classList.add("saved"); setTimeout(() => { ncp.textContent = "Copy all"; ncp.classList.remove("saved"); }, 1200); });
+    return;
+  }
   if (e.target.closest("#del")) {
     const id = openId;
     deleteNote(id, { title: $("ntitle").value, body: noteKeep($("nbody").value) });
