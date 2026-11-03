@@ -1816,13 +1816,17 @@ function hbGoals(lines) {
 /* the week in progress, read and written as hwParse and hwSerialize in mattOs.html: its Monday, then a row per day.
    Water is bottles, a meal 1, 0 or -1, a habit Yes or No, and a blank cell nothing entered; Status is Saved, Draft or blank */
 const HW_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const hwBlank = () => ({ water: 0, food: HB_MEALS.map(() => null), rules: HB_RULES.map(() => null), sets: 0, cardio: 0, miles: 0, wt: null, med: 0 });
-const hwForm = f => ({ water: f.water || 0, food: HB_MEALS.map((m, i) => (f.food || [])[i] ?? null), rules: HB_RULES.map((r, i) => ((f.rules || []).length === HB_RULES.length - 1 ? [null, ...f.rules] : f.rules || [])[i] ?? null), sets: f.sets || 0, cardio: f.cardio || 0, miles: f.miles || 0, wt: f.wt ?? null, med: f.med || 0 });
+/* the body parts under Resistance. A day holds a set count for each, in this order, written as "Chest 3, Triceps 2". As HW_PARTS on the desktop */
+const HB_PARTS = ["Chest", "Triceps", "Back", "Biceps", "Shoulders", "Abs", "Legs"];
+const hwPartsRead = s => HB_PARTS.map(p => +(String(s).match(new RegExp(`\\b${p} (\\d+)`)) || [])[1] || 0);
+const hwPartsText = a => (a || []).map((n, i) => n ? `${HB_PARTS[i]} ${n}` : "").filter(Boolean).join(", ");
+const hwBlank = () => ({ water: 0, food: HB_MEALS.map(() => null), rules: HB_RULES.map(() => null), sets: 0, parts: HB_PARTS.map(() => 0), cardio: 0, miles: 0, wt: null, med: 0 });
+const hwForm = f => ({ water: f.water || 0, food: HB_MEALS.map((m, i) => (f.food || [])[i] ?? null), rules: HB_RULES.map((r, i) => ((f.rules || []).length === HB_RULES.length - 1 ? [null, ...f.rules] : f.rules || [])[i] ?? null), sets: f.sets || 0, parts: HB_PARTS.map((p, i) => (f.parts || [])[i] || 0), cardio: f.cardio || 0, miles: f.miles || 0, wt: f.wt ?? null, med: f.med || 0 });
 const HB_STATE = { 2: "Vegetarian", 1: "Healthy", 0: "Neutral", "-1": "Unhealthy", "-2": "Red Meat" };
 const hwSum = list => list.reduce((a, v) => a + (v || 0), 0);
 const hwScore = f => ({ water: f.water, habits: hwSum(f.rules), food: hwSum(f.food), fitness: f.sets + (f.cardio || 0) * 2, mental: f.med });
-const hwLine = (day, f, st) => `| ${[day, f.water, ...f.food.map(v => v ?? ""), f.sets, f.cardio || 0, f.miles ? f.miles.toFixed(2) : "", f.wt ?? "", f.med, ...f.rules.map(v => v == null ? "" : v ? "Yes" : "No"), st].join(" | ")} |`;
-const hwText = (week, rows) => `# Habits Registry\n\nThe HabitFlow week in progress for MattOS, written by the This Week tab of the app. One row per day: water in bottles, each meal as 1 (healthy), 0 (neutral), or -1 (unhealthy), with lunch and dinner also 2 (vegetarian) or -2 (red meat), resistance sets, cardio in steps of 7.5 minutes, miles, Sunday's weight in lb, meditation minutes, and each habit as Yes or No. A blank cell is nothing entered. Status is Saved, Draft, or blank.\n\n**Week of:** ${week}\n\n---\n\n## This Week\n\n| Day | Water | ${HB_MEALS.map(m => m.name).join(" | ")} | Sets | Cardio | Miles | Weight | Minutes | ${HB_RULES.map(r => r.col).join(" | ")} | Status |\n|${"---|".repeat(14 + HB_RULES.length)}\n${HW_DAYS.map((d, n) => rows ? hwLine(d, rows[n].f, rows[n].st ? rows[n].st[0].toUpperCase() + rows[n].st.slice(1) : "") : hwLine(d, hwBlank(), "")).join("\n")}\n`;
+const hwLine = (day, f, st) => `| ${[day, f.water, ...f.food.map(v => v ?? ""), f.sets, hwPartsText(f.parts), f.cardio || 0, f.miles ? f.miles.toFixed(2) : "", f.wt ?? "", f.med, ...f.rules.map(v => v == null ? "" : v ? "Yes" : "No"), st].join(" | ")} |`;
+const hwText = (week, rows) => `# Habits Registry\n\nThe HabitFlow week in progress for MattOS, written by the This Week tab of the app. One row per day: water in bottles, each meal as 1 (healthy), 0 (neutral), or -1 (unhealthy), with lunch and dinner also 2 (vegetarian) or -2 (red meat), resistance sets, body parts with their sets such as Chest 3, Triceps 2, cardio in steps of 7.5 minutes, miles, Sunday's weight in lb, meditation minutes, and each habit as Yes or No. A blank cell is nothing entered. Status is Saved, Draft, or blank.\n\n**Week of:** ${week}\n\n---\n\n## This Week\n\n| Day | Water | ${HB_MEALS.map(m => m.name).join(" | ")} | Sets | Body Parts | Cardio | Miles | Weight | Minutes | ${HB_RULES.map(r => r.col).join(" | ")} | Status |\n|${"---|".repeat(15 + HB_RULES.length)}\n${HW_DAYS.map((d, n) => rows ? hwLine(d, rows[n].f, rows[n].st ? rows[n].st[0].toUpperCase() + rows[n].st.slice(1) : "") : hwLine(d, hwBlank(), "")).join("\n")}\n`;
 /* a row's i is its line. A file in any other layout reads as no week, and is replaced on the first save, as on the desktop.
    Cells are found by their column name, so a week written before a habit was added still reads, with that habit blank, and is marked old */
 function hwRead(lines) {
@@ -1835,9 +1839,9 @@ function hwRead(lines) {
     const c = raw.split("|").slice(1, -1).map(x => x.trim()), col = name => c[head.indexOf(name)] ?? "";
     if (c[0] === "Day") head = c;
     if (rows.length > 6 || c[0] !== HW_DAYS[rows.length]) return;
-    rows.push({ i, st: /^(saved|draft)$/i.test(col("Status")) ? col("Status").toLowerCase() : "", f: { water: num(col("Water")) || 0, food: HB_MEALS.map(m => num(col(m.name))), rules: HB_RULES.map(r => yn(col(r.col))), sets: num(col("Sets")) || 0, cardio: num(col("Cardio")) || 0, miles: num(col("Miles")) || 0, wt: num(col("Weight")), med: num(col("Minutes")) || 0 } });
+    rows.push({ i, st: /^(saved|draft)$/i.test(col("Status")) ? col("Status").toLowerCase() : "", f: { water: num(col("Water")) || 0, food: HB_MEALS.map(m => num(col(m.name))), rules: HB_RULES.map(r => yn(col(r.col))), sets: num(col("Sets")) || 0, parts: hwPartsRead(col("Body Parts")), cardio: num(col("Cardio")) || 0, miles: num(col("Miles")) || 0, wt: num(col("Weight")), med: num(col("Minutes")) || 0 } });
   });
-  return week && rows.length === 7 ? { week, rows, old: HB_RULES.some(r => !head.includes(r.col)) || !["Cardio", "Miles", "Weight"].every(x => head.includes(x)) } : null;
+  return week && rows.length === 7 ? { week, rows, old: HB_RULES.some(r => !head.includes(r.col)) || !["Body Parts", "Cardio", "Miles", "Weight"].every(x => head.includes(x)) } : null;
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
@@ -2023,12 +2027,14 @@ function drawHabits() {
   const tone = v => v === 2 ? "veg" : v === -2 ? "red" : v > 0 ? "good" : v < 0 ? "bad" : "mid", food = f.food.reduce((a, v) => a + (v || 0), 0);
   const grp = (t, meta, body) => `<div class="hgl">${t}<span class="num">${meta}</span></div><div class="hcard">${body}</div>`;
   const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${k === "cardio" ? hbMin(f[k]) : f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  /* a body part's sets, shown once the day has sets, as miles are once it has cardio */
+  const parts = HB_PARTS.map((p, n) => `<div class="hfr"><span class="lb">${p}</span><div class="hstp"><button type="button" data-hb="part" data-hap data-k="${n}" data-a="-1" aria-label="Fewer ${p} sets">${svg(UI.minus, 18, 2.6)}</button><b class="num">${(f.parts || [])[n] || 0} <i>sets</i></b><button type="button" data-hb="part" data-hap data-k="${n}" data-a="1" aria-label="More ${p} sets">${svg(UI.plus, 18, 2.6)}</button></div></div>`).join("");
   /* miles: tap the number to type it, or hold a button to run small, then fast, then faster. Weight is typed, on Sundays only */
   const miles = `<div class="hfr"><span class="lb">Miles</span><div class="hstp"><button type="button" class="hhold" data-hb="mile" data-hap data-a="-0.01" aria-label="Fewer miles">${svg(UI.minus, 18, 2.6)}</button><input class="hin num" data-hbin="miles" inputmode="decimal" value="${f.miles.toFixed(2)}" aria-label="Miles"><button type="button" class="hhold" data-hb="mile" data-hap data-a="0.01" aria-label="More miles">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
   const weight = hbIndex(d.date) === 6 ? `<div class="hfr"><span class="lb">Weight</span><div class="hstp"><input class="hin wide num" data-hbin="wt" inputmode="decimal" placeholder="lb" value="${f.wt ?? ""}" aria-label="Weight in lb"></div></div>` : "";
   const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-hap data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
     + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-hap data-k="${i}">${m.name}<i>${v == null ? "Tap" : HB_STATE[v]}</i></button>`; }).join("")}</div>`)
-    + grp("Fitness", `${hwScore(f).fitness} points`, step("Resistance", "sets", "sets", 1) + step("Cardio", "cardio", "min", 1) + (f.cardio ? miles : "") + weight) + grp("Mental", "", step("Meditation", "med", "min", 5))
+    + grp("Fitness", `${hwScore(f).fitness} points`, step("Resistance", "sets", "sets", 1) + (f.sets ? parts : "") + step("Cardio", "cardio", "min", 1) + (f.cardio ? miles : "") + weight) + grp("Mental", "", step("Meditation", "med", "min", 5))
     + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-hap data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
   const bars = `<div class="hbr all"><span style="width:16px;flex:none"></span><span class="nm">Overall</span><div class="hbar grow"><i style="width:${overall}%;background:${gc}"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${overall}%</span><span class="gd" style="background:${gc}"></span></div>` + HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
   /* one day's total for one category; a day with nothing logged is a dashed blank */
@@ -2094,6 +2100,7 @@ function hbEncode(f) {
   const out = [], many = (n, list) => { for (list = list.split(" "); n > 0; n -= list.length) out.push(list[Math.min(n, list.length) - 1]); };
   HB_MEALS.forEach((m, i) => { const v = f.food[i]; if (v != null) out.push(Math.abs(v) === 2 ? m.x[v] : m.codes[1 - v]); });
   HB_RULES.forEach((r, i) => { if (f.rules[i] != null) out.push(r.codes[1 - f.rules[i]]); });
+  (f.parts || []).forEach((n, p) => { if (n) out.push(`Pt${HB_PARTS[p]}${n}`); });
   many(f.water, "Bi Bj Bk Bl"); many(f.sets, "Au Av Aw Ax Ay Az"); many(f.cardio || 0, "Fa Fb Fc Fd Fe Ff"); many(Math.round(f.med / 5), "Da Db Dc Dd De Df");
   if (f.miles) out.push("Mi" + f.miles.toFixed(2));
   if (f.wt) out.push("Wt" + f.wt);
@@ -2155,7 +2162,9 @@ function hbAct(act, k, a) {
     else if (act === "cycle") { const o = HB_MEALS[k].x ? [null, 2, 1, 0, -1, -2] : [null, 1, 0, -1]; f.food[k] = o[(o.indexOf(f.food[k]) + 1) % o.length]; }
     else if (act === "mile") { if (Date.now() - hbHeld < 400) return; f.miles = hbRound(Math.max(0, f.miles + +a)); }
     else if (act === "set") f.rules[k] = f.rules[k] === +a ? null : +a;
-    else if (act === "inc") { f[k] = Math.max(0, Math.min(k === "sets" ? 18 : k === "cardio" ? 24 : 90, f[k] + +a)); if (k === "cardio" && !f.cardio) f.miles = 0; }
+    else if (act === "inc") { f[k] = Math.max(0, Math.min(k === "sets" ? 18 : k === "cardio" ? 24 : 90, f[k] + +a)); if (k === "cardio" && !f.cardio) f.miles = 0; if (k === "sets") { f.parts = hwForm(f).parts; for (let p = HB_PARTS.length - 1; p >= 0 && hwSum(f.parts) > f.sets; p--) f.parts[p] = Math.max(0, f.parts[p] - (hwSum(f.parts) - f.sets)); } }
+    /* Sets stays the day's total: a body part going past it raises it, and taking one off lowers it */
+    else if (act === "part") { f.parts = hwForm(f).parts; if (+a > 0) { if (hwSum(f.parts) < 18) { f.parts[k]++; f.sets = Math.max(f.sets, hwSum(f.parts)); } } else if (f.parts[k]) { f.parts[k]--; f.sets = Math.max(0, f.sets - 1); } }
     if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
     hbKeep();
     const before = hb.wk || {};
@@ -2191,7 +2200,7 @@ document.addEventListener("pointerdown", e => {
 const HB_MEAL_EM = ["🍳", "🥗", "🍎", "🍽️", "🥤", "🍨"];
 function hbWin(act, k, a, f, before) {
   const wk = c => { const [t, of] = hb.wk[c] || [0, 1], [w] = before[c] || [t]; return { t, of, pct: t / of, was: w / of }; };
-  if (act === "inc" && a > 0) {
+  if ((act === "inc" || act === "part") && a > 0) {
     const c = k === "med" ? "mental" : "fitness", w = wk(c);
     win({ em: k === "cardio" ? "🏃🏻" : c === "fitness" ? "💪🏻" : "🧠", head: k === "cardio" ? `${hbMin(f.cardio)} min cardio` : c === "fitness" ? `${f.sets} set${f.sets === 1 ? "" : "s"} logged` : `${f.med} min meditation`, sub: `${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
   } else if (act === "cycle" && f.food[k]) {
