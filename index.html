@@ -1300,6 +1300,12 @@ function tickTask(n, back) {
   if (to === "Done") { undoNote = null; undoTask = { f: r.f, title: r.title, i: r.i, was: r.st }; taskWin(r); }
   if (to === "Done" && rcMark.test(r.note)) recurSync();
 }
+/* a task moved to another day starts that day with no timing */
+function tkSetDay(t, cells, to) {
+  cells[t.head.indexOf(t.day) + 1] = ` ${to} `;
+  const pt = t.day === "Day" ? t.head.indexOf("Timing") : -1;
+  if (pt >= 0) cells[pt + 1] = " ";
+}
 /* a day button on an opened card rewrites the task's Day in place, as the laptop's timing picker does */
 function moveTask(n, to) {
   const r = tk.rows[n];
@@ -1311,7 +1317,7 @@ function moveTask(n, to) {
     if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
     if (at < 0) throw new Error("The task table has no Day column, so the task was not moved.");
     const cells = lines[hit.i].split("|");
-    cells[at + 1] = ` ${to} `;
+    tkSetDay(t, cells, to);
     lines[hit.i] = cells.join("|");
     return hit;
   }, `Phone: move "${r.title}" to ${to}`);
@@ -1337,7 +1343,7 @@ function pullToday(next) {
         const hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw);
         if (!hit) return; /* changed on the laptop since; it stays where it is */
         const cells = lines[hit.i].split("|");
-        cells[at + 1] = ` ${to} `;
+        tkSetDay(t, cells, to);
         lines[hit.i] = cells.join("|");
       });
       return true;
@@ -1364,6 +1370,8 @@ function openSheet() {
 /* a new task goes to the CucuBarri board on CucuBarri, or on Matt's Tasks screen with the CucuBarri filter on */
 const tkCb = () => CB || (tab === "Tasks" && tk.src === "CucuBarri");
 function closeSheet() { tk.sheet = ""; $("sheet").hidden = true; $("sheet").innerHTML = ""; }
+/* a tap on the add form's buttons or background leaves the focus in the field, so the keyboard stays up and the sheet stays where it is */
+$("sheet").addEventListener("mousedown", e => { if (e.target.closest("#tkform") && !e.target.closest("input")) e.preventDefault(); });
 function saveSheet() {
   const pick = k => ($("sheet").querySelector(`.o.on[data-k="${k}"]`) || { dataset: {} }).dataset.a;
   const bug = tk.sheet !== "Idea" && pick("b"), raw = $("tk-x").value.trim(), title = tkCell(raw && bug && !raw.startsWith("🐞") ? "🐞 " + raw : raw), note = tkCell(($("tk-n") || { value: "" }).value), cat = pick("c") || "Family", cb = CB || pick("d") === "CucuBarri", own = pick("w") || "", time = pick("t") || "Backlog", idea = tk.sheet === "Idea";
@@ -1489,7 +1497,7 @@ function dgEnd(cancel) {
     if (x.f !== d.r.f) continue;
     if (!seen) prev = x; else if (!next) next = x;
   }
-  dropTask(d.r, day, prev, next, day === tkFocus() ? part : d.r.part);
+  dropTask(d.r, day, prev, next, day === tkFocus() ? part : day === d.r.time ? d.r.part : "");
 }
 document.addEventListener("touchend", () => dgEnd(false));
 document.addEventListener("touchcancel", () => dgEnd(true));
@@ -2800,10 +2808,11 @@ function taskWin(r) {
   try { s = JSON.parse(localStorage.getItem("mattos.winDay") || "null"); } catch (e) { /* start the day afresh */ }
   if (!s || s.d !== d) s = { d, t: [] };
   if (!s.t.includes(r.title)) { s.t.push(r.title); localStorage.setItem("mattos.winDay", JSON.stringify(s)); }
-  const pool = tk.rows.filter(x => x.f === r.f && x.title && (x.time === day || (x.st === "Done" && s.t.includes(x.title))));
+  /* a done task counts only if checked off today, since done tasks from past weeks keep their weekday; only ticking one of today's own tasks can clear the day */
+  const pool = tk.rows.filter(x => x.f === r.f && x.title && (x.st === "Done" ? s.t.includes(x.title) : x.time === day));
   const n = pool.filter(x => x.st === "Done").length, of = pool.length;
   winToast({ title: r.title, meta: `${n} of ${of} done today`, from: (n - 1) / of, to: n / of, undo: true });
-  if (n === of) win({ em: "🎉", head: "Day cleared", sub: `All ${of} task${of === 1 ? "" : "s"} done. Enjoy the evening.`, party: true });
+  if (n === of && r.time === day) win({ em: "🎉", head: "Day cleared", sub: `All ${of} task${of === 1 ? "" : "s"} done. Enjoy the evening.`, party: true });
 }
 let winTimer = null;
 function win({ em, head, sub, sad, party }) {
