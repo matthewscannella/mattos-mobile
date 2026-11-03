@@ -279,7 +279,7 @@
   .pill.good { background: rgba(63, 207, 142, .16); color: var(--done); }
 
   /* ---------- Tasks ---------- */
-  /* Tasks, Ideas and Notes are three screens, switched at the top as Calendar's Today and Next Up are, and so are Yoni's Routines, Packing, and Daycare
+  /* Tasks, Notes, and Shopping are three screens, switched at the top as Calendar's Today and Next Up are, and so are Yoni's Routines, Packing, and Daycare
      and Habits' Today, This Week, and Meditation; on Tasks the filter icon beside the switch opens the category list */
   .tkbar { display: flex; align-items: center; gap: 8px; }
   .sq { flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); display: grid; place-items: center; color: var(--mut); }
@@ -340,10 +340,6 @@
   .tr .mv .o { flex: 1 1 0; min-width: 0; justify-content: center; height: 30px; padding: 0; font-size: 13px; }
   /* the hairline under each row starts at the text */
   .tr::after { content: ""; position: absolute; left: calc(var(--cl) + var(--cs) + var(--gap)); right: 0; bottom: 0; height: 1px; transform: scaleY(.5); transform-origin: bottom; background: rgba(255, 255, 255, .1); }
-  .idea { display: grid; gap: 4px; margin-bottom: 8px; padding: 11px 12px; border-radius: 14px; background: var(--card); }
-  .tkbar + .idea { margin-top: 10px; }
-  .idea h4 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--tx); }
-  .idea p { margin: 0; font-size: 13.5px; line-height: 18px; color: var(--mut); white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
   /* the add form: a sheet that rises from the bottom and stays above the keyboard (--kb and --vvh are set by fitSheet) */
   .sheet { position: absolute; inset: 0; z-index: 5; }
   .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); }
@@ -1085,7 +1081,7 @@ async function loadCalendar() {
 
 /* ---------- Tasks: add, check off, and move to another day. Row order is priority, so the phone never reorders, edits or deletes ---------- */
 /* CucuBarri's tasks are the CucuBarri board's, and a new one is BB's. Matt's phone reads the board too, behind the CucuBarri filter, and a new one there is MS's */
-const CB_FILE = "11🏖️-weekend/cucuBarriRegistry.md", TASK_FILE = CB ? CB_FILE : "02📋-tasks/taskRegistry.md", IDEA_FILE = "02📋-tasks/ideaRegistry.md";
+const CB_FILE = "11🏖️-weekend/cucuBarriRegistry.md", TASK_FILE = CB ? CB_FILE : "02📋-tasks/taskRegistry.md";
 const TK_CATS = { Habits: "🥕", Family: "👪", Fitness: "💪", Mental: "🧠", Building: "🧱", Work: "💼" };
 const TK_TIMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Next Week", "Backlog"];
 /* the day buttons, as on the laptop's quick add: R is Thursday, S Saturday, and s Sunday */
@@ -1118,90 +1114,53 @@ function tkRead(lines) {
   });
   return { head, col: head ? head.indexOf("Status") : -1, end, rows, day };
 }
-/* parseIdeas and ideaAge from mattOs.html */
-function parseIdeas(md) {
-  return md.replace(/\r/g, "").split(/^## /m).slice(1).map(block => {
-    const lines = block.split("\n"), d = { title: lines[0].trim(), cat: "Family", added: "", note: "", steps: [] }, note = [];
-    let inSteps = false;
-    lines.slice(1).forEach(l => {
-      const f = l.match(/^- \*\*(Category|Added):\*\*\s*(.*)$/), s = l.match(/^- \[( |x)\]\s+(.+)$/i);
-      if (/^### Steps/.test(l)) inSteps = true;
-      else if (f && f[1] === "Added") d.added = f[2].trim();
-      else if (f) d.cat = Object.keys(TK_CATS).find(c => f[2].includes(c)) || d.cat;
-      else if (inSteps && s) d.steps.push({ text: s[2].trim(), sent: s[1] !== " " });
-      else if (!inSteps && l.trim() !== "---") note.push(l);
-    });
-    d.note = note.join("\n").trim();
-    return d;
-  }).filter(d => d.title);
-}
-function ideaAge(iso) {
-  const d = Math.floor((Date.now() - new Date(iso + "T00:00:00")) / 864e5), n = (x, unit) => `${x} ${unit}${x === 1 ? "" : "s"} ago`;
-  return !iso || isNaN(d) ? "" : d < 1 ? "Today" : d < 7 ? n(d, "day") : d < 30 ? n(Math.floor(d / 7), "week") : n(Math.floor(d / 30), "month");
-}
-/* a new idea goes first, under the rule that ends the file's heading, written as serializeIdeas in mattOs.html writes it */
-function addIdeaLines(lines, d) {
-  const cr = lines[0].endsWith("\r") ? "\r" : "", block = ["", `## ${d.title}`, `- **Category:** ${d.cat}`, `- **Added:** ${d.added}`, ...(d.note ? ["", d.note] : [])];
-  let at = lines.findIndex(l => l.trim() === "---") + 1;
-  if (!at) { while (lines.length && !lines[lines.length - 1].trim()) lines.pop(); lines.push(cr, "---" + cr); at = lines.length; }
-  if (lines.slice(at).some(l => l.startsWith("## "))) lines.splice(at, 0, ...[...block, "", "---"].map(l => l + cr));
-  else lines.splice(at, lines.length - at, ...block.map(l => l + cr), "");
-}
-const tk = { lines: [], clines: [], ilines: [], rows: [], col: -1, ideas: [], view: "Tasks", cat: "All", src: "All", noBB: store.get("tk-nobb") === "1", menu: false, wide: null, sheet: "" };
+const tk = { lines: [], clines: [], rows: [], col: -1, view: "Tasks", src: "All", noBB: store.get("tk-nobb") === "1", menu: false, wide: null, sheet: "" };
 let tkBusy = 0, tkFail = false;
 /* a row keeps its file, f; on Matt's phone the CucuBarri board's rows follow his own, numbered on from them */
 function tkParse() {
   const t = tkRead(tk.lines), own = t.rows.map(r => ({ ...r, f: TASK_FILE, cb: CB })), cb = CB ? [] : tkRead(tk.clines).rows.map(r => ({ ...r, f: CB_FILE, cb: true }));
-  tk.rows = [...own, ...cb].map((r, n) => ({ ...r, n })); tk.col = t.col; tk.ideas = parseIdeas(tk.ilines.join("\n")); yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); const g = gyRead(gy.lines); gy.ex = g.ex; gy.log = g.log; }
+  tk.rows = [...own, ...cb].map((r, n) => ({ ...r, n })); tk.col = t.col; yo.data = yoRead(yo.lines); sh.d = shRead(sh.lines); const g = gyRead(gy.lines); gy.ex = g.ex; gy.log = g.log; }
 function drawTasks() {
   if (tk.view === "Shopping") { drawShop(); return; }
   leaveHabits();
   if (tk.view === "Strength") { drawStrength(); return; }
-  /* Ideas filter by category, and Tasks by source: All Tasks, or the CucuBarri board's alone */
-  const idea = tk.view === "Ideas", key = idea ? "cat" : "src", on = tk[key], open = r => r.st !== "Done";
-  const inCat = x => tk.cat === "All" || x.cat === tk.cat, inSrc = tkIn;
+  /* Tasks filter by source: All Tasks, or the CucuBarri board's alone */
+  const on = tk.src, open = r => r.st !== "Done", inSrc = tkIn;
   const show = s => esc(s.replace(/<br\s*\/?>/gi, " ")), tick = n => svg(UI.check, n, 4);
-  const opts = idea ? ["All", ...Object.keys(TK_CATS)] : ["All", "CucuBarri"], label = v => v !== "All" ? v : idea ? "All Categories" : "All Tasks";
-  const count = v => idea ? tk.ideas.filter(x => v === "All" || x.cat === v).length : tk.rows.filter(r => open(r) && (v === "All" || r.cb) && !(tk.noBB && r.own === "BB")).length;
-  const menu = tk.menu ? `<div class="veil" data-tk="menu"></div><div class="pop" role="menu">${opts.map(v => `<button type="button" class="mi${on === v ? " on" : ""}" role="menuitemradio" aria-checked="${on === v}" data-tk="${key}" data-a="${v}"><span class="em">${idea ? TK_CATS[v] || "" : v === "CucuBarri" ? "🦜" : ""}</span><span class="grow">${label(v)}</span><span class="num">${count(v)}</span></button>`).join("")}${idea ? "" : `<button type="button" class="mi${tk.noBB ? " on" : ""}" role="menuitemcheckbox" aria-checked="${tk.noBB}" data-tk="nobb"><span class="em">🙈</span><span class="grow">Hide BB's Tasks</span></button>`}</div>` : "";
-  const bar = tkBar(tk.view, `<button type="button" class="sq${on !== "All" || (!idea && tk.noBB) || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by ${idea ? "category" : "source"}${on === "All" ? "" : ": " + on}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>${menu}`);
+  const opts = ["All", "CucuBarri"], label = v => v !== "All" ? v : "All Tasks";
+  const count = v => tk.rows.filter(r => open(r) && (v === "All" || r.cb) && !(tk.noBB && r.own === "BB")).length;
+  const menu = tk.menu ? `<div class="veil" data-tk="menu"></div><div class="pop" role="menu">${opts.map(v => `<button type="button" class="mi${on === v ? " on" : ""}" role="menuitemradio" aria-checked="${on === v}" data-tk="src" data-a="${v}"><span class="em">${v === "CucuBarri" ? "🦜" : ""}</span><span class="grow">${label(v)}</span><span class="num">${count(v)}</span></button>`).join("")}<button type="button" class="mi${tk.noBB ? " on" : ""}" role="menuitemcheckbox" aria-checked="${tk.noBB}" data-tk="nobb"><span class="em">🙈</span><span class="grow">Hide BB's Tasks</span></button></div>` : "";
+  const bar = tkBar(tk.view, `<button type="button" class="sq${on !== "All" || tk.noBB || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by source${on === "All" ? "" : ": " + on}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>${menu}`);
   const none = what => `<div class="empty">${on === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${on} ${what}.`}</div>`;
-  let body;
-  if (tk.view === "Ideas") body = tk.ideas.filter(inCat).map(d => {
-    const n = d.steps.length;
-    return `<div class="idea"><span class="tm">${TK_CATS[d.cat]} ${d.cat}</span><h4>${esc(d.title)}</h4>${d.note ? `<p>${esc(d.note)}</p>` : ""}<span class="tm num">${[ideaAge(d.added), n ? `${n} step${n === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></div>`;
-  }).join("") || none("ideas");
-  else {
-    /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
-    const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${TK_DAY[TK_TIMES.indexOf(t)]}</button>`).join("")}${HUCK ? `<button type="button" class="o gpt" data-tk="gpt" aria-label="Send to ChatGPT">${GPT_LOGO}</button>` : ""}</div>`;
-    const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-hap data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
-    /* once the parts move to tomorrow, none of them has passed */
-    const today = tkFocus(), now = today === TK_TIMES[(new Date().getDay() + 6) % 7] ? tkPartNow() : -1;
-    /* today's parts all show, even when empty, so a task can be dragged into any of them; a part that has passed is greyed */
-    const parts = all => all.filter(r => !r.part).map(card).join("") + TK_PARTS.map((p, i) => `<div class="ph${i < now ? " past" : i === now ? " now" : ""}" data-p="${p}">${p}</div>` + all.filter(r => r.part === p).map(r => i < now ? card(r).replace('class="tr', 'class="tr past') : card(r)).join("")).join("");
-    /* the open tasks left on earlier days of this week; the button on today's heading moves them all to today.
-       From 6pm a second button moves today's and earlier open tasks to tomorrow (Next Week on a Sunday) */
-    const late = tkLate().length, eve = tkTonight().length, pull = offline ? "" : (late ? `<button type="button" class="dhb" data-tk="pull">Move ${late} earlier here</button>` : "") + (eve ? `<button type="button" class="dhb" data-tk="pullnext">Move ${eve} to tomorrow</button>` : "");
-    body = TK_TIMES.map(tm => {
-      const all = tk.rows.filter(r => r.time === tm && inSrc(r) && open(r));
-      return all.length || tm === today ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span>${tm === today ? pull : ""}</div>` + (tm === today ? parts(all) : all.map(card).join("")) : "";
-    }).join("");
-    body = body ? `<div class="tl">${body}</div>` : none("open tasks");
-  }
+  /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
+  const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${TK_DAY[TK_TIMES.indexOf(t)]}</button>`).join("")}${HUCK ? `<button type="button" class="o gpt" data-tk="gpt" aria-label="Send to ChatGPT">${GPT_LOGO}</button>` : ""}</div>`;
+  const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-hap data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
+  /* once the parts move to tomorrow, none of them has passed */
+  const today = tkFocus(), now = today === TK_TIMES[(new Date().getDay() + 6) % 7] ? tkPartNow() : -1;
+  /* today's parts all show, even when empty, so a task can be dragged into any of them; a part that has passed is greyed */
+  const parts = all => all.filter(r => !r.part).map(card).join("") + TK_PARTS.map((p, i) => `<div class="ph${i < now ? " past" : i === now ? " now" : ""}" data-p="${p}">${p}</div>` + all.filter(r => r.part === p).map(r => i < now ? card(r).replace('class="tr', 'class="tr past') : card(r)).join("")).join("");
+  /* the open tasks left on earlier days of this week; the button on today's heading moves them all to today.
+     From 6pm a second button moves today's and earlier open tasks to tomorrow (Next Week on a Sunday) */
+  const late = tkLate().length, eve = tkTonight().length, pull = offline ? "" : (late ? `<button type="button" class="dhb" data-tk="pull">Move ${late} earlier here</button>` : "") + (eve ? `<button type="button" class="dhb" data-tk="pullnext">Move ${eve} to tomorrow</button>` : "");
+  let body = TK_TIMES.map(tm => {
+    const all = tk.rows.filter(r => r.time === tm && inSrc(r) && open(r));
+    return all.length || tm === today ? `<div class="dh"><b>${tm}</b><span class="num">${all.length} open</span>${tm === today ? pull : ""}</div>` + (tm === today ? parts(all) : all.map(card).join("")) : "";
+  }).join("");
+  body = body ? `<div class="tl">${body}</div>` : none("open tasks");
   $("main").innerHTML = bar + body;
   $("fab").hidden = offline;
 }
 /* the switch at the top, as on Calendar; its buttons carry data-{kind}="{act}" with the view in data-a */
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
-/* Tasks, Ideas, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
-const TK_VIEWS = { Tasks: "✏️", Ideas: "💡", Notes: "🗒️", Shopping: "🛒" };
+/* Tasks, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
+const TK_VIEWS = { Tasks: "✏️", Notes: "🗒️", Shopping: "🛒" };
 /* the right of a task row: its owner, or a faint dash while it has none */
 const tkTag = r => `<span class="cp ow ${r.own ? esc(r.own) : "none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
 async function loadTasks(quiet) {
-  const [t, i, y, s, c, g] = await Promise.all([readFile(TASK_FILE), readFile(IDEA_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null), CB ? readFile(GY_FILE).catch(() => null) : null]);
+  const [t, y, s, c, g] = await Promise.all([readFile(TASK_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null), CB ? readFile(GY_FILE).catch(() => null) : null]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
-  tk.lines = t.text.split("\n"); if (c) tk.clines = c.text.split("\n"); tk.ilines = i.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); if (g) gy.lines = g.text.split("\n"); tkParse();
+  tk.lines = t.text.split("\n"); if (c) tk.clines = c.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); if (g) gy.lines = g.text.split("\n"); tkParse();
   if (quiet !== true) status(t.at ? `Offline. Showing tasks loaded ${t.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), t.at ? "err" : "ok");
   drawTasks();
   if (!quick && !t.at) recurSync();
@@ -1271,7 +1230,7 @@ async function recurSync() {
 }
 /* the change shows at once and is then saved on top of the newest file. If a save fails, the list is read again once nothing else is waiting */
 function tkSave(path, change, message) {
-  try { change(path === TASK_FILE ? tk.lines : path === CB_FILE ? tk.clines : path === IDEA_FILE ? tk.ilines : path === SHOP_FILE ? sh.lines : path === GY_FILE ? gy.lines : yo.lines); } catch (e) { /* the save below reports it */ }
+  try { change(path === TASK_FILE ? tk.lines : path === CB_FILE ? tk.clines : path === SHOP_FILE ? sh.lines : path === GY_FILE ? gy.lines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
   if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
   tkBusy++;
@@ -1350,20 +1309,18 @@ function pullToday(next) {
     }, `Phone: move ${mine.length} task${mine.length > 1 ? "s" : ""} to ${to}`);
   });
 }
-/* the add button: a new task goes after the last task with the same timing, as on the laptop; a new idea goes first.
+/* the add button: a new task goes after the last task with the same timing, as on the laptop.
    A task has no category or note: Matt's phone picks its board, Tasks or CucuBarri, and both phones pick its person, on one line */
 const TK_OWNERS = ["MS", "BB", "CC"];
 function openSheet() {
-  const idea = tk.view === "Ideas", day = TK_TIMES[(new Date().getDay() + 6) % 7 + (new Date().getHours() >= 18 ? 1 : 0)], cat = tk.cat === "All" ? "Family" : tk.cat;
+  const day = TK_TIMES[(new Date().getDay() + 6) % 7 + (new Date().getHours() >= 18 ? 1 : 0)];
   const o = (k, v, label, on) => `<button type="button" class="o${on ? " on" : ""}" data-tk="opt" data-k="${k}" data-a="${v}" aria-pressed="${on}">${label}</button>`;
-  tk.sheet = idea ? "Idea" : "Task"; tk.menu = false;
+  tk.sheet = "Task"; tk.menu = false;
   $("sheet").innerHTML = `<div class="dim" data-tk="cancel"></div><form class="bs" id="tkform"><div class="grab"></div><h3>New ${tk.sheet}</h3>
-    <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${idea || CB ? "" : " bugpad"}" id="tk-x" placeholder="${idea ? "What is the idea?" : "What needs doing?"}" autocomplete="off" enterkeyhint="done">${idea || CB ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
-    ${idea ? "" : `<div class="fl"><span>Day</span><div class="opts">${TK_TIMES.map(t => o("t", t, TK_DAY[TK_TIMES.indexOf(t)], t === day)).join("")}</div></div>`}
-    ${idea ? `<div class="fl"><span>Category</span><div class="opts">${Object.keys(TK_CATS).map(c => o("c", c, `${TK_CATS[c]}<span class="nm">${c}</span>`, c === cat)).join("")}</div></div>`
-      : `<div class="frow">${CB ? "" : `<div class="fl"><span>Board</span><div class="opts">${o("d", "Tasks", `✏️<span class="nm">Tasks</span>`, !tkCb())}${o("d", "CucuBarri", `🦜<span class="nm">CucuBarri</span>`, tkCb())}</div></div>`}
-    <div class="fl"><span>Person</span><div class="opts">${TK_OWNERS.map(w => o("w", w, w, w === (CB ? "BB" : "MS")).replace('class="o', `class="o who ${w}`)).join("")}</div></div></div>`}
-    ${idea ? `<label class="fl"><span>Note</span><input class="in" id="tk-n" placeholder="Add a note…" autocomplete="off" enterkeyhint="done"></label>` : ""}
+    <div class="fl"><span>${tk.sheet}</span><div class="inwrap"><input class="in${CB ? "" : " bugpad"}" id="tk-x" placeholder="What needs doing?" autocomplete="off" enterkeyhint="done">${CB ? "" : `<button type="button" class="o bug" data-tk="opt" data-k="b" data-a="1" aria-pressed="false" aria-label="Bug">🐞</button>`}</div></div>
+    <div class="fl"><span>Day</span><div class="opts">${TK_TIMES.map(t => o("t", t, TK_DAY[TK_TIMES.indexOf(t)], t === day)).join("")}</div></div>
+    <div class="frow">${CB ? "" : `<div class="fl"><span>Board</span><div class="opts">${o("d", "Tasks", `✏️<span class="nm">Tasks</span>`, !tkCb())}${o("d", "CucuBarri", `🦜<span class="nm">CucuBarri</span>`, tkCb())}</div></div>`}
+    <div class="fl"><span>Person</span><div class="opts">${TK_OWNERS.map(w => o("w", w, w, w === (CB ? "BB" : "MS")).replace('class="o', `class="o who ${w}`)).join("")}</div></div></div>
     <div class="fb"><button type="button" class="btn" data-tk="cancel">Cancel</button><button type="submit" class="btn primary grow">Add ${tk.sheet}</button></div></form>`;
   $("sheet").hidden = false; fitSheet(); $("tk-x").focus({ preventScroll: true }); [150, 400, 800].forEach(ms => setTimeout(fitSheet, ms));
 }
@@ -1374,15 +1331,14 @@ function closeSheet() { tk.sheet = ""; $("sheet").hidden = true; $("sheet").inne
 $("sheet").addEventListener("mousedown", e => { if (e.target.closest("#tkform") && !e.target.closest("input")) e.preventDefault(); });
 function saveSheet() {
   const pick = k => ($("sheet").querySelector(`.o.on[data-k="${k}"]`) || { dataset: {} }).dataset.a;
-  const bug = tk.sheet !== "Idea" && pick("b"), raw = $("tk-x").value.trim(), title = tkCell(raw && bug && !raw.startsWith("🐞") ? "🐞 " + raw : raw), note = tkCell(($("tk-n") || { value: "" }).value), cat = pick("c") || "Family", cb = CB || pick("d") === "CucuBarri", own = pick("w") || "", time = pick("t") || "Backlog", idea = tk.sheet === "Idea";
+  const bug = pick("b"), raw = $("tk-x").value.trim(), title = tkCell(raw && bug && !raw.startsWith("🐞") ? "🐞 " + raw : raw), cb = CB || pick("d") === "CucuBarri", own = pick("w") || "", time = pick("t") || "Backlog";
   if (!title) { $("tk-x").classList.add("bad"); $("tk-x").focus(); return; }
   closeSheet();
-  if (idea) tkSave(IDEA_FILE, lines => { const d = { title, cat, added: today(), note }; addIdeaLines(lines, d); return d; }, `Phone: new idea "${title}"`);
-  else tkSave(cb ? CB_FILE : TASK_FILE, lines => {
+  tkSave(cb ? CB_FILE : TASK_FILE, lines => {
     const t = tkRead(lines);
     if (!t.head) throw new Error("The task table was not found, so the task was not saved.");
     const same = t.rows.filter(r => r.time === time), at = same.length ? same[same.length - 1].i : t.end;
-    const cells = { Status: "Open", Owner: own, [t.day]: time, Task: title, Note: note, Added: today() };
+    const cells = { Status: "Open", Owner: own, [t.day]: time, Task: title, Added: today() };
     lines.splice(at + 1, 0, tkLine(t.head.map(h => cells[h] || "")) + (lines[at].endsWith("\r") ? "\r" : ""));
     return cells;
   }, `Phone: new task "${title}"`);
@@ -1423,7 +1379,7 @@ function tkAct(act, a, el) {
   if (act.startsWith("gy")) { gyAct(act, a, el); return; }
   if (act === "view") { tk.menu = false; tk.wide = null; if (a !== "Notes") tk.view = a; if (tab !== "Tasks" || a === "Notes") { go(a === "Notes" ? "Notes" : "Tasks"); return; } $("scr").scrollTop = 0; drawTasks(); }
   else if (act === "menu") { tk.menu = !tk.menu; drawTasks(); }
-  else if (act === "cat" || act === "src") { tk[act] = a; tk.menu = false; drawTasks(); }
+  else if (act === "src") { tk.src = a; tk.menu = false; drawTasks(); }
   else if (act === "nobb") { tk.noBB = !tk.noBB; store.set("tk-nobb", tk.noBB ? "1" : "0"); drawTasks(); }
   else if (act === "wide") { tk.wide = tk.wide === +a ? null : +a; drawTasks(); }
   else if (act === "tick") { buzz(); tickTask(+a); }
@@ -2493,7 +2449,7 @@ function homeGo(to) {
   else if (to === "Today" || to === "Next Up") { calView = to; to = "Calendar"; }
   go(to);
 }
-/* the add button on Home, Calendar, Habits, and Yoni adds a task, whichever of Tasks and Ideas was last open */
+/* the add button on Home, Calendar, Habits, and Yoni adds a task */
 /* except on Matt's Yoni tab, where it runs the iOS Shortcut "Open Huckleberry", which opens that app */
 const HUCK = !CB;
 const HUCK_URL = "shortcuts://run-shortcut?name=" + encodeURIComponent("Open Huckleberry");
@@ -2516,7 +2472,7 @@ function sendToChatGPT(r) {
   const text = r.note ? `${r.title}\n\n${rcNote(r.note)}` : r.title, run = () => { location.href = GPT_URL; };
   (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(run, run);
 }
-function homeAdd() { const v = tk.view; tk.view = "Tasks"; openSheet(); tk.view = v; }
+function homeAdd() { openSheet(); }
 
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
 const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: HUCK ? openHuckleberry : homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
