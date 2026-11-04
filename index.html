@@ -2200,7 +2200,7 @@ document.addEventListener("pointerdown", e => {
 const HB_MEAL_EM = ["🍳", "🥗", "🍎", "🍽️", "🥤", "🍨"];
 function hbWin(act, k, a, f, before) {
   const wk = c => { const [t, of] = hb.wk[c] || [0, 1], [w] = before[c] || [t]; return { t, of, pct: t / of, was: w / of }; };
-  if ((act === "inc" || act === "part") && a > 0) {
+  if (act === "inc" && a > 0) {
     const c = k === "med" ? "mental" : "fitness", w = wk(c);
     win({ em: k === "cardio" ? "🏃🏻" : c === "fitness" ? "💪🏻" : "🧠", head: k === "cardio" ? `${hbMin(f.cardio)} min cardio` : c === "fitness" ? `${f.sets} set${f.sets === 1 ? "" : "s"} logged` : `${f.med} min meditation`, sub: `${w.t} of ${w.of} this week`, pct: w.pct, was: w.was });
   } else if (act === "cycle" && f.food[k]) {
