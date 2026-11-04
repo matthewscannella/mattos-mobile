@@ -2775,6 +2775,8 @@ function winToast({ title, meta, from, to, undo }) {
 /* today's tasks in the ticked task's file are those set for today plus anything else checked off today and still done, kept on the phone by date since tasks have no done date */
 function taskWin(r) {
   const d = new Date().toDateString(), day = TK_TIMES[(new Date().getDay() + 6) % 7];
+  /* a task from another day keeps its Undo but reports nothing on today's count */
+  if (r.time !== day) { toast("Checked off"); return; }
   let s = null;
   try { s = JSON.parse(localStorage.getItem("mattos.winDay") || "null"); } catch (e) { /* start the day afresh */ }
   if (!s || s.d !== d) s = { d, t: [] };

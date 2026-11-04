@@ -728,6 +728,8 @@ function cbTick(n) {
 function taskWin(r) {
   if (offline) return;
   const d =new Date().toDateString(), day = dayName();
+  /* a card from another day keeps its Undo but reports nothing on today's count */
+  if (r.time !== day) { draw(); return; }
   let s = null;
   try { s = JSON.parse(localStorage.getItem("mattos.winDay") || "null"); } catch (e) { /* start the day afresh */ }
   if (!s || s.d !== d) s = { d, t: [] };
