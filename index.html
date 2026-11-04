@@ -2252,18 +2252,20 @@ function yoniBody() {
   const d = yo.data, now = yoNow(), g = yoCount(d.goals);
   if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; yo.rooms = {}; }
   if (!d.all.length) return `<div class="empty">Nothing is set up for Yoni yet. Goals and routines are added on the laptop.</div>`;
-  const list = yo.view === "Daycare" ? d.care : d.packs, pc = yoCount(list);
+  /* the Restock items stay at daycare and are only topped up when asked, so they never count towards a drop-off */
+  const list = yo.view === "Daycare" ? d.care : d.packs, pack = yo.view === "Daycare" ? list.filter(x => x.g !== "Restock") : list, pc = yoCount(pack);
   const seg = segBar(["Routines", "Packing", "Daycare"], yo.view, "tk", "yoview");
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
   const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${it.when ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${yoTx(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
   const partRows = P => (rows(P.steps, true)) + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : "");
   if (yo.view === "Packing" || yo.view === "Daycare") {
-    const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = list.filter(x => !x.on), done = list.filter(x => x.on);
-    const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span><span class="g">${esc(it.g)}</span></button>`;
-    return `${seg}<div class="pks" style="margin-top:4px"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${pc[0]} of ${pc[1]} packed</b><span class="s">${left.length ? `${new Set(left.map(x => x.g)).size} groups still open` : "All packed"}</span></div><button type="button" class="clr" data-tk="yoclear" data-a="${yo.view}"${pc[0] ? "" : " disabled"}>Clear</button></div>
+    const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = pack.filter(x => !x.on), done = pack.filter(x => x.on), restock = list.filter(x => !pack.includes(x)), open = new Set(left.map(x => x.g)).size;
+    const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span>${yo.view === "Daycare" ? "" : `<span class="g">${esc(it.g)}</span>`}</button>`;
+    return `${seg}<div class="pks" style="margin-top:4px"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${pc[0]} of ${pc[1]} packed</b><span class="s">${left.length ? `${open} group${open === 1 ? "" : "s"} still open` : "All packed"}</span></div><button type="button" class="clr" data-tk="yoclear" data-a="${yo.view}"${list.some(x => x.on) ? "" : " disabled"}>Clear</button></div>
       <div class="hgl">Still to pack<span class="num">${left.length}</span></div>
       ${left.length ? `<div class="pkl">${left.map(prow).join("")}</div>` : `<div class="s" style="padding:4px 2px">Everything is in the bag.</div>`}
       ${done.length ? `<button type="button" class="pkf${yo.packed ? " open" : ""}" data-tk="yopacked" aria-expanded="${yo.packed}"><span class="ic">${svg(UI.right, 16, 2.6)}</span><span class="grow">Packed</span><span class="num">${done.length}</span></button>${yo.packed ? `<div class="pkl">${done.map(prow).join("")}</div>` : ""}` : ""}
+      ${restock.length ? `<div class="hgl" style="margin-top:18px">Restock</div><div class="pkl">${restock.map(prow).join("")}</div>` : ""}
       <p class="ynote">Checks clear at midnight Eastern, or with Clear.</p>`;
   }
   return `${seg}<div class="hgl" style="margin-top:4px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div>
