@@ -1194,6 +1194,11 @@ function recurNext(r, from) {
   };
   let next = step(from);
   while (next <= r.next) next = step(next);
+  if (on.length > 1 && from >= r.next) {
+    const days = on.slice().sort((a, b) => a - b), d = new Date(from + "T12:00");
+    d.setDate(d.getDate() + Math.min(...days.map((x, i) => (days[(i + 1) % days.length] - x + 7) % 7 || 7)));
+    if (isoDay(d) > next) next = isoDay(d);
+  }
   return next;
 }
 let rcBusy = false;
