@@ -667,25 +667,26 @@
   .dygnow { position: absolute; left: var(--gl); right: 0; border-top: 2px solid var(--flag); z-index: 3; pointer-events: none; }
   .dygnt { position: absolute; left: 0; width: var(--gl); padding-left: 6px; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--flag); background: var(--body); z-index: 3; }
   .dyc { --c: var(--mut); --cut: var(--card); min-width: 0; overflow: hidden; display: flex; flex-direction: column; padding: 6px 8px 4px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); }
-  .dyc.ev { --c: var(--acc); }
-  .dyc.ts { --c: var(--amber); }
-  .dyc.dim { opacity: .4; }
+  .dyc.dyev { --c: var(--acc); }
+  .dyc.dyts { --c: var(--amber); }
+  .dyc.dyemp { opacity: .4; }
   .dyct { display: flex; align-items: center; gap: 4px; height: 16px; margin-bottom: 2px; color: var(--c); font-size: 11px; line-height: 16px; font-weight: 600; flex: none; text-shadow: none; }
   .dyct b { margin-left: auto; font-weight: 600; }
   .dyr { display: flex; align-items: center; gap: 4px; height: 16px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--tx); min-width: 0; flex: none; }
   .dyr .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dyr .t { flex: none; font-size: 11px; font-weight: 400; color: var(--mut); }
-  .dyc.ev .dyr { height: 18px; }
-  .dyc.ev .dyr .n { font-weight: 600; color: #fff; }
-  .dyc.ev .dyr.was { opacity: .45; }
-  .dyc.ev .dyr.barri .n { color: var(--mut); font-weight: 500; }
+  .dyc.dyev .dyr { height: 18px; }
+  .dyc.dyev .dyr .n { font-weight: 600; color: #fff; }
+  .dyc.dyev .dyr.was { opacity: .45; }
+  .dygl.past .dyc.dyev .dyr.was { opacity: 1; }
+  .dyc.dyev .dyr.barri .n { color: var(--mut); font-weight: 500; }
   .dyr .ci { display: inline-flex; color: var(--ic); }
   .dymore { font-size: 12px; line-height: 12px; color: var(--mut); letter-spacing: .1em; flex: none; }
   .dyr.clo { --ic: var(--acc); margin-top: auto; }
   .dyr.clo .n { color: var(--acc); font-weight: 600; }
   .gym { --ic: var(--done); } .yoni { --ic: var(--yoni); } .drive { --ic: var(--drive); } .evt { --ic: var(--acc); } .barri { --ic: var(--barri); }
   /* the Weather card: one row per hour, top to bottom, so each sits level with its hour */
-  .dyc.wx { padding: 4px 6px; }
+  .dyc.dywx { padding: 4px 6px; }
   .dywrs { flex: 1; min-height: 0; display: grid; grid-template-rows: repeat(3, 1fr); position: relative; z-index: 4; }
   .dywr { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 0; font-size: 12px; line-height: 14px; color: var(--tx); }
   .dywr .tp { flex: none; width: 24px; }
@@ -2637,13 +2638,13 @@ function dyEvents(its, room) {
   const seen = new Set(), rows = its.filter(i => { if (i.tier < 2) return true; if (seen.has(i.h0)) return false; seen.add(i.h0); return true; });
   const fit = n => [...rows].sort((a, b) => a.tier - b.tier || a.h0 - b.h0).slice(0, n).sort((a, b) => a.h0 - b.h0 || a.tier - b.tier);
   const all = Math.floor(room / 18), more = its.length > all || rows.length > all, n = rows.length > all ? Math.floor((room - 12) / 18) : all;
-  return `<div class="dyc ev${its.length ? "" : " dim"}"><div class="dyct">${dyIco("cal", 13)}${its.length ? `<b class="num">${its.length}</b>` : ""}</div>${fit(n).map(i => `<div class="dyr ${i.k}${i.was ? " was" : ""}">${dyRowIc(i)}<span class="n">${esc(i.g)}</span>${i.t ? `<span class="t num">${i.t}</span>` : ""}</div>`).join("")}${rows.length > n && more ? `<div class="dymore">...</div>` : ""}</div>`;
+  return `<div class="dyc dyev${its.length ? "" : " dyemp"}"><div class="dyct">${dyIco("cal", 13)}${its.length ? `<b class="num">${its.length}</b>` : ""}</div>${fit(n).map(i => `<div class="dyr ${i.k}${i.was ? " was" : ""}">${dyRowIc(i)}<span class="n">${esc(i.g)}</span>${i.t ? `<span class="t num">${i.t}</span>` : ""}</div>`).join("")}${rows.length > n && more ? `<div class="dymore">...</div>` : ""}</div>`;
 }
 function dyTaskCard(ts, room, close, left) {
   const rows = Math.floor((room - (close ? 16 : 0)) / 16), n = ts.length > rows ? Math.floor((room - (close ? 16 : 0) - 12) / 16) : rows, show = s => esc(s.replace(/<br\s*\/?>/gi, " "));
-  return `<div class="dyc ts${ts.length || close ? "" : " dim"}"><div class="dyct">${dyIco("tick", 13)}${ts.length ? `<b class="num">${ts.length}</b>` : ""}</div>${ts.slice(0, Math.min(4, n)).map(x => `<div class="dyr"><span class="n">${show(x.r.title)}</span></div>`).join("")}${ts.length > Math.min(4, n) ? `<div class="dymore">...</div>` : ""}${close ? `<div class="dyr clo" data-go="Habits"><span class="ci">${dyIco("moon", 14)}</span><span class="n">Closeout</span><span class="t num">${left}</span></div>` : ""}</div>`;
+  return `<div class="dyc dyts${ts.length || close ? "" : " dyemp"}"><div class="dyct">${dyIco("tick", 13)}${ts.length ? `<b class="num">${ts.length}</b>` : ""}</div>${ts.slice(0, Math.min(4, n)).map(x => `<div class="dyr"><span class="n">${show(x.r.title)}</span></div>`).join("")}${ts.length > Math.min(4, n) ? `<div class="dymore">...</div>` : ""}${close ? `<div class="dyr clo" data-go="Habits"><span class="ci">${dyIco("moon", 14)}</span><span class="n">Closeout</span><span class="t num">${left}</span></div>` : ""}</div>`;
 }
-const dyWxCard = (d, t) => `<div class="dyc wx"><div class="dywrs">${[0, 1, 2].map(j => { const x = dyWx(d, t + j); return x ? `<div class="dywr num${wxGood(x.score)}">${dyTemp(x)}<span class="sc">${wx10(x.score)}</span></div>` : `<div class="dywr"></div>`; }).join("")}</div></div>`;
+const dyWxCard = (d, t) => `<div class="dyc dywx"><div class="dywrs">${[0, 1, 2].map(j => { const x = dyWx(d, t + j); return x ? `<div class="dywr num${wxGood(x.score)}">${dyTemp(x)}<span class="sc">${wx10(x.score)}</span></div>` : `<div class="dywr"></div>`; }).join("")}</div></div>`;
 const dyItem = i => `<div class="dyit ${i.k}${i.was ? " was" : ""}"${i.to ? ` data-go="${i.to}"` : ""}><span class="ci">${dyIco(i.i, 18)}</span><div class="tx">${esc(i.n)}<small class="num">${esc(i.s)}</small>${i.x ? `<small>${esc(i.x)}</small>` : ""}</div></div>`;
 const dyTask = (x, was) => { const r = x.r, show = s => esc(s.replace(/<br\s*\/?>/gi, " ")); return `<div class="tl${was ? " was" : ""}"><div class="tr"><button type="button" class="rcb" data-tk="tick" data-hap data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to mark done"><span class="rc ${r.st}"></span></button><div class="rt"><div class="tt">${show(r.title)}</div></div></div></div>`; };
 function dyHourRow(d, h, now, its, ts, left) {
@@ -2714,7 +2715,7 @@ function dyChrome(plain) {
   $("hdday").setAttribute("aria-label", on ? "Show Home" : "Show the Day");
   $("hdday").innerHTML = svg(on ? TAB.Home : WXI.sun, 22);
   $("hdday").style.setProperty("--cut", "var(--side)");
-  if (!on) $("hdname").textContent = CB ? "CucuBarri" : "MattOS";
+  if (on) dyStrip(dyWhen().d); else $("hdname").textContent = CB ? "CucuBarri" : "MattOS";
 }
 function dyFlip() { const to = tab === "Day" ? "Home" : "Day"; store.set("day-home", to === "Home" ? "home" : "day"); go(to); }
 document.addEventListener("pointerdown", e => {
