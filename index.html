@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" href="icon-192-v5.png">
 <title>MattOS</title>
 <script>
-  /* CucuBarri, the family profile (index.html?profile=cucubarri): Home, Calendar, the CucuBarri board's tasks, Shopping, and Yoni, with the tablet's name and icon.
+  /* CucuBarri, the family profile (index.html?profile=cucubarri): Home, Yoni, the CucuBarri board's tasks, Shopping, and Strength, with the tablet's name and icon.
      The manifest swaps to cucubarri.webmanifest, so the home-screen icon opens this profile */
   if (/[?&]profile=cucubarri\b/i.test(location.search)) {
     document.documentElement.classList.add("cb");
@@ -631,24 +631,19 @@
   .rb .tl .tr + .dh { padding-top: 14px; }
   .rb .tr { margin-left: 0; }
   .row { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--mut); }
-  /* CucuBarri's Home: tiles under the same top, from cucuBarriPhoneHomeV2.html option 2. A tile opens its tab */
-  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-  .tile { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 12px; min-height: 132px; min-width: 0; display: flex; flex-direction: column; gap: 6px; --cut: var(--card); }
-  .tile.wide { grid-column: span 2; min-height: 0; }
+  /* CucuBarri's Home, from cucuBarriPhoneHomeV4.html: one screen with no scroll. Tasks takes the room that is left, and its rows stop above the add button */
+  .scr.cbh { display: flex; flex-direction: column; overflow: hidden; padding: 0 16px 16px; }
+  .cbh #main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .cbh #main > * { flex: none; }
+  .cbh #main > .tiles { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .tile { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 12px; min-width: 0; display: flex; flex-direction: column; gap: 6px; flex: none; --cut: var(--card); }
+  .tile.fit { flex: 1; min-height: 0; overflow: hidden; }
   .th { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
-  .th .n { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--mut); }
-  .kpi { font-size: 30px; line-height: 34px; font-weight: 700; color: var(--hi); }
-  .kpi small { font-size: 13px; font-weight: 500; color: var(--mut); }
-  .tile .ln { font-size: 13.5px; line-height: 19px; }
-  .tile .ln.mut, .tile .row { color: var(--mut); }
-  .tile .ge { font-size: 16px; letter-spacing: 5px; }
-  .tile .ge .off { filter: grayscale(1); opacity: .35; }
-  .tsg { display: flex; gap: 4px; margin-top: auto; }
-  .tsg i { flex: 1; height: 6px; border-radius: 3px; background: var(--raised); }
-  .tsg i.on { background: var(--done); } .tsg i.half { background: var(--blue); }
+  .tile .row { color: var(--mut); }
   .tile .tl { --cl: 0px; }
   .tile .tr { margin-left: 0; }
-  .tile .tr:last-child::after { display: none; }
+  .tile .tr.last::after { display: none; }
+  .tile .more { padding-left: 30px; font-size: 20px; line-height: 20px; font-weight: 700; letter-spacing: .12em; color: var(--mut); }
   .row .meta { font-size: 13px; white-space: nowrap; }
 
   /* ---------- Settings ---------- */
@@ -740,7 +735,7 @@ TAB.Strength = `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v
 TAB.Shopping = `<path ${K(2.6)} d="M2 3.5h3l.8 3"/><path ${FS} d="M5.8 6.5h15.4l-2 8.5H7.6z"/><circle ${F} cx="9" cy="19.6" r="1.9"/><circle ${F} cx="17.6" cy="19.6" r="1.9"/>`;
 /* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home. CucuBarri's Shopping and Strength tabs are Tasks held on those views */
 const CB = document.documentElement.classList.contains("cb");
-const TAB_BAR = CB ? ["Home", "Calendar", "Tasks", "Shopping", "Strength", "Yoni"] : ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
+const TAB_BAR = CB ? ["Home", "Yoni", "Tasks", "Shopping", "Strength"] :["Home", "Calendar", "Habits", "Tasks", "Yoni"];
 const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`,bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
@@ -1027,7 +1022,7 @@ const calWho = e => /^(barri|both)$/i.test(e.who) ? " who-" + e.who.toLowerCase(
 const calWhen = e => e.start ? (e.end ? `${e.start} to ${e.end}` : e.start) : "All day";
 function calWeather() {
   const td = today(), d = wxDay(td), now = wxLive ? { code: W.current.weather_code, temp: Math.round(W.current.temperature_2m), feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0];
-  const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°</div></div></div>` : "";
+  const head = now ? `<div class="wxl">${wxIco(wxIcon(now.code), 36)}<span class="v num">${now.temp}°</span><div class="grow"><div class="t1"><span class="ell">${wxLabel(now.code)}</span>${wxTag()}</div><div class="s num">H ${d.hi}° L ${d.lo}°, feels ${now.feel}°${CB ? `, rain ${d.p}%` : ""}</div></div></div>` : "";
   const strip = `<div class="wk" id="wk">${wxFromNow(24).map((x, k) => `<div class="wc${k ? "" : " on"}"${x.score > 85 ? ` aria-label="Outdoor score ${wx10(x.score)}"` : ""}><span class="num">${k ? hr12(x.h) : "Now"}</span><b class="num">${x.temp}°</b>${wxIco(wxHourIcon(x), 24)}<span class="num">${x.p}%</span><i class="dot${x.score > 85 ? "" : " no"}"></i></div>`).join("")}</div>`;
   /* Home's daylight bar: the next 24 hours, up to 12 daylight hours, each run of night hours one notch */
   const ap = h => `${h % 12 || 12}${h < 12 ? "a" : "p"}`, hs = wxFromNow(24), cols = [];
@@ -2337,7 +2332,6 @@ const HC = {
   cal: `<path ${F} d="M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path ${C} d="M3 10h18"/><path ${K(2.6)} d="M8 2.5v3M16 2.5v3"/>`,
   fitness: `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v4M21.5 10v4M6 12h12"/>`,
   today: `<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/>`,
-  shirt: `<path ${F} d="M8.5 3 3 6l2 4.2 2-1V21h10V9.2l2 1L21 6l-5.5-3a3.5 3.5 0 0 1-7 0z"/>`
 };
 const hChip = (ico, text, sub, title) => `<div class="hc" title="${esc(title)}">${svg(HC[ico], 15)}<span class="grow ell">${esc(text)}</span>${sub ? `<small class="num">${esc(sub)}</small>` : ""}</div>`;
 /* the sample week: the given day's row, then the next two days that are not rest */
@@ -2350,16 +2344,6 @@ function woWeek(md, td) {
   }
   const at = n => ({ d: addDays(td, n), ...rows[wkDay(addDays(td, n))] });
   return { now: rows[wkDay(td)] || null, next: [1, 2, 3, 4, 5, 6].map(at).filter(x => x.what && !/^rest$/i.test(x.what)).slice(0, 2) };
-}
-/* clothes by the average feels-like temperature over the next 12 hours, then an umbrella, boots, or sunglasses as the sky calls for */
-function hWear() {
-  const hrs = wxFromNow(12);
-  if (!hrs.length) return "";
-  const feel = hrs.reduce((a, x) => a + x.feel, 0) / hrs.length, lit = hrs.filter(x => x.day);
-  const parts = feel < 32 ? ["heavy coat", "scarf", "gloves"] : feel < 45 ? ["winter coat"] : feel < 58 ? ["jacket"] : feel < 68 ? ["long sleeves", "pants"] : feel < 78 ? ["T-shirt", "pants"] : ["T-shirt", "shorts"];
-  const add = [hrs.some(x => wxIcon(x.code) === "snow") && "boots", Math.max(...hrs.map(x => x.p)) >= 40 && "umbrella", lit.length && lit.filter(x => wxIcon(x.code) === "sun").length >= lit.length / 2 && "sunglasses"].filter(Boolean);
-  const all = [...parts, ...add], text = all.length > 2 ? `${all.slice(0, -1).join(", ")}, and ${all[all.length - 1]}` : all.join(" and ");
-  return hChip("shirt", text[0].toUpperCase() + text.slice(1), "", `What to wear: feels like ${Math.round(feel)}° over the next ${hrs.length} hours`);
 }
 /* the open week's totals, counted as drawHabits counts them: saved days and drafts, against the same targets as the Habits tab (those of the latest archived week, except Habits, which is every habit every day) */
 function hbNow() {
@@ -2375,7 +2359,7 @@ function drawHome() {
   /* a done section's icon turns into a green square with a check */
   const sec = (kind, done, body, to = kind, right = "") => `<div class="sec${home.shut[kind] ? " shut" : ""}${done ? " done" : ""}"><button type="button" class="sh" data-fold="${kind}" aria-expanded="${!home.shut[kind]}"><span class="hsq">${done ? svg(UI.check, 14, 4) : svg(TAB[kind], 15)}</span>${kind}${right}${svg(UI.down, 17, 2.2, "chev")}</button><div class="rb" data-go="${to}">${body}</div></div>`;
   const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
-  const top = CB ? `<div data-go="Today"><div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}${W ? hWear() : ""}</div></div></div>${wx.strip}`
+  const top = CB ? `<div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}</div></div>`
     : `<div class="big">${fullDay(td)}</div>`;
   /* the Calendar card: up to two of the day's events, then the next three days that have any, small and grey */
   const days = [...new Set(ahead.map(e => e.d))].slice(0, 3).map(d => { const es = ahead.filter(e => e.d === d); return `<div><em>${wkDay(d)}</em><span class="ell">${esc(es[0].title)}${es.length > 1 ? `, +${es.length - 1}` : es[0].start ? `, ${esc(es[0].start)}` : ""}</span></div>`; }).join("");
@@ -2385,14 +2369,14 @@ function drawHome() {
   const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
-  const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [[day, ...TK_TIMES].find(t => open.some(r => r.time === t))].filter(Boolean);
+  const first = [day, ...TK_TIMES].find(t => open.some(r => r.time === t));
+  const grps = late ? (di === 6 ? [day, "Monday", "Next Week"] : [day, TK_TIMES[di + 1]]) : [first].filter(Boolean);
   const trow = r => `<div class="tr"><span class="rcb"><span class="rc ${r.st}"></span></span><div class="rt"><div class="tt ell">${show(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}</div>${tkTag(r)}</div>`;
-  const tasks = `<div class="tl">${grps.map(grp => { const mine = open.filter(r => r.time === grp); return `<div class="dh"><b>${grp}</b><span class="num">${mine.length} open</span></div>` + (mine.length ? "" : `<div class="row">No open tasks</div>`) + mine.map(trow).join(""); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   /* on Home the day sits quietly in the section's heading; days with nothing open are left out, and when two are left each gets a small grey label */
   const hg = grps.filter(g => open.some(r => r.time === g)), dayName = grp => grp === day ? "Today" : grp, tkRight = hg.length === 1 ? `<span class="ov mut num">${dayName(hg[0])}, ${open.filter(r => r.time === hg[0]).length} open</span>` : "";
   const tkHome = `<div class="tl">${hg.map(grp => { const mine = open.filter(r => r.time === grp); return (hg.length > 1 ? `<div class="dl num">${dayName(grp)}, ${mine.length} open</div>` : "") + (mine.length ? mine.map(trow).join("") : `<div class="row">No open tasks</div>`); }).join("") || `<div class="row">No open tasks</div>`}</div>`;
   const next = ahead.slice(0, 3).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
-  if (CB) { cbHome(top, g, pc, full, now, grps[0], open, tasks, next); return; }
+  if (CB) { cbHome(top, open.filter(r => r.time === first).map(trow).join(""), next); return; }
   const go = `<span class="go">${svg(UI.right, 13, 2.2)}</span>`, ap = h => `${h % 12 || 12}${h < 12 ? "a" : "p"}`;
   /* the weather card: feels-like now, then the next 24 hours' daylight, up to ten hours, each run of night one striped notch */
   let wxCard = "";
@@ -2426,24 +2410,34 @@ function drawHome() {
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
-/* CucuBarri's Home: a Yoni tile and a Shopping tile side by side, then today's tasks and Next Up across */
-function cbHome(top, g, pc, full, now, grp, open, tasks, next) {
-  const side = $("wk") ? $("wk").scrollLeft : 0, hq = k => `<span class="hsq">${svg(TAB[k], 15)}</span>`, all = [g, ...pc];
-  const done = all.reduce((a, x) => a + x[0], 0), of = all.reduce((a, x) => a + x[1], 0), left = sh.d.items.filter(x => x.st === "On");
-  const yt = `<div class="tile" data-go="Yoni"><div class="th">${hq("Yoni")}Yoni<span class="n">${now}</span></div><div class="kpi num">${done}<small> / ${of} done</small></div><div class="ln ge ell">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</div><div class="tsg">${pc.map(x => `<i class="${full(x) ? "on" : x[0] ? "half" : ""}"></i>`).join("")}</div></div>`;
-  const st = `<div class="tile" data-go="Shopping"><div class="th">${hq("Shopping")}Shopping</div><div class="kpi num">${left.length}<small> left</small></div>${left.slice(0, 3).map((x, i) => `<div class="ln ell${i === 2 ? " mut" : ""}">${esc(x.name)}</div>`).join("") || `<div class="ln mut">Nothing on the list</div>`}</div>`;
-  const tt = `<div class="tile wide" data-go="Tasks"><div class="th">${hq("Tasks")}Tasks<span class="n num">${grp ? `${grp}, ${open.filter(r => r.time === grp).length} open` : "All done"}</span></div>${grp ? tasks.replace(/<div class="dh">.*?<\/div>/, "") : `<div class="row">No open tasks</div>`}</div>`;
-  const nt = `<div class="tile wide" data-go="Next Up"><div class="th">${hq("Calendar")}Next Up</div>${next}</div>`;
-  $("main").innerHTML = `${top}<div class="tiles">${yt}${st}${tt}${nt}</div>`;
-  if ($("wk")) $("wk").scrollLeft = side;
+/* CucuBarri's Home: Next Up, then the tasks of today or the next day on the list. The Tasks tile opens its tab */
+function cbHome(top, rows, next) {
+  const hq = k => `<span class="hsq">${svg(TAB[k], 15)}</span>`;
+  const nt = `<div class="tile"><div class="th">${hq("Calendar")}Next Up</div><div>${next}</div></div>`;
+  const tt = `<div class="tile fit" id="cbtk" data-go="Tasks"><div class="th">${hq("Tasks")}Tasks</div>${rows ? `<div class="tl" id="cbtl">${rows}</div><span class="more" id="cbmore">...</span>` : `<div class="row">No open tasks</div>`}</div>`;
+  $("main").innerHTML = `${top}<div class="tiles">${nt}${tt}</div>`;
+  cbFit();
   $("fab").hidden = offline;
 }
+/* the rows that fit above the add button stay, and "..." stands for the rest */
+const CB_FAB_ROOM = 58;
+function cbFit() {
+  const list = $("cbtl");
+  if (!list) return;
+  const rows = [...list.children];
+  rows.forEach(r => { r.style.display = ""; r.classList.remove("last"); });
+  const room = $("cbtk").getBoundingClientRect().bottom - CB_FAB_ROOM, shown = rows.filter(r => r.getBoundingClientRect().bottom <= room).length;
+  rows.forEach((r, i) => { if (i >= shown) r.style.display = "none"; });
+  if (shown) rows[shown - 1].classList.add("last");
+  $("cbmore").hidden = shown === rows.length;
+}
+if (CB) new ResizeObserver(cbFit).observe($("main"));
 async function loadHome() {
   if (CB) {
-    const [c, t, y, s] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), loadWeather()]);
+    const [c, t, y] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(FATHER_FILE), loadWeather()]);
     if (tab !== "Home") return;
     cal = parseCalendar(c.text);
-    if (!tkBusy) { tk.lines = t.text.split("\n"); yo.lines = y.text.split("\n"); if (s) sh.lines = s.text.split("\n"); tkParse(); }
+    if (!tkBusy) { tk.lines = t.text.split("\n"); yo.lines = y.text.split("\n"); tkParse(); }
     status(c.at ? `Offline. Showing what was loaded ${c.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), c.at ? "err" : "ok");
     drawHome();
     return;
@@ -2500,11 +2494,11 @@ function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
 async function go(name) {
   leave();
   if (CB && (name === "Shopping" || name === "Strength" || name === "Tasks")) { tk.view = name; name = "Tasks"; }
-  tab = SCREENS[name] && (!CB || ["Home", "Yoni", "Tasks", "Calendar"].includes(name)) ? name : START;
+  tab = SCREENS[name] && (!CB || ["Home", "Yoni", "Tasks"].includes(name)) ? name : START;
   const lit = CB ? here() : tab === "Notes" ? "Tasks" : tab;
   history.replaceState(null, "", location.search + "#" + (CB ? lit : tab).toLowerCase());
   $("tabs").innerHTML = TAB_BAR.map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
-  $("fab").hidden = true; $("scr").scrollTop = 0;
+  $("fab").hidden = true; $("scr").scrollTop = 0; $("scr").classList.toggle("cbh", CB && tab === "Home");
   const hb = HUCK && tab === "Yoni";
   $("fab").classList.toggle("huck", hb); $("fab").innerHTML = hb ? HUCK_LOGO : svg(UI.plus, 24, 2.6); $("fab").setAttribute("aria-label", hb ? "Open Huckleberry" : "Add");
   if (!cfg().token && !PEEK) return showSetup();
@@ -2518,7 +2512,7 @@ async function go(name) {
 }
 function showSetup(msg) {
   const c = cfg();
-  leave(); status(""); $("fab").hidden = true;
+  leave(); status(""); $("fab").hidden = true; $("scr").classList.remove("cbh");
   $("main").innerHTML = `<div class="big">Settings</div><form class="card setup" id="setup">
     ${msg ? `<p style="color:var(--flag)">${esc(msg)}</p>` : ""}
     <p>Paste the GitHub token for the mattos-data repository. It is stored only in this browser.</p>
