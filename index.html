@@ -175,10 +175,8 @@
   .qbox.set { background: linear-gradient(160deg, rgba(63, 207, 142, .16), rgba(63, 207, 142, .05)); border-color: rgba(63, 207, 142, .35); }
   .qbox.set .mh { color: var(--done); }
   .qbox.set .qwr b { color: var(--done); }
-  /* Yoni: the goals' emojis in the heading, a timeline of the four parts of the day in Day to Night colours with each part's count under it,
+  /* Yoni: a timeline of the day's parts in Day to Night colours with each part's count under it,
      then the next three steps, set low so the last one lines up with the last Habits row */
-  .mh .ge { margin-left: auto; font-size: 11px; letter-spacing: 1px; }
-  .mh .ge .off { filter: grayscale(1); opacity: .4; }
   .qtl { margin-top: 5px; }
   .qtl .tl, .qtl .tlb { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
   .qtl .tl i { height: 8px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--c) 22%, var(--raised)); }
@@ -279,7 +277,7 @@
   .pill.good { background: rgba(63, 207, 142, .16); color: var(--done); }
 
   /* ---------- Tasks ---------- */
-  /* Tasks, Notes, and Shopping are three screens, switched at the top as Calendar's Today and Next Up are, and so are Yoni's Routines, Packing, and Daycare
+  /* Tasks, Notes, and Shopping are three screens, switched at the top as Calendar's Today and Next Up are, and so are Yoni's Routines and Packing
      and Habits' Today, This Week, and Meditation; on Tasks the filter icon beside the switch opens the category list */
   .tkbar { display: flex; align-items: center; gap: 8px; }
   .sq { flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); display: grid; place-items: center; color: var(--mut); }
@@ -549,15 +547,7 @@
   .sv.del { color: var(--flag); }
   .sv.ico { display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-  /* ---------- Yoni: a ring per daily goal, then each part of the day as a card that folds away ---------- */
-  .rings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 4px 10px; }
-  .rg { display: grid; justify-items: center; gap: 3px; min-width: 0; }
-  .rg .ro { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--rule); display: grid; place-items: center; font-size: 22px; position: relative; }
-  .rg b { font-size: 13.5px; line-height: 17px; font-weight: 600; }
-  .rg i { font-style: normal; font-size: 11.5px; line-height: 14px; color: var(--mut); max-width: 100%; text-align: center; }
-  .rg.on .ro { border-color: rgba(63, 207, 142, .45); background: rgba(63, 207, 142, .12); }
-  .rg.on .ro::after { content: ""; position: absolute; right: -4px; bottom: -3px; width: 16px; height: 16px; border-radius: 50%; background: var(--done) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0c11' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7'/%3E%3C/svg%3E") center / 10px no-repeat; box-shadow: 0 0 0 2px var(--card); }
-  .rg.on b { color: var(--done); }
+  /* ---------- Yoni: each part of the day as a card that folds away ---------- */
   .ac { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; margin-top: 8px; overflow: hidden; }
   .ach { display: grid; grid-template-columns: 16px 1fr auto; column-gap: 8px; row-gap: 8px; align-items: center; width: 100%; padding: 13px 12px; font-size: 15.5px; font-weight: 600; }
   .ach .ic { color: var(--mut); transition: transform .15s; }
@@ -646,6 +636,99 @@
   .tile .more { padding-left: 30px; font-size: 20px; line-height: 20px; font-weight: 700; letter-spacing: .12em; color: var(--mut); }
   .row .meta { font-size: 13px; white-space: nowrap; }
 
+  /* ---------- the Day, Matt's home screen (dailyHomeFullUiV6.html option 2): five 3-hour bands that each open in place into their three hours ---------- */
+  .hd.dyh { padding-bottom: 8px; }
+  .hdpct { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--done); }
+  .hdrnd { width: 32px; height: 32px; border-radius: 50%; background: var(--raised); color: var(--mut); display: grid; place-items: center; flex: none; }
+  .hdwk { display: grid; grid-template-columns: repeat(7, 1fr); margin: 12px -6px 0; text-align: center; font-size: 11px; line-height: 14px; color: var(--mut); }
+  .hdwk b { display: block; margin: 2px auto 0; width: 28px; height: 24px; border-radius: 8px; font-size: 14px; line-height: 24px; font-weight: 500; color: var(--tx); }
+  .hdwk .on b { background: var(--blue); color: #fff; font-weight: 600; }
+  .scr.dys { padding: 0; overflow-anchor: none; }
+  .scr.dys.dyd .status:not(.err) { display: none; }
+  .scr.dys .status.err { padding: 8px 16px 0; }
+  .dy { --gl: 52px; --gut: 64px; --sect: #4a5163; --yoni: #b18cf2; --amber: #f2b45a; --drive: #5cc8d8; --barri: #e87fa8; --wxtrack: #1d2846; --wxfill: #5d6474; padding: 8px 0 16px; position: relative; user-select: none; -webkit-user-select: none; }
+  .dyb { position: relative; }
+  .dyb::before { content: ""; position: absolute; left: var(--gl); right: 0; top: -1px; height: 2px; background: var(--sect); }
+  .dylb { position: absolute; left: 0; top: -7px; width: var(--gl); padding-left: 6px; font-size: 11px; line-height: 14px; color: var(--mut); z-index: 2; }
+  .dyg, .dyw { display: grid; transition: grid-template-rows .3s ease; }
+  .dyg { grid-template-rows: 1fr; }
+  .dyw { grid-template-rows: 0fr; }
+  .dyg > div, .dyw > div { min-height: 0; overflow: hidden; }
+  .dyb.open .dyg { grid-template-rows: 0fr; }
+  .dyb.open .dyw { grid-template-rows: 1fr; }
+  .dyb.open > .dylb, .dyb.open::before { display: none; }
+
+  /* the glance row */
+  .dygl { height: var(--bh); position: relative; cursor: pointer; }
+  .dycs { position: absolute; inset: 4px 8px 4px var(--gl); display: grid; grid-template-columns: 1fr 1fr 78px; gap: 4px; transition: opacity .16s; }
+  .dygl.past .dycs { opacity: .45; }
+  /* the now line passes behind text, so it never reads as a strikethrough */
+  .dyr, .dymore, .dyct, .dywr .tp, .dywr .sc { position: relative; z-index: 4; text-shadow: 0 0 2px var(--card), 0 0 2px var(--card), 0 0 4px var(--card); }
+  .dygnow { position: absolute; left: var(--gl); right: 0; border-top: 2px solid var(--flag); z-index: 3; pointer-events: none; }
+  .dygnt { position: absolute; left: 0; width: var(--gl); padding-left: 6px; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--flag); background: var(--body); z-index: 3; }
+  .dyc { --c: var(--mut); --cut: var(--card); min-width: 0; overflow: hidden; display: flex; flex-direction: column; padding: 6px 8px 4px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); }
+  .dyc.ev { --c: var(--acc); }
+  .dyc.ts { --c: var(--amber); }
+  .dyc.dim { opacity: .4; }
+  .dyct { display: flex; align-items: center; gap: 4px; height: 16px; margin-bottom: 2px; color: var(--c); font-size: 11px; line-height: 16px; font-weight: 600; flex: none; text-shadow: none; }
+  .dyct b { margin-left: auto; font-weight: 600; }
+  .dyr { display: flex; align-items: center; gap: 4px; height: 16px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--tx); min-width: 0; flex: none; }
+  .dyr .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dyr .t { flex: none; font-size: 11px; font-weight: 400; color: var(--mut); }
+  .dyc.ev .dyr { height: 18px; }
+  .dyc.ev .dyr .n { font-weight: 600; color: #fff; }
+  .dyc.ev .dyr.was { opacity: .45; }
+  .dyc.ev .dyr.barri .n { color: var(--mut); font-weight: 500; }
+  .dyr .ci { display: inline-flex; color: var(--ic); }
+  .dymore { font-size: 12px; line-height: 12px; color: var(--mut); letter-spacing: .1em; flex: none; }
+  .dyr.clo { --ic: var(--acc); margin-top: auto; }
+  .dyr.clo .n { color: var(--acc); font-weight: 600; }
+  .gym { --ic: var(--done); } .yoni { --ic: var(--yoni); } .drive { --ic: var(--drive); } .evt { --ic: var(--acc); } .barri { --ic: var(--barri); }
+  /* the Weather card: one row per hour, top to bottom, so each sits level with its hour */
+  .dyc.wx { padding: 4px 6px; }
+  .dywrs { flex: 1; min-height: 0; display: grid; grid-template-rows: repeat(3, 1fr); position: relative; z-index: 4; }
+  .dywr { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 0; font-size: 12px; line-height: 14px; color: var(--tx); }
+  .dywr .tp { flex: none; width: 24px; }
+  .dywr .sc { flex: none; width: 14px; text-align: right; color: var(--mut); }
+  .dywr.good .sc { color: var(--done); font-weight: 600; }
+
+  /* the window: a pinned header over three hours, closed by swiping the header down */
+  .dyhead { position: sticky; top: 0; z-index: 6; height: 0; overflow: hidden; display: flex; align-items: center; padding: 0 12px 0 var(--gut); background: var(--body); font-size: 14px; line-height: 18px; font-weight: 600; color: #fff; transition: height .3s ease; }
+  .dyb.open .dyhead { height: 44px; padding-top: 8px; border-bottom: 1px solid var(--rule); touch-action: none; cursor: grab; }
+  .dygrab { position: absolute; left: 50%; top: 8px; width: 36px; height: 4px; margin-left: -18px; border-radius: 4px; background: var(--mut); opacity: .6; }
+  .dywin { padding-top: 10px; }
+  .dyhr { position: relative; min-height: 148px; }
+  .dyhl { position: absolute; left: 0; top: -7px; width: var(--gut); padding-left: 6px; font-size: 11px; line-height: 14px; color: var(--mut); z-index: 2; }
+  .dyhb { margin-left: var(--gut); border-top: 1px solid var(--rule); padding: 8px 16px 16px 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .dyhr:first-child .dyhb { border-top: 2px solid var(--sect); }
+  .dyhw { display: flex; justify-content: flex-end; align-items: center; gap: 6px; height: 18px; font-size: 12px; line-height: 16px; color: var(--tx); }
+  .dyhw .tp { flex: none; width: 24px; }
+  .dyhw i { flex: none; width: 44px; height: 8px; border-radius: 4px; background: var(--wxtrack); overflow: hidden; display: block; }
+  .dyhw u { display: block; height: 100%; background: var(--wxfill); }
+  .dyhw.good u { background: var(--done); }
+  .dyhw .sc { flex: none; width: 14px; text-align: right; color: var(--mut); }
+  .dyhw.good .sc { color: var(--done); font-weight: 600; }
+  .dyit { --cut: color-mix(in srgb, var(--ic) 14%, var(--body)); position: relative; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 8px; border-left: 6px solid var(--ic); background: var(--cut); font-size: 14px; line-height: 18px; color: var(--tx); min-width: 0; }
+  .dyit.was { opacity: .45; }
+  .dyit .ci { color: var(--ic); display: inline-flex; }
+  .dyit.evt { --ic: var(--blue); --cut: color-mix(in srgb, var(--blue) 24%, var(--body)); }
+  .dyit.evt .ci { color: var(--acc); }
+  .dyit .tx { flex: 1; min-width: 0; font-weight: 600; color: #fff; overflow-wrap: anywhere; }
+  .dyit small { display: block; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--mut); }
+  .dyit.barri .tx { color: var(--mut); }
+  /* the Tasks screen's own row and circle */
+  .dy .tl { --cl: 0px; }
+  .dy .tr { margin-left: 0; min-height: 0; }
+  .dy .tr::after { display: none; }
+  .dy .tl.was { opacity: .45; }
+  .dycl { --cut: var(--raised); display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; background: var(--raised); font-size: 14px; line-height: 18px; font-weight: 600; color: #fff; cursor: pointer; }
+  .dycl .ci { color: var(--acc); display: inline-flex; }
+  .dycl em { margin-left: auto; font-style: normal; font-weight: 500; font-size: 12px; color: var(--mut); }
+  .dynowl { position: absolute; left: var(--gut); right: 0; border-top: 2px solid var(--flag); z-index: 4; pointer-events: none; }
+  .dynowt { position: absolute; left: 0; width: var(--gut); padding-left: 6px; margin-top: -7px; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--flag); background: var(--body); z-index: 4; }
+  .dyend { position: relative; height: 2px; background: var(--sect); margin-left: var(--gl); }
+  .dyend .dylb { left: calc(0px - var(--gl)); }
+
   /* ---------- Settings ---------- */
   .setup { display: grid; gap: 14px; }
   .setup label { display: grid; gap: 5px; font-size: 13px; color: var(--mut); }
@@ -706,7 +789,7 @@
 </style>
 </head>
 <body>
-<header class="hd"><div class="ws"><img class="logo" id="hdlogo" src="icon.svg" alt=""><b id="hdname">MattOS</b><button class="av" type="button" id="settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div></header>
+<header class="hd"><div class="ws"><img class="logo" id="hdlogo" src="icon.svg" alt=""><b id="hdname">MattOS</b><span class="hdpct num" id="hdpct" hidden>+0.4%</span><span class="hdrnd" id="hdrnd" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l5-6 4 3 7-8"/></svg></span><button class="av" type="button" id="hdday" hidden></button><button class="av" type="button" id="settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div><div class="hdwk" id="hdwk" hidden></div></header>
 <main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
 <div class="savebar" id="savebar" hidden></div>
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
@@ -735,7 +818,7 @@ TAB.Strength = `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v
 TAB.Shopping = `<path ${K(2.6)} d="M2 3.5h3l.8 3"/><path ${FS} d="M5.8 6.5h15.4l-2 8.5H7.6z"/><circle ${F} cx="9" cy="19.6" r="1.9"/><circle ${F} cx="17.6" cy="19.6" r="1.9"/>`;
 /* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home. CucuBarri's Shopping and Strength tabs are Tasks held on those views */
 const CB = document.documentElement.classList.contains("cb");
-const TAB_BAR = CB ? ["Home", "Yoni", "Tasks", "Shopping", "Strength"] :["Home", "Calendar", "Habits", "Tasks", "Yoni"];
+const TAB_BAR = CB ? ["Home", "Yoni", "Tasks", "Shopping", "Strength"] : ["Calendar", "Habits", "Home", "Tasks", "Yoni"];
 const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`,bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
@@ -1012,7 +1095,7 @@ function parseCalendar(md) {
     const c = line.split("|").slice(1, -1).map(x => x.trim()), dm = (c[0] || "").match(/^[A-Z][a-z]{2} ([A-Z][a-z]{2}) (\d{1,2})$/);
     if (!dm || !c[3]) return;
     const m = MONTHS.indexOf(dm[1]);
-    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3], who: c[6] || "" });
+    events.push({ d: `${y0 + (m < m0 ? 1 : 0)}-${p2(m + 1)}-${p2(+dm[2])}`, start: c[1], end: c[2], title: c[3], loc: c[4] || "", who: c[6] || "" });
   });
   return { synced: synced.replace(/, \d{4}/, ""), events };
 }
@@ -1232,7 +1315,7 @@ async function recurSync() {
 function tkSave(path, change, message) {
   try { change(path === TASK_FILE ? tk.lines : path === CB_FILE ? tk.clines : path === SHOP_FILE ? sh.lines : path === GY_FILE ? gy.lines : yo.lines); } catch (e) { /* the save below reports it */ }
   tkParse();
-  if (tab === "Home") drawHome(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
+  if (tab === "Home") drawHome(); else if (tab === "Day") drawDay(); else if (tab === "Yoni") drawYoni(); else if (tab === "Tasks") drawTasks(); /* a task added from the add button on another tab */
   tkBusy++;
   commitFile(path, text => text.split("\n"), lines => lines.join("\n"), change, message).then(item => {
     if (!item) tkFail = true;
@@ -1241,6 +1324,7 @@ function tkSave(path, change, message) {
     if (tab === "Tasks") loadTasks(true).catch(() => {});
     else if (tab === "Yoni") loadYoni(true).catch(() => {});
     else if (tab === "Home") loadHome().catch(() => {});
+    else if (tab === "Day") loadDay().catch(() => {});
   });
 }
 /* a check-off is offered back by the toast for 8 seconds, as on the laptop; back is the status Undo puts back */
@@ -1391,7 +1475,7 @@ function tkAct(act, a, el) {
   else if (act === "fold") { const k = el.dataset.done ? "rooms" : "open"; yo[k][a] = !yo[k][a]; drawYoni(); }
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
   else if (act === "yopacked") { yo.packed = !yo.packed; drawYoni(); }
-  else if (act === "yoclear") yoClear(a);
+  else if (act === "yoclear") yoClear();
   /* the Bug button in the task field switches on and off; a bug goes to CC by default, and back to MS when unmarked */
   else if (act === "opt" && el.dataset.k === "b") {
     const on = el.classList.toggle("on"); el.setAttribute("aria-pressed", on);
@@ -2215,18 +2299,21 @@ function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("
 
 /* ---------- Yoni, its own tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
    A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
-   Goals, steps and tasks are added on the laptop only ---------- */
+   Steps and tasks are added on the laptop only ---------- */
 const FATHER_FILE = "17👪-family/02👶🏻-father/fatherRegistry.md";
-const YO_PARTS = ["Morning", "Afternoon", "Bed Time", "Dream Feed"];
+const YO_PARTS = ["Morning", "Daycare", "Afternoon", "Bed Time", "Dream Feed"];
 const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
 const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
+/* a routine step's Days cell: empty shows every day, Weekdays Monday to Friday, and Weekend Saturday and Sunday. Yoni is at daycare from drop-off to pick-up on weekdays */
+const yoWeekend = () => [0, 6].includes(new Date(yoDay() + "T00:00:00Z").getUTCDay());
+const yoShows = days => !days || days === (yoWeekend() ? "Weekend" : "Weekdays");
 const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
-const yoNow = () => { const [h, m] = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hourCycle: "h23" }).format(new Date()).split(":").map(Number), t = h * 60 + m; return t < 720 ? "Morning" : t < 1170 ? "Afternoon" : t < 1290 ? "Bed Time" : "Dream Feed"; };
+const yoNow = () => { const [h, m] = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hourCycle: "h23" }).format(new Date()).split(":").map(Number), t = h * 60 + m; return yoWeekend() ? (t < 720 ? "Morning" : t < 1170 ? "Afternoon" : t < 1290 ? "Bed Time" : "Dream Feed") : (t < 490 ? "Morning" : t < 1080 ? "Daycare" : t < 1290 ? "Bed Time" : "Dream Feed"); };
 /* a step's text: "Label: action" shows its label in bold, and one wrapped in ** is bold throughout */
 const yoTx = s => { const b = /^\*\*(.+)\*\*$/.exec(s), k = s.indexOf(": "); return b ? `<b>${esc(b[1])}</b>` : k > 0 ? `<b>${esc(s.slice(0, k))}</b>${esc(s.slice(k))}` : esc(s); };
-/* every row has its line i, its text as written and the heading h it sits under; all is the goals, steps and tasks in file order */
+/* every row has its line i, its text as written and the heading h it sits under; all is the steps, tasks, and packing items in file order, leaving out the steps for other days */
 function yoRead(lines) {
-  const out = { goals: [], parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], care: [], all: [] };
+  const out = { parts: Object.fromEntries(YO_PARTS.map(p => [p, { steps: [], tasks: [] }])), packs: [], all: [] };
   let h = "", head = null;
   lines.forEach((line, i) => {
     const raw = line.replace(/\r$/, "").trim();
@@ -2235,50 +2322,48 @@ function yoRead(lines) {
     const c = raw.split("|").slice(1, -1).map(x => x.trim());
     if (!head) { head = c; return; }
     if (/^:?-+:?$/.test(c[0])) return;
-    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+(?: \w+)?) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^(Packing|Daycare): (.+)$/);
-    if (h !== "Daily Goals" && !part && !pk) return;
-    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk ? "Item" : part ? (m[2] === "Routine" ? "Item" : "Task") : "Goal") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), em: cell("Emoji"), target: cell("Target"), unit: cell("Unit"), g: pk ? pk[2] : "" };
+    const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+(?: \w+)?) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^Packing: (.+)$/);
+    if ((!part && !pk) || !yoShows(cell("Days"))) return;
+    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk || m[2] === "Routine" ? "Item" : "Task") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), g: pk ? pk[1] : "" };
     if (!it.text) return;
-    (pk ? out[pk[1] === "Daycare" ? "care" : "packs"] : part ? part[m[2] === "Routine" ? "steps" : "tasks"] : out.goals).push(it); out.all.push(it);
+    (pk ? out.packs : part[m[2] === "Routine" ? "steps" : "tasks"]).push(it); out.all.push(it);
   });
   return out;
 }
 /* open is the parts unfolded; on is the Eastern date it was last set to the part of the day it is now; rooms is the finished parts tapped open again */
 const yo = { lines: [], data: yoRead([]), open: {}, rooms: {}, on: "", view: "Routines", packed: false };
 const yoCount = list => [list.filter(x => x.on).length, list.length];
-/* the day's whole list for the win stamp: every Daily Goal and every routine step and task */
-const yoAll = d => yoCount([...d.goals, ...YO_PARTS.flatMap(p => [...d.parts[p].steps, ...d.parts[p].tasks])]);
+/* the parts of the day with a step today, so weekdays show Daycare and no Afternoon, and weekends the reverse */
+const yoToday = d => YO_PARTS.filter(p => d.parts[p].steps.length || d.parts[p].tasks.length);
+/* the day's whole list for the win stamp: every routine step and task */
+const yoAll = d => yoCount([...YO_PARTS.flatMap(p => [...d.parts[p].steps, ...d.parts[p].tasks])]);
 function yoniBody() {
-  const d = yo.data, now = yoNow(), g = yoCount(d.goals);
+  const d = yo.data, now = yoNow();
   if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; yo.rooms = {}; }
-  if (!d.all.length) return `<div class="empty">Nothing is set up for Yoni yet. Goals and routines are added on the laptop.</div>`;
-  /* the Restock items stay at daycare and are only topped up when asked, so they never count towards a drop-off */
-  const list = yo.view === "Daycare" ? d.care : d.packs, pack = yo.view === "Daycare" ? list.filter(x => x.g !== "Restock") : list, pc = yoCount(pack);
-  const seg = segBar(["Routines", "Packing", "Daycare"], yo.view, "tk", "yoview");
+  if (!d.all.length) return `<div class="empty">Nothing is set up for Yoni yet. Routines are added on the laptop.</div>`;
+  const pack = d.packs, pc = yoCount(pack);
+  const seg = segBar(["Routines", "Packing"], yo.view, "tk", "yoview");
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
   const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${it.when ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${yoTx(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
   const partRows = P => (rows(P.steps, true)) + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : "");
-  if (yo.view === "Packing" || yo.view === "Daycare") {
-    const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = pack.filter(x => !x.on), done = pack.filter(x => x.on), restock = list.filter(x => !pack.includes(x)), open = new Set(left.map(x => x.g)).size;
-    const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span>${yo.view === "Daycare" ? "" : `<span class="g">${esc(it.g)}</span>`}</button>`;
-    return `${seg}<div class="pks" style="margin-top:4px"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${pc[0]} of ${pc[1]} packed</b><span class="s">${left.length ? `${open} group${open === 1 ? "" : "s"} still open` : "All packed"}</span></div><button type="button" class="clr" data-tk="yoclear" data-a="${yo.view}"${list.some(x => x.on) ? "" : " disabled"}>Clear</button></div>
+  if (yo.view === "Packing") {
+    const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = pack.filter(x => !x.on), done = pack.filter(x => x.on), open = new Set(left.map(x => x.g)).size;
+    const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span><span class="g">${esc(it.g)}</span></button>`;
+    return `${seg}<div class="pks" style="margin-top:4px"><span class="ring num" style="--p:${pct}%">${pct}%</span><div class="grow"><b class="num">${pc[0]} of ${pc[1]} packed</b><span class="s">${left.length ? `${open} group${open === 1 ? "" : "s"} still open` : "All packed"}</span></div><button type="button" class="clr" data-tk="yoclear"${pack.some(x => x.on) ? "" : " disabled"}>Clear</button></div>
       <div class="hgl">Still to pack<span class="num">${left.length}</span></div>
       ${left.length ? `<div class="pkl">${left.map(prow).join("")}</div>` : `<div class="s" style="padding:4px 2px">Everything is in the bag.</div>`}
       ${done.length ? `<button type="button" class="pkf${yo.packed ? " open" : ""}" data-tk="yopacked" aria-expanded="${yo.packed}"><span class="ic">${svg(UI.right, 16, 2.6)}</span><span class="grow">Packed</span><span class="num">${done.length}</span></button>${yo.packed ? `<div class="pkl">${done.map(prow).join("")}</div>` : ""}` : ""}
-      ${restock.length ? `<div class="hgl" style="margin-top:18px">Restock</div><div class="pkl">${restock.map(prow).join("")}</div>` : ""}
       <p class="ynote">Checks clear at midnight Eastern, or with Clear.</p>`;
   }
-  return `${seg}<div class="hgl" style="margin-top:4px">Daily Goals<span class="num">${g[0]} of ${g[1]} done today</span></div>
-    <div class="rings">${d.goals.map(x => `<button type="button" class="rg${x.on ? " on" : ""}" data-tk="yo" data-hap data-a="${x.i}" aria-pressed="${x.on}"><span class="ro">${esc(x.em)}</span><b class="num">${esc(x.target)} ${esc(x.unit)}</b><i class="ell">${esc(x.text)}</i></button>`).join("")}</div>
-    <div class="hgl" style="margin-top:18px">Routines<span>Tap a part to open it</span></div>
-    ${YO_PARTS.map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), full = !!c[1] && c[0] === c[1];
+  return `${seg}<div class="hgl" style="margin-top:4px">Routines<span>Tap a part to open it</span></div>
+    ${yoToday(d).map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), full = !!c[1] && c[0] === c[1];
       /* a part whose steps and tasks are all done folds away until tapped open; one no longer done drops that tap, so it folds again when finished */
       if (!full) delete yo.rooms[p];
       const o = full ? !!yo.rooms[p] : !!yo.open[p]; return `<div class="ac${o ? " open" : ""}"><button type="button" class="ach" data-tk="fold" data-a="${p}"${full ? ' data-done="1"' : ""} aria-expanded="${o}">${svg(UI.right, 16, 2.6)}<span class="nmr">${p}${p === now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></button>
       ${o ? `<div class="acb">${partRows(P)}</div>` : ""}</div>`; }).join("")}
-    <p class="ynote">Goals, routines, and tasks clear at midnight Eastern.</p>`;
+    <p class="ynote">Routines and tasks clear at midnight Eastern.</p>`;
 }
-/* Yoni, its own tab: Routines, Packing, and Daycare, switched at the top */
+/* Yoni, its own tab: Routines and Packing, switched at the top */
 function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = offline; }
 async function loadYoni(quiet) {
   const y = await readFile(FATHER_FILE);
@@ -2287,14 +2372,14 @@ async function loadYoni(quiet) {
   if (quiet !== true) status(y.at ? `Offline. Showing Yoni loaded ${y.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), y.at ? "err" : "ok");
   drawYoni();
 }
-/* Clear empties the Done cell of every packing or daycare item, as Clear checks does on the desktop */
-function yoClear(kind) {
+/* Clear empties the Done cell of every packing item, as Clear checks does on the desktop */
+function yoClear() {
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
   tkSave(FATHER_FILE, lines => {
-    const hit = yoRead(lines)[kind === "Daycare" ? "care" : "packs"].filter(x => x.on);
+    const hit = yoRead(lines).packs.filter(x => x.on);
     hit.forEach(x => { const cells = lines[x.i].split("|"); cells[cells.length - 2] = " "; lines[x.i] = cells.join("|"); });
     return hit;
-  }, `Phone: clear ${kind === "Daycare" ? "daycare" : "packing"} checks`);
+  }, "Phone: clear packing checks");
 }
 /* only the row's own Done cell is rewritten. A row is found again by its heading and its exact text, as the same task can sit under two parts of the day */
 function yoTick(i) {
@@ -2312,11 +2397,11 @@ function yoTick(i) {
   }, `Phone: ${to ? "check" : "uncheck"} "${it.text}"`);
   yoWin(was, it, to);
 }
-/* a checked step shows its part's count in the win toast, and the part's last step the party stamp; the day's last goal or routine gets the day's stamp instead */
-const YO_EM = { Morning: "🌅", Afternoon: "☀️", "Bed Time": "🌙", "Dream Feed": "🍼" };
+/* a checked step shows its part's count in the win toast, and the part's last step the party stamp; the day's last step gets the day's stamp instead */
+const YO_EM = { Morning: "🌅", Daycare: "🎒", Afternoon: "☀️", "Bed Time": "🌙", "Dream Feed": "🍼" };
 function yoWin(was, it, to) {
   const now = yoAll(yo.data), m = it.h.match(/^(.+) (?:Routine|Tasks)$/), P = m && yo.data.parts[m[1]];
-  if (now[1] && now[0] === now[1] && was[0] < was[1]) { win({ em: "👶🏻", head: "Yoni's day is done", sub: "Every goal and routine complete", pct: 1, was: was[0] / was[1], party: true }); return; }
+  if (now[1] && now[0] === now[1] && was[0] < was[1]) { win({ em: "👶🏻", head: "Yoni's day is done", sub: "Every routine complete", pct: 1, was: was[0] / was[1], party: true }); return; }
   if (!to || !P) return;
   const [n, of] = yoCount([...P.steps, ...P.tasks]);
   if (n === of) win({ em: YO_EM[m[1]], head: `${m[1]} done`, sub: `All ${of} step${of === 1 ? "" : "s"} complete`, party: true });
@@ -2365,8 +2450,8 @@ function drawHome() {
   const days = [...new Set(ahead.map(e => e.d))].slice(0, 3).map(d => { const es = ahead.filter(e => e.d === d); return `<div><em>${wkDay(d)}</em><span class="ell">${esc(es[0].title)}${es.length > 1 ? `, +${es.length - 1}` : es[0].start ? `, ${esc(es[0].start)}` : ""}</span></div>`; }).join("");
   const calCard = `<div class="card mini" data-go="Next Up"><div class="mh">${svg(HC.cal, 13)}Calendar<span class="go">${svg(UI.right, 13, 2.2)}</span></div>${ev.slice(0, 2).map(e => `<div class="me${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="none">${late ? "Nothing tomorrow" : "Nothing today"}</div>`}${ev.length > 2 ? `<div class="none num">+${ev.length - 2} more</div>` : ""}${days ? `<div class="foot num">${days}</div>` : ""}</div>`;
   const wo = woWeek(home.workout, d0), rest = !wo.now || /^rest$/i.test(wo.now.what);
-  const now = yoNow(), g = yoCount(yo.data.goals), pc = YO_PARTS.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
-  const full = x => x[1] > 0 && x[0] === x[1], allSet = [g, ...pc].every(x => !x[1] || full(x)) && [g, ...pc].some(x => x[1]);
+  const now = yoNow(), parts = yoToday(yo.data), pc = parts.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
+  const full = x => x[1] > 0 && x[0] === x[1], allSet = pc.every(x => !x[1] || full(x)) && pc.some(x => x[1]);
   /* every open task today, or in the first group that has any; from 7pm today's and tomorrow's, and on Sunday also Next Week's. Rows are the Tasks screen's, and open it */
   const open = tk.rows.filter(r => r.st !== "Done"), di = (new Date().getDay() + 6) % 7, day = TK_TIMES[di];
   const first = [day, ...TK_TIMES].find(t => open.some(r => r.time === t));
@@ -2394,13 +2479,13 @@ function drawHome() {
   /* Tasks: the workout, then the top three open tasks; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
   const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 3);
   const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"${PEEK ? ` data-tk="tick" data-a="${r.n}"` : ""}><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
-  /* Yoni: the goals in the heading, a Day to Night timeline of the four parts, then the next three steps from the part under way, each ticked here.
+  /* Yoni: a Day to Night timeline of the day's parts, then the next three steps from the part under way, each ticked here.
      A ticked step leaves the list and the next open one moves up */
-  const YO_TL = ["#f7d26a", "#f59e6b", "#6d7fe0", "#4fb3c9"];
+  const YO_TL = { Morning: "#f7d26a", Daycare: "#f59e6b", Afternoon: "#f59e6b", "Bed Time": "#6d7fe0", "Dream Feed": "#4fb3c9" };
   const ups = YO_PARTS.slice(YO_PARTS.indexOf(now)).flatMap(p => yo.data.parts[p].steps).filter(x => !x.on).slice(0, 3);
-  const tl = `<div class="qtl"><div class="tl">${pc.map((x, k) => `<i style="--c:${YO_TL[k]}"><u style="width:${x[1] ? x[0] / x[1] * 100 : 0}%"></u></i>`).join("")}</div><div class="tlb num">${pc.map(x => `<span>${x[0]}/${x[1]}</span>`).join("")}</div></div>`;
+  const tl = `<div class="qtl"><div class="tl">${pc.map((x, k) => `<i style="--c:${YO_TL[parts[k]]}"><u style="width:${x[1] ? x[0] / x[1] * 100 : 0}%"></u></i>`).join("")}</div><div class="tlb num">${pc.map(x => `<span>${x[0]}/${x[1]}</span>`).join("")}</div></div>`;
   const up = it => `<div class="row${it.on ? " on" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}"><span class="ck${it.on ? " on" : ""}"></span><span class="t ell">${esc(it.text.replace(/^\*\*(.+)\*\*$/, "$1"))}</span>${it.when ? `<span class="w num">${esc(it.when.replace(/\s*[AP]M$/i, ""))}</span>` : ""}</div>`;
-  const yoSq = `<div class="card qbox${allSet ? " set" : ""}" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni<span class="ge">${yo.data.goals.map(x => `<span class="${x.on ? "" : "off"}">${esc(x.em)}</span>`).join("")}</span></div>${tl}<div class="qnx"><div class="lab">Next up</div><div class="lst">${ups.map(up).join("") || `<div class="none">All steps done</div>`}</div></div></div>`;
+  const yoSq = `<div class="card qbox${allSet ? " set" : ""}" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni</div>${tl}<div class="qnx"><div class="lab">Next up</div><div class="lst">${ups.map(up).join("") || `<div class="none">All steps done</div>`}</div></div></div>`;
   /* Habits: the week's overall score in the heading, graded in the scorecard colours, then Fitness, Mental, Food, Water, and Habits against the week's pace */
   const H = hbNow(), saved = hbFiled(hbTarget()).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
   const HE = { water: "💧", habits: "🥕", food: "🥗", fitness: "💪🏻", mental: "🧠" };
@@ -2484,21 +2569,197 @@ function sendToChatGPT(r) {
 }
 function homeAdd() { openSheet(); }
 
+/* ---------- the Day, Matt's home screen: today's five 3-hour bands from the calendar, tasks, weather, Yoni's routines, and the family's week. The toggle in the header swaps it with Home, and the choice stays on this phone ---------- */
+const WEEK_FILE = "17👪-family/06🗓️-weekSchedule/weekScheduleData.json";
+const DY_BANDS = [6, 9, 12, 15, 18], DY_KEYS = ["Su", "M", "T", "W", "R", "F", "S"];
+/* the tasks' Timing column in terms of the bands */
+const DY_PART = { Morning: 1, Afternoon: 2, Evening: 3 };
+TAB.Day = WXI.sun;
+const CAR_IC = `<path ${F} d="M5 11l1.6-4.4A2.5 2.5 0 0 1 9 5h6a2.5 2.5 0 0 1 2.4 1.6L19 11a3 3 0 0 1 2.5 3v3.5a1 1 0 0 1-1 1H20v1a1.5 1.5 0 0 1-3 0v-1H7v1a1.5 1.5 0 0 1-3 0v-1h-.5a1 1 0 0 1-1-1V14A3 3 0 0 1 5 11z"/><path ${CF} d="M7.4 11l1-2.8A1 1 0 0 1 9.3 7.5h5.4a1 1 0 0 1 .9.7l1 2.8z"/><circle ${CF} cx="6.6" cy="14.8" r="1.3"/><circle ${CF} cx="17.4" cy="14.8" r="1.3"/>`;
+/* one solid icon per subject, drawn the phone's way */
+const DY_IC = {
+  cal: TAB.Calendar, tick: TAB.Tasks, moon: WXI.moon, car: CAR_IC, baby: TAB.Yoni,
+  arm: `<path ${F} d="M3.5 21c-.8-5 .2-11 3-16l4-2.5 2.5 2-1 3.2-3 1-.6 4.3c2.3-2 6-2.4 8.4-1 2.8 1.6 4 4 4.2 6.5v2.3c-5.4 2-11.8 2-17.5.2z"/>`,
+  doc: `<rect ${F} x="3" y="3" width="18" height="18" rx="4"/><path fill="none" stroke="var(--cut)" stroke-width="3" d="M12 8v8M8 12h8"/>`,
+  team: `<circle ${F} cx="9" cy="8" r="4"/><path ${F} d="M2 21c0-4 3-7 7-7s7 3 7 7z"/><circle ${F} cx="17.5" cy="8.5" r="3"/><path ${F} d="M18 14.2c2.5.4 4 3 4 6.8h-4c0-2.6-.8-4.8-2.2-6.3.7-.4 1.4-.6 2.2-.5z"/>`,
+  barri: `<circle ${F} cx="12" cy="7.5" r="4.5"/><path ${F} d="M4 21.5c0-4.5 3.5-8 8-8s8 3.5 8 8z"/>`
+};
+const dyIco = (n, s) => svg(DY_IC[n], s, 1.75);
+const dyOn = () => !CB && !PEEK && store.get("day-home") !== "home";
+const dy = { open: -1, d: "", week: [], el: null, y: 0, dy: 0, stamp: "" };
+/* "2:10 PM" or "18:00" as hours; null when there is no time */
+const dyH = s => { const m = /(\d+):(\d+)\s*([AP]M)?/i.exec(s || ""); if (!m) return null; let h = +m[1] % (m[3] ? 12 : 24); if (/p/i.test(m[3] || "")) h += 12; return h + +m[2] / 60; };
+const dyT = h => `${Math.floor(h) % 12 || 12}:${p2(Math.round(h % 1 * 60))}`;
+const dyLab = h => `${h % 12 || 12}:00${h < 12 ? "am" : "pm"}`;
+/* the day on show: today, or tomorrow from 9pm. now is -1 when that day has not begun */
+function dyWhen() {
+  const n = new Date(), h = n.getHours() + n.getMinutes() / 60, late = h >= 21;
+  return { d: late ? addDays(today(), 1) : today(), now: late ? -1 : h };
+}
+/* an hour's place in the bands: a time outside 6am to 9pm sits at the nearest end */
+const dyHour = h => Math.max(6, Math.min(20, Math.floor(h)));
+const dyBandOf = h => DY_BANDS.findIndex(t => h >= t && h < t + 3);
+function dyItems(d, now) {
+  const key = DY_KEYS[atNoon(d).getDay()], out = [], past = (h, end) => now >= (end == null ? h : end);
+  cal.events.filter(e => e.d === d).forEach(e => {
+    const st = dyH(e.start), en = dyH(e.end), barri = /^barri$/i.test(e.who);
+    const when = st == null ? "All day" : en == null ? dyT(st) : `${dyT(st)} - ${dyT(en)}`;
+    out.push({ h0: st == null ? 6 : st, tier: 0, g: e.title, n: e.title, t: st == null ? "" : dyT(st), s: when + (e.loc ? `, ${e.loc}` : ""), k: barri ? "barri" : "evt", i: barri ? "barri" : /appointment|doctor|dentist|\bmd\b|\bdr\b|clinic|visit|pedi/i.test(e.title) ? "doc" : /meet|review|sync|call|team|1:1/i.test(e.title) ? "team" : "cal", to: d === today() ? "Today" : "Next Up", was: st != null && past(st, en) });
+  });
+  (dy.week || []).filter(x => x.day === key).forEach(x => {
+    const st = dyH(x.start), en = dyH(x.end), row = (g, n, k, i, s, more = {}) => out.push({ h0: st, tier: 1, g, n, t: dyT(st), s, k, i, was: past(st, en), ...more });
+    if (x.lane === "Matt" && x.type === "gym") { const wo = woWeek(home.workout, d).now; row("Gym", "Gym", "gym", "arm", `${dyT(st)} - ${dyT(en)}`, { x: wo && !/^rest$/i.test(wo.what) ? wo.what : "" }); }
+    else if (x.lane === "Matt" && x.type === "commute") row("Commute", st < 12 ? "Commute" : "Commute home", "drive", "car", `Leave by ${dyT(st)}`);
+    else if (x.type === "drop") row("Drop-off", "Yoni drop-off", "yoni", "baby", dyT(st), { to: "Yoni", x: x.lane === "Matt" ? "" : x.lane });
+    else if (x.type === "pick") row("Pick-up", "Yoni pick-up", "yoni", "baby", dyT(st), { to: "Yoni", x: x.lane === "Matt" ? "" : x.lane });
+  });
+  ["Morning", "Afternoon"].forEach(p => yo.data.parts[p].steps.forEach(it => {
+    const st = dyH(it.when); if (st == null) return;
+    const text = it.text.replace(/\*\*/g, ""), k = text.indexOf(": ");
+    out.push({ h0: st, tier: 2, g: k > 0 ? text.slice(0, k) : text, n: text, t: dyT(st), s: dyT(st), k: "yoni", i: "baby", to: "Yoni", was: past(st) || (it.on && d === today()) });
+  }));
+  out.forEach(i => { i.h = dyHour(i.h0); });
+  return out.sort((a, b) => a.h0 - b.h0 || a.tier - b.tier);
+}
+/* the day's open tasks by band: Timing picks the band, and with no Timing the task goes in the next band still open, at its first hour still to come */
+function dyTasks(d, now) {
+  const day = TK_TIMES[(atNoon(d).getDay() + 6) % 7], open = Math.max(0, DY_BANDS.findIndex(t => now < t + 3));
+  return tk.rows.filter(r => r.st !== "Done" && r.time === day).map(r => {
+    const b = r.part in DY_PART ? DY_PART[r.part] : open, t = DY_BANDS[b];
+    return { r, b, h: now >= t && now < t + 3 ? Math.floor(now) : t };
+  });
+}
+const dyWx = (d, h) => { try { return W ? wxHours(d, h, h + 1)[0] || null : null; } catch (e) { return null; } };
+const dyTemp = x => `<span class="tp">${x.feel}°</span>${wxIco(wxHourIcon(x), 16)}`;
+const dyRowIc = i => `<span class="ci">${dyIco(i.i, 14)}</span>`;
+/* the Events card names every calendar event first, then the routine rows, one per time, as far as the row height lets them fit; the count in its heading is them all */
+function dyEvents(its, room) {
+  const seen = new Set(), rows = its.filter(i => { if (i.tier < 2) return true; if (seen.has(i.h0)) return false; seen.add(i.h0); return true; });
+  const fit = n => [...rows].sort((a, b) => a.tier - b.tier || a.h0 - b.h0).slice(0, n).sort((a, b) => a.h0 - b.h0 || a.tier - b.tier);
+  const all = Math.floor(room / 18), more = its.length > all || rows.length > all, n = rows.length > all ? Math.floor((room - 12) / 18) : all;
+  return `<div class="dyc ev${its.length ? "" : " dim"}"><div class="dyct">${dyIco("cal", 13)}${its.length ? `<b class="num">${its.length}</b>` : ""}</div>${fit(n).map(i => `<div class="dyr ${i.k}${i.was ? " was" : ""}">${dyRowIc(i)}<span class="n">${esc(i.g)}</span>${i.t ? `<span class="t num">${i.t}</span>` : ""}</div>`).join("")}${rows.length > n && more ? `<div class="dymore">...</div>` : ""}</div>`;
+}
+function dyTaskCard(ts, room, close, left) {
+  const rows = Math.floor((room - (close ? 16 : 0)) / 16), n = ts.length > rows ? Math.floor((room - (close ? 16 : 0) - 12) / 16) : rows, show = s => esc(s.replace(/<br\s*\/?>/gi, " "));
+  return `<div class="dyc ts${ts.length || close ? "" : " dim"}"><div class="dyct">${dyIco("tick", 13)}${ts.length ? `<b class="num">${ts.length}</b>` : ""}</div>${ts.slice(0, Math.min(4, n)).map(x => `<div class="dyr"><span class="n">${show(x.r.title)}</span></div>`).join("")}${ts.length > Math.min(4, n) ? `<div class="dymore">...</div>` : ""}${close ? `<div class="dyr clo" data-go="Habits"><span class="ci">${dyIco("moon", 14)}</span><span class="n">Closeout</span><span class="t num">${left}</span></div>` : ""}</div>`;
+}
+const dyWxCard = (d, t) => `<div class="dyc wx"><div class="dywrs">${[0, 1, 2].map(j => { const x = dyWx(d, t + j); return x ? `<div class="dywr num${wxGood(x.score)}">${dyTemp(x)}<span class="sc">${wx10(x.score)}</span></div>` : `<div class="dywr"></div>`; }).join("")}</div></div>`;
+const dyItem = i => `<div class="dyit ${i.k}${i.was ? " was" : ""}"${i.to ? ` data-go="${i.to}"` : ""}><span class="ci">${dyIco(i.i, 18)}</span><div class="tx">${esc(i.n)}<small class="num">${esc(i.s)}</small>${i.x ? `<small>${esc(i.x)}</small>` : ""}</div></div>`;
+const dyTask = (x, was) => { const r = x.r, show = s => esc(s.replace(/<br\s*\/?>/gi, " ")); return `<div class="tl${was ? " was" : ""}"><div class="tr"><button type="button" class="rcb" data-tk="tick" data-hap data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to mark done"><span class="rc ${r.st}"></span></button><div class="rt"><div class="tt">${show(r.title)}</div></div></div></div>`; };
+function dyHourRow(d, h, now, its, ts, left) {
+  const x = dyWx(d, h), here = now >= h && now < h + 1, y = (now - h) * 100, t = dyT(now) + (now < 12 ? "am" : "pm");
+  const was = now >= h + 1;
+  return `<div class="dyhr"><div class="dyhl num">${dyLab(h)}</div><div class="dyhb">${x ? `<div class="dyhw num${wxGood(x.score)}">${dyTemp(x)}<i><u style="width:${Math.round(x.score)}%"></u></i><span class="sc">${wx10(x.score)}</span></div>` : ""}${its.filter(i => i.h === h).map(dyItem).join("")}${ts.filter(z => z.h === h).map(z => dyTask(z, was)).join("")}${h === 20 ? `<div class="dycl" data-go="Habits"><span class="ci">${dyIco("moon", 18)}</span>Closeout<em class="num">${left} open</em></div>` : ""}</div>${here ? `<div class="dynowl" style="top:${y}%"></div><div class="dynowt num" style="top:${y}%">${t}</div>` : ""}</div>`;
+}
+function dyBand(d, now, b, its, ts, room, left) {
+  const t = DY_BANDS[b], mine = its.filter(i => dyBandOf(i.h) === b), tasks = ts.filter(x => x.b === b), here = now >= t && now < t + 3, pct = (now - t) / 3 * 100;
+  return `<section class="dyb${dy.open === b ? " open" : ""}" data-b="${b}"><div class="dylb num">${dyLab(t)}</div><div class="dyhead"><span class="dygrab"></span><span class="num">${dyLab(t)} - ${dyLab(t + 3)}</span></div><div class="dyg"><div><div class="dygl${now >= t + 3 ? " past" : ""}" data-dyo="${b}"><div class="dycs">${dyEvents(mine, room)}${dyTaskCard(tasks, room, b === 4, left)}${dyWxCard(d, t)}</div>${here ? `<div class="dygnow" style="top:${pct}%"></div><div class="dygnt num" style="top:calc(${pct}% - 7px)">${dyT(now)}${now < 12 ? "am" : "pm"}</div>` : ""}</div></div></div><div class="dyw"><div><div class="dywin">${[0, 1, 2].map(j => dyHourRow(d, t + j, now, mine, tasks, left)).join("")}</div></div></div></section>`;
+}
+function dyStrip(d) {
+  const s = addDays(d, -atNoon(d).getDay());
+  $("hdwk").innerHTML = ["S", "M", "T", "W", "R", "F", "S"].map((k, i) => { const x = addDays(s, i); return `<div class="${x === d ? "on" : ""}">${k}<b class="num">${+x.slice(8)}</b></div>`; }).join("");
+  $("hdname").textContent = fmtDay(d, { month: "long", year: "numeric" });
+}
+function drawDay() {
+  const { d, now } = dyWhen(), box = $("scr"), keep = box.scrollTop, st = $("status");
+  if (dy.d !== d) { dy.d = d; dy.open = -1; }
+  dy.stamp = `${d} ${Math.floor(now * 60)}`;
+  dyStrip(d);
+  box.classList.add("dyd");
+  const bh = Math.max(96, Math.floor((box.clientHeight - (st.classList.contains("err") ? st.offsetHeight : 0) - 24) / 5)), room = bh - 8 - 12 - 18;
+  const its = dyItems(d, now), ts = dyTasks(d, now);
+  $("main").innerHTML = `<div class="dy" style="--bh:${bh}px">${DY_BANDS.map((_, b) => dyBand(d, now, b, its, ts, room, ts.length)).join("")}<div class="dyend"><div class="dylb num">${dyLab(21)}</div></div></div>`;
+  box.scrollTop = dy.open >= 0 && !keep ? dyTop(dy.open) : keep;
+}
+async function loadDay() {
+  /* a missing workout or schedule file only leaves those rows out */
+  const [c, t, y, w, s, cb] = await Promise.all([readFile(CAL_FILE), readFile(TASK_FILE), readFile(FATHER_FILE), readFile(WORKOUT_FILE).catch(() => null), readFile(WEEK_FILE).catch(() => null), readFile(CB_FILE).catch(() => null), loadWeather()]);
+  if (tab !== "Day") return;
+  cal = parseCalendar(c.text);
+  if (w) home.workout = w.text;
+  if (s) try { dy.week = JSON.parse(s.text); } catch (e) { /* the last good copy stays */ }
+  if (!tkBusy) { tk.lines = t.text.split("\n"); if (cb) tk.clines = cb.text.split("\n"); yo.lines = y.text.split("\n"); tkParse(); } /* a task still being saved is not drawn over */
+  status(c.at ? `Offline. Showing what was loaded ${c.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), c.at ? "err" : "ok");
+  drawDay();
+}
+/* a band's place in the scroll, and the scroll following it while its height eases, so the open band lands under the dates */
+const dyEl = b => document.querySelector(`.dyb[data-b="${b}"]`);
+const dyTop = b => { const box = $("scr"); return dyEl(b).getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop; };
+let dyRaf = 0, dyLand = 0;
+function dyFollow(target) {
+  cancelAnimationFrame(dyRaf);
+  const box = $("scr"), from = box.scrollTop, t0 = performance.now();
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / 320), e = 1 - Math.pow(1 - k, 3);
+    box.scrollTop = from + (target() - from) * e;
+    if (k < 1) dyRaf = requestAnimationFrame(step);
+  })(t0);
+  clearTimeout(dyLand);
+  dyLand = setTimeout(() => { if (tab === "Day") box.scrollTop = target(); }, 340);
+}
+function dySetOpen(b) {
+  dy.open = b;
+  document.querySelectorAll(".dyb").forEach(x => x.classList.toggle("open", +x.dataset.b === b));
+  dyFollow(b < 0 ? () => 0 : () => dyTop(b));
+}
+/* the header on the Day: month, share, round icon, the toggle, and the week strip. On Home the toggle sits beside Settings, and on every other tab the header is as it was */
+function dyChrome(plain) {
+  const on = !plain && tab === "Day", home = !plain && tab === "Home" && !CB && !PEEK;
+  $("scr").classList.toggle("dys", on);
+  if (!on) $("scr").classList.remove("dyd");
+  document.querySelector(".hd").classList.toggle("dyh", on);
+  $("hdlogo").hidden = $("settings").hidden = on;
+  $("hdpct").hidden = $("hdrnd").hidden = $("hdwk").hidden = !on;
+  $("hdday").hidden = !on && !home;
+  $("hdday").setAttribute("aria-label", on ? "Show Home" : "Show the Day");
+  $("hdday").innerHTML = svg(on ? TAB.Home : WXI.sun, 22);
+  $("hdday").style.setProperty("--cut", "var(--side)");
+  if (!on) $("hdname").textContent = CB ? "CucuBarri" : "MattOS";
+}
+function dyFlip() { const to = tab === "Day" ? "Home" : "Day"; store.set("day-home", to === "Home" ? "home" : "day"); go(to); }
+document.addEventListener("pointerdown", e => {
+  const h = e.target.closest && e.target.closest(".dyb.open .dyhead");
+  if (!h) return;
+  dy.el = h; dy.y = e.clientY; dy.dy = 0;
+  h.setPointerCapture(e.pointerId);
+  h.style.transition = "none";
+});
+document.addEventListener("pointermove", e => {
+  if (!dy.el) return;
+  dy.dy = Math.max(0, e.clientY - dy.y);
+  dy.el.style.transform = `translateY(${dy.dy * .4}px)`;
+  dy.el.closest(".dyb").querySelector(".dyw").style.opacity = 1 - Math.min(.7, dy.dy / 160);
+});
+const dyEndDrag = () => {
+  if (!dy.el) return;
+  const h = dy.el, w = h.closest(".dyb").querySelector(".dyw");
+  h.style.transition = ""; h.style.transform = ""; w.style.opacity = "";
+  dy.el = null;
+  if (dy.dy > 40) dySetOpen(-1);
+};
+document.addEventListener("pointerup", dyEndDrag);
+document.addEventListener("pointercancel", dyEndDrag);
+/* the now line and the past rows follow the clock, and the Day moves to tomorrow at 9pm */
+setInterval(() => { if (tab !== "Day" || document.hidden || dy.el || !$("main").firstChild || !$("main").firstChild.classList.contains("dy")) return; const { d, now } = dyWhen(); if (dy.stamp !== `${d} ${Math.floor(now * 60)}`) drawDay(); }, 20000);
+addEventListener("resize", () => { if (tab === "Day" && $("main").querySelector(".dy")) drawDay(); });
+
 /* ---------- tabs. A screen has load() to fetch and draw itself, and may have add() for the add button and leave() ---------- */
-const SCREENS = { Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: HUCK ? openHuckleberry : homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
+const SCREENS = { Day: { load: loadDay, leave: closeSheet }, Home: { load: loadHome, add: homeAdd, leave: closeSheet }, Calendar: { load: loadCalendar, add: homeAdd, leave: closeSheet }, Habits: { load: loadHabits, add: homeAdd, leave: () => { leaveHabits(); closeSheet(); } }, Tasks: { load: loadTasks, add: openSheet, leave: leaveTasks }, Yoni: { load: loadYoni, add: HUCK ? openHuckleberry : homeAdd, leave: closeSheet }, Notes: { load: loadNotes, add: newNote, leave: leaveNotes } };
 const START = "Home";
 /* the tab to reload: on CucuBarri, Tasks held on its Shopping or Strength view is that tab */
 const here = () => CB && tab === "Tasks" && (tk.view === "Shopping" || tk.view === "Strength") ? tk.view : tab;
 let tab = null;
 function leave() { const s = SCREENS[tab]; if (s && s.leave) s.leave(); }
 async function go(name) {
+  /* Matt's middle tab is the Day or Home, whichever the toggle last chose */
+  if (name === "Home" && dyOn()) name = "Day"; else if (name === "Day" && !dyOn()) name = "Home";
   leave();
   if (CB && (name === "Shopping" || name === "Strength" || name === "Tasks")) { tk.view = name; name = "Tasks"; }
   tab = SCREENS[name] && (!CB || ["Home", "Yoni", "Tasks"].includes(name)) ? name : START;
   const lit = CB ? here() : tab === "Notes" ? "Tasks" : tab;
   history.replaceState(null, "", location.search + "#" + (CB ? lit : tab).toLowerCase());
-  $("tabs").innerHTML = TAB_BAR.map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
-  $("fab").hidden = true; $("scr").scrollTop = 0; $("scr").classList.toggle("cbh", CB && tab === "Home");
+  $("tabs").innerHTML = TAB_BAR.map(n => n === "Home" && dyOn() ? "Day" : n).map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
+  dyChrome(); $("fab").hidden = true; $("scr").scrollTop = 0; $("scr").classList.toggle("cbh", CB && tab === "Home");
   const hb = HUCK && tab === "Yoni";
   $("fab").classList.toggle("huck", hb); $("fab").innerHTML = hb ? HUCK_LOGO : svg(UI.plus, 24, 2.6); $("fab").setAttribute("aria-label", hb ? "Open Huckleberry" : "Add");
   if (!cfg().token && !PEEK) return showSetup();
@@ -2512,6 +2773,7 @@ async function go(name) {
 }
 function showSetup(msg) {
   const c = cfg();
+  dyChrome(true);
   leave(); status(""); $("fab").hidden = true; $("scr").classList.remove("cbh");
   $("main").innerHTML = `<div class="big">Settings</div><form class="card setup" id="setup">
     ${msg ? `<p style="color:var(--flag)">${esc(msg)}</p>` : ""}
@@ -2528,12 +2790,15 @@ document.addEventListener("click", e => {
   const t = e.target.closest(".tab");
   if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
   if (e.target.closest("#settings")) { showSetup(); return; }
+  if (e.target.closest("#hdday")) { dyFlip(); return; }
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
   const fold = e.target.closest("[data-fold]");
   if (fold) { home.shut[fold.dataset.fold] = !home.shut[fold.dataset.fold]; drawHome(); return; }
   const to = e.target.closest("[data-go]"), yk = e.target.closest('[data-tk="yo"], [data-tk="tick"]');
   if (to && yk && to.contains(yk)) { tkAct(yk.dataset.tk, yk.dataset.a, yk); return; } /* a step ticked on the Yoni square (or, in the peek panel, a task on the Tasks card), not a tap through */
   if (to) { homeGo(to.dataset.go); return; }
+  const db = e.target.closest("[data-dyo]");
+  if (db) { dySetOpen(+db.dataset.dyo); return; }
   const k = e.target.closest("[data-tk]");
   if (k) { tkAct(k.dataset.tk, k.dataset.a, k); return; }
   const h = e.target.closest("[data-hb]");
