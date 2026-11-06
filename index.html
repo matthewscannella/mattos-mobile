@@ -572,6 +572,30 @@
   .sv.del { color: var(--flag); }
   .sv.ico { display: flex; align-items: center; justify-content: center; gap: 6px; }
 
+  /* ---------- Dinner, in the Yoni tab: All, Order In, and Dine Out, food type tiles, then photo cards under folding food headings ---------- */
+  .seg.dmm { margin-top: 2px; }
+  .seg.dmm button { height: 30px; line-height: 30px; font-size: 13px; }
+  .dmt { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 10px 0 8px; border-bottom: 1px solid var(--line); }
+  .dmt button { display: grid; justify-items: center; gap: 2px; padding: 6px 0; border: 1px solid transparent; border-radius: 10px; font-size: 11px; line-height: 13px; color: var(--mut); }
+  .dmt .e { font-size: 24px; line-height: 30px; }
+  .dmt button.on { color: var(--hi); border-color: var(--acc); background: rgba(141, 171, 249, .14); }
+  .dmg { margin-top: 10px; }
+  .dmh { display: flex; align-items: center; gap: 6px; width: 100%; height: 30px; font-size: 13px; font-weight: 600; color: var(--tx); }
+  .dmh svg { color: var(--mut); transform: rotate(90deg); transition: transform .15s; }
+  .dmh.shut svg { transform: none; }
+  .dml { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; padding-top: 4px; }
+  .dmc { display: block; min-width: 0; text-align: left; }
+  .dmp { display: block; position: relative; aspect-ratio: 4 / 3; border-radius: 12px; background: var(--raised) center / cover no-repeat; }
+  .dmk { font-size: 14px; line-height: 18px; letter-spacing: 2px; }
+  .dmp .dmk { position: absolute; top: 6px; right: 6px; padding: 2px 4px 2px 6px; border-radius: 7px; background: rgba(10, 12, 17, .7); }
+  .dmc .nm { display: block; margin-top: 6px; font-size: 15px; line-height: 19px; font-weight: 600; color: var(--hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dmc .sb, .dms .sb { display: block; font-size: 13px; line-height: 17px; color: var(--mut); }
+  .dms .dmp { aspect-ratio: auto; height: 200px; }
+  .dmn { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: -10px; }
+  .dmn b { font-size: 19px; line-height: 24px; color: var(--hi); }
+  .dma { display: flex; gap: 8px; }
+  .dma .btn { display: grid; place-items: center; text-decoration: none; }
+  .dma .sq { color: var(--tx); }
   /* ---------- Yoni: each part of the day as a card that folds away ---------- */
   .ac { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; margin-top: 8px; overflow: hidden; }
   .ach { display: grid; grid-template-columns: 16px 1fr auto; column-gap: 8px; row-gap: 8px; align-items: center; width: 100%; padding: 13px 12px; font-size: 15.5px; font-weight: 600; }
@@ -1502,6 +1526,12 @@ function tkAct(act, a, el) {
   else if (act === "fold") { const k = el.dataset.done ? "rooms" : "open"; yo[k][a] = !yo[k][a]; drawYoni(); }
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
   else if (act === "yopacked") { yo.packed = !yo.packed; drawYoni(); }
+  else if (act === "dmmode") { dm.mode = a; const all = dmRows(); [...dm.on].forEach(k => { if (!all.some(r => r.t === k && dmIn(r))) dm.on.delete(k); }); drawYoni(); }
+  else if (act === "dmfood") { dm.on.has(a) ? dm.on.delete(a) : dm.on.add(a); drawYoni(); }
+  else if (act === "dmfold") { dm.shut.has(a) ? dm.shut.delete(a) : dm.shut.add(a); drawYoni(); }
+  else if (act === "dmopen") dmSheet(a);
+  else if (act === "dmdice") dmDice();
+  else if (act === "dmclose") { dm.open = null; closeSheet(); }
   else if (act === "yoclear") yoClear();
   /* the Bug button in the task field switches on and off; a bug goes to CC by default, and back to MS when unmarked */
   else if (act === "opt" && el.dataset.k === "b") {
@@ -2367,9 +2397,10 @@ const yoAll = d => yoCount([...YO_PARTS.flatMap(p => [...d.parts[p].steps, ...d.
 function yoniBody() {
   const d = yo.data, now = yoNow();
   if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; yo.rooms = {}; }
-  if (!d.all.length) return `<div class="empty">Nothing is set up for Yoni yet. Routines are added on the laptop.</div>`;
+  const seg = segBar(["Routines", "Packing", "Dinner"], yo.view, "tk", "yoview", yo.view === "Dinner" ? `<button type="button" class="sq" data-tk="dmdice" aria-label="Pick one at random">${DM_DICE}</button>` : "");
+  if (yo.view === "Dinner") return dmBody(seg);
+  if (!d.all.length) return `${seg}<div class="empty">Nothing is set up for Yoni yet. Routines are added on the laptop.</div>`;
   const pack = d.packs, pc = yoCount(pack);
-  const seg = segBar(["Routines", "Packing"], yo.view, "tk", "yoview");
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
   const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${it.when ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${yoTx(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
   const partRows = P => (rows(P.steps, true)) + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : "");
@@ -2390,14 +2421,85 @@ function yoniBody() {
       ${o ? `<div class="acb">${partRows(P)}</div>` : ""}</div>`; }).join("")}
     <p class="ynote">Routines and tasks clear at midnight Eastern.</p>`;
 }
-/* Yoni, its own tab: Routines and Packing, switched at the top */
-function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = offline; }
+/* Yoni, its own tab: Routines, Packing, and Dinner, switched at the top */
+function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = offline; if (yo.view === "Dinner") dmPhotos(); }
 async function loadYoni(quiet) {
-  const y = await readFile(FATHER_FILE);
+  /* the dinner menu is read beside it, and a phone that has not synced it yet still shows Yoni */
+  const [y, dn] = await Promise.all([readFile(FATHER_FILE), readFile(DM_FILE).catch(() => null)]);
   if (tab !== "Yoni" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
-  yo.lines = y.text.split("\n"); tkParse();
+  yo.lines = y.text.split("\n"); if (dn) dm.lines = dn.text.split("\n"); tkParse();
   if (quiet !== true) status(y.at ? `Offline. Showing Yoni loaded ${y.at}; changes are off until you reconnect.` : "Synced " + stamp().split(", ").pop(), y.at ? "err" : "ok");
   drawYoni();
+}
+/* ---------- Dinner: the third view of the Yoni tab, read from 17👪-family/07🍽️-dinnerMenu/dinnerMenuRegistry.md; the phones only view it ---------- */
+const DM_FILE = "17👪-family/07🍽️-dinnerMenu/dinnerMenuRegistry.md", DM_PHOTOS = "17👪-family/07🍽️-dinnerMenu/photos/";
+/* the food types in list order, as on the laptop (lifeSections.js DM_FOOD): the tile's emoji and label, and the group heading */
+const DM_FOOD = [["🍝", "Italian", "Italian"], ["🍕", "Pizza", "Pizza"], ["🍔", "American", "American, Gastropubs, and Steakhouses"], ["🌮", "Mexican", "Mexican and Latin American"], ["🍣", "Japanese", "Japanese"], ["🥡", "Asian", "Chinese and Other Asian"], ["🥙", "Indian", "Indian, Mediterranean, and Middle Eastern"], ["🦞", "Seafood", "Seafood and French"], ["🥪", "Delis", "Delis, Sandwiches, and Bakeries"]];
+const DM_DICE = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>`;
+const DM_PHONE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>`;
+const dm = { lines: [], mode: "All", on: new Set(), shut: new Set(), open: null, urls: {} };
+/* a place with no photo of its own shows its food type's photo, such as foodItalian.jpg */
+function dmRows() {
+  let head = null; const out = [];
+  dm.lines.forEach(line => {
+    const raw = line.replace(/\r$/, "").trim();
+    if (!raw.startsWith("|")) return;
+    const c = raw.split("|").slice(1, -1).map(x => x.trim());
+    if (!head) { head = c; return; }
+    if (/^:?-+:?$/.test(c[0])) return;
+    const at = k => c[head.indexOf(k)] || "", mode = at("Mode");
+    if (at("Restaurant")) out.push({ n: at("Restaurant"), t: at("Food"), m: mode === "Both" ? "📦🍽️" : mode === "Order In" ? "📦" : "🍽️", menu: at("Menu"), tel: at("Phone"), ph: at("Photo") || "food" + at("Food") + ".jpg" });
+  });
+  return out.sort((a, b) => a.n.replace(/^The /, "").localeCompare(b.n.replace(/^The /, "")));
+}
+const dmIn = r => dm.mode === "All" || r.m.includes(dm.mode === "Order In" ? "📦" : "🍽️");
+const dmShown = rows => rows.filter(r => dmIn(r) && (!dm.on.size || dm.on.has(r.t)));
+const dmPh = r => `data-ph="${esc(r.ph)}"${dm.urls[r.ph] ? ` style="background-image:url('${dm.urls[r.ph]}')"` : ""}`;
+function dmBody(seg) {
+  const all = dmRows(), shown = dmShown(all);
+  if (!all.length) return `${seg}<div class="empty">The dinner menu has not synced to this phone yet.</div>`;
+  const mode = `<div class="seg dmm">${["All", "Order In", "Dine Out"].map(m => `<button type="button" class="${dm.mode === m ? "on" : ""}" data-tk="dmmode" data-a="${m}">${m}</button>`).join("")}</div>`;
+  const tiles = `<div class="dmt">${DM_FOOD.filter(f => all.some(r => r.t === f[1] && dmIn(r))).map(f => `<button type="button" class="${dm.on.has(f[1]) ? "on" : ""}" data-tk="dmfood" data-a="${f[1]}" aria-pressed="${dm.on.has(f[1])}"><span class="e">${f[0]}</span>${f[1]}</button>`).join("")}</div>`;
+  const card = r => `<button type="button" class="dmc" data-tk="dmopen" data-a="${esc(r.n)}"><span class="dmp" ${dmPh(r)}><span class="dmk">${r.m}</span></span><span class="nm">${esc(r.n)}</span><span class="sb">${esc(r.t)}</span></button>`;
+  const groups = DM_FOOD.map(f => { const rows = shown.filter(r => r.t === f[1]), shut = dm.shut.has(f[1]);
+    return rows.length ? `<div class="dmg"><button type="button" class="dmh${shut ? " shut" : ""}" data-tk="dmfold" data-a="${f[1]}" aria-expanded="${!shut}">${svg(UI.right, 14, 2.6)}${f[2]}</button>${shut ? "" : `<div class="dml">${rows.map(card).join("")}</div>`}</div>` : ""; }).join("");
+  return seg + mode + tiles + (groups || `<div class="s" style="padding:12px 2px">Nothing matches. Turn off a food type.</div>`);
+}
+/* the photos come once from the data repository with the phone's token, then stay in this phone's cache */
+/* a call made while photos are loading runs again when they finish, so a sheet opened meanwhile still gets its photo */
+let dmBusy = false, dmAgain = false;
+async function dmPhotos() {
+  if (dmBusy) { dmAgain = true; return; } dmBusy = true;
+  try {
+    const want = [...new Set([...document.querySelectorAll("[data-ph]")].map(e => e.dataset.ph).filter(p => !dm.urls[p]))];
+    const box = "caches" in window ? await caches.open("mattos-dinner").catch(() => null) : null;
+    const one = async p => {
+      const url = PEEK ? "/family/dinnerMenu/photos/" + encodeURIComponent(p) : apiUrl(DM_PHOTOS + p);
+      let r = box && await box.match(url);
+      if (!r) {
+        r = await fetch(url, PEEK ? {} : { headers: { ...headers(), Accept: "application/vnd.github.raw" } });
+        if (!r.ok) return;
+        if (box) await box.put(url, r.clone());
+      }
+      dm.urls[p] = URL.createObjectURL(await r.blob());
+      document.querySelectorAll(`[data-ph="${CSS.escape(p)}"]`).forEach(e => { e.style.backgroundImage = `url('${dm.urls[p]}')`; });
+    };
+    for (let i = 0; i < want.length; i += 4) await Promise.all(want.slice(i, i + 4).map(p => one(p).catch(() => {})));
+  } finally { dmBusy = false; if (dmAgain) { dmAgain = false; dmPhotos(); } }
+}
+/* the card and the dice open the same sheet: the photo, then the menu and a call */
+function dmSheet(name) {
+  const r = dmRows().find(x => x.n === name);
+  if (!r) return;
+  dm.open = r.n;
+  $("sheet").innerHTML = `<div class="dim" data-tk="dmclose"></div><div class="bs dms"><div class="grab"></div><div class="dmp" ${dmPh(r)}></div><div class="dmn"><b>${esc(r.n)}</b><span class="dmk">${r.m}</span></div><span class="sb">${esc(r.t)}</span>
+    <div class="dma">${r.menu ? `<a class="btn primary grow" href="${esc(r.menu)}" target="_blank" rel="noopener">Menu</a>` : `<span class="btn grow">No menu link</span>`}${r.tel ? `<a class="sq" href="tel:${esc(r.tel.replace(/[^\d+]/g, ""))}" aria-label="Call ${esc(r.tel)}">${DM_PHONE}</a>` : ""}<button type="button" class="sq" data-tk="dmdice" aria-label="Pick another">${DM_DICE}</button></div></div>`;
+  $("sheet").hidden = false; dmPhotos();
+}
+/* the dice picks from what is showing, and never the same place twice running */
+function dmDice() {
+  const pool = dmShown(dmRows()), rest = pool.length > 1 ? pool.filter(r => r.n !== dm.open) : pool;
+  if (rest.length) { buzz(); dmSheet(rest[Math.floor(Math.random() * rest.length)].n); }
 }
 /* Clear empties the Done cell of every packing item, as Clear checks does on the desktop */
 function yoClear() {
