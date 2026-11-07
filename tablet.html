@@ -358,6 +358,44 @@ input{font:inherit;color:inherit;outline:none;-webkit-user-select:text;user-sele
 .sswp .srow{position:relative;border-top:0;background:var(--card);touch-action:pan-y;transition:transform .18s}
 .sswp.sw .srow{transform:translateX(96px)}
 .sdel{position:absolute;left:0;top:0;bottom:0;width:96px;background:#e5484d;color:#fff;font-size:14.5px;font-weight:600}
+/* Espresso Menu: the web board's block (mattOs.css, Espresso Menu), a chalkboard café menu breaking the house style on purpose; full covers the whole screen with larger type */
+.em-board{--chalk-bg:#26282a;--chalk:#f2f0ea;--chalk-dim:#a9a9a4;--chalk-pink:#f2a7b8;--wood:#6b4a2f;position:relative;flex:1;min-height:0;overflow-y:auto;display:grid;align-content:center;gap:20px;padding:20px;border:14px solid var(--wood);border-radius:8px;background:var(--chalk-bg);color:var(--chalk);font-family:"Avenir Next Condensed","Bahnschrift","Arial Narrow",sans-serif;font-stretch:condensed;scrollbar-width:none}
+.em-board::-webkit-scrollbar{display:none}
+.em-board.full{position:fixed;inset:0;z-index:20;border-radius:0;gap:32px;padding:calc(28px + env(safe-area-inset-top)) calc(28px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(28px + env(safe-area-inset-left))}
+.em-title{text-align:center;font-size:32px;line-height:36px;font-weight:600;letter-spacing:6px;text-transform:uppercase}
+.em-title span{color:var(--chalk-pink)}
+.em-cols{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:20px;align-items:start}
+.em-sec{position:relative;padding:26px 16px 16px;border:2px solid var(--chalk-pink);border-radius:14px}
+.em-st{position:absolute;top:-11px;left:50%;transform:translateX(-50%);padding:0 12px;background:var(--chalk-bg);white-space:nowrap;color:var(--chalk-pink);font-size:16px;line-height:20px;font-weight:600;letter-spacing:3px;text-transform:uppercase}
+.em-drinks{display:grid;gap:16px;align-content:start}
+.em-drink{display:block;width:100%}
+.em-hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.em-nm{font-size:18px;line-height:24px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.em-mks{white-space:nowrap;font-family:var(--emoji);font-size:12px;letter-spacing:0}
+.em-oz{font-size:17px;line-height:24px;font-weight:600;white-space:nowrap;text-transform:uppercase}
+.em-ln{display:block;font-family:Inter,system-ui,sans-serif;font-stretch:normal;font-size:13px;line-height:18px;color:var(--chalk-dim)}
+.em-open{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s ease}
+.em-open>span{overflow:hidden}
+.em-drink.on .em-open{grid-template-rows:1fr}
+.em-rec{display:block;margin-top:8px;padding:4px 10px;border-left:2px solid var(--chalk-pink);font-family:Inter,system-ui,sans-serif;font-stretch:normal}
+.em-steps{margin:0;padding:0;list-style:none;display:grid;gap:2px;counter-reset:st}
+.em-steps li{display:grid;grid-template-columns:16px 1fr;gap:6px;font-size:14px;line-height:20px;counter-increment:st}
+.em-steps li::before{content:counter(st);color:var(--chalk-pink);font-weight:700}
+.em-steps li.hil{color:var(--chalk-pink)}
+.em-iced{display:block;margin-top:4px;font-size:13px;line-height:18px;color:var(--chalk-dim)}
+.em-fs{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--card);border:1px solid var(--rule);color:var(--tx)}
+.em-x{position:absolute;top:calc(12px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));display:grid;place-items:center;width:40px;height:40px;border-radius:50%;color:var(--chalk-dim);background:rgba(255,255,255,.06)}
+.em-board.full .em-title{font-size:44px;line-height:48px;letter-spacing:8px}
+.em-board.full .em-cols{gap:28px}
+.em-board.full .em-sec{padding:30px 18px 18px}
+.em-board.full .em-st{font-size:20px;line-height:24px;letter-spacing:3px;top:-13px}
+.em-board.full .em-drinks{gap:20px}
+.em-board.full .em-nm{font-size:26px;line-height:32px;letter-spacing:1px}
+.em-board.full .em-mks{font-size:14px}
+.em-board.full .em-oz{font-size:24px;line-height:32px}
+.em-board.full .em-ln{font-size:16px;line-height:22px}
+.em-board.full .em-steps li{font-size:16px;line-height:22px;grid-template-columns:18px 1fr}
+.em-board.full .em-iced{font-size:14px}
 </style>
 </head>
 <body>
@@ -399,7 +437,8 @@ const SGLYPH = {
 };
 const sGlyph = (l, s = 18) => `<svg class="sgl" width="${s}" height="${s}" viewBox="0 0 14 14">${SGLYPH[l]}</svg>`;
 TAB.Shopping = `<path ${F} d="M1.5 3.5a1.2 1.2 0 0 1 1.2-1.2h1.6a1.6 1.6 0 0 1 1.55 1.2l.35 1.3h14.6a1.2 1.2 0 0 1 1.15 1.5l-1.9 7.2a2 2 0 0 1-1.95 1.5H8.4l.4 1.5h10a1.2 1.2 0 0 1 0 2.4H8.3a1.6 1.6 0 0 1-1.55-1.2L3.9 4.7H2.7a1.2 1.2 0 0 1-1.2-1.2z"/><circle ${F} cx="9" cy="20.5" r="1.8"/><circle ${F} cx="18" cy="20.5" r="1.8"/>`;
-const NAV = ["Home", "Tasks", "Shopping", "Calendar", "Weather", "Yoni"];
+TAB.Espresso = `<path ${F} d="M3 8.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1V16a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path ${K(2.2)} d="M18 10h1a3 3 0 0 1 0 6h-1M7 2.5v2.5M10.5 2.5v2.5M14 2.5v2.5"/>`;
+const NAV = ["Home", "Tasks", "Shopping", "Calendar", "Weather", "Yoni", "Espresso"];
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -689,6 +728,18 @@ function shRename(lines, name, to) { if (shRead(lines).items.some(x => x.name !=
 function shClear(lines) { const got = shRead(lines).items.filter(x => x.st === "Got"); got.forEach(x => shSet(lines, x.name, "Status", "")); return got; }
 /* open: the catalog sections opened; adding: the subcategory whose Add item field is open; edit: the item a long press opened, with its typed name */
 const sh = { lines: [], d: shRead([]), open: { Produce: true }, adding: null, swiped: null, edit: null };
+
+/* ---------- Espresso Menu: the web board (lifeSections.js, espresso menu), read from espressoMenuRegistry.md; the tablet only views it ---------- */
+const ESP_FILE = "17👪-family/08☕-espressoMenu/espressoMenuRegistry.md";
+const EM_SECS = ["Espresso Bar", "House Lattes", "Teas and Tea Lattes"], EM_ICED = "Pour the espresso and flavor over ice and cold milk, and skip the steam.";
+const ep = { text: "", open: null, full: false };
+function emRead(text) {
+  const lines = text.replace(/\r/g, "").split("\n"), i = lines.findIndex(l => l.startsWith("|")), cells = l => l.replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+  if (i < 0) return [];
+  const h = cells(lines[i]), out = [];
+  for (let j = i + 2; j < lines.length && lines[j].startsWith("|"); j++) { const c = cells(lines[j]), at = k => c[h.indexOf(k)] || ""; if (at("Drink")) out.push({ n: at("Drink"), sec: at("Section"), ln: at("Line"), oz: at("Size"), serve: at("Serve"), steps: at("Steps").split(" / ").filter(Boolean), iced: at("Iced") }); }
+  return out;
+}
 
 /* ---------- saving: the change shows at once and is then saved on top of the newest file (the phone's tkSave, index.html ~886) ---------- */
 let busy = 0, failed = false;
@@ -1101,6 +1152,18 @@ function yoniScreen() {
   return head("Yoni", `<div style="margin-left:24px">${segBar(["Routines", "Packing"], v, "yoni")}</div>`) + `<div class="body">${inner}</div>`;
 }
 
+function emDrink(r) {
+  const on = ep.open === r.n, iced = r.iced === "Latte steps" ? EM_ICED : r.iced, marks = (/hot/i.test(r.serve) ? "☕" : "") + (/iced/i.test(r.serve) ? "🧊" : "");
+  const steps = r.steps.map(s => `<li${/^\*\*.*\*\*$/.test(s) ? ' class="hil"' : ""}>${esc(s.replace(/^\*\*|\*\*$/g, ""))}</li>`).join("");
+  return `<button class="em-drink${on ? " on" : ""}" data-emopen="${esc(r.n)}"><span class="em-hd"><span class="em-nm">${esc(r.n)} <span class="em-mks">${marks}</span></span><span class="em-oz">${esc(r.oz)}</span></span><span class="em-ln">${esc(r.ln)}</span><span class="em-open"><span><span class="em-rec"><ol class="em-steps">${steps}</ol>${iced ? `<span class="em-iced">🧊 Iced: ${esc(iced)}</span>` : ""}</span></span></span></button>`;
+}
+function espressoScreen() {
+  const all = emRead(ep.text), title = (ep.text.match(/^\*\*Board title:\*\*[ \t]*(.*)$/m) || [, "Espresso Menu"])[1].trim();
+  const secs = EM_SECS.map(s => { const m = all.filter(r => r.sec === s); return m.length ? `<section class="em-sec"><div class="em-st">${esc(s)}</div><div class="em-drinks">${m.map(emDrink).join("")}</div></section>` : ""; }).join("");
+  const fs = `<button class="em-fs" data-emfull aria-label="Full screen">${svg('<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>', 18)}</button>`;
+  const board = all.length ? `<div class="em-board${ep.full ? " full" : ""}">${ep.full ? `<button class="em-x" data-emfull aria-label="Leave full screen">${svg('<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>', 18)}</button>` : ""}<div class="em-title">${esc(title).replace(/&amp;/g, "<span>&amp;</span>")}</div><div class="em-cols">${secs}</div></div>` : '<section class="card"><div class="empty">The espresso menu has not synced to this iPad yet.</div></section>';
+  return head("Espresso Menu", "", fs + nowWx()) + `<div class="body" style="display:flex;flex-direction:column">${board}</div>`;
+}
 function shopScreen() {
   const d = sh.d, cur = (d.stores.find(x => x.name === view.shop) || d.stores[0] || { name: "" }).name, secs = shSecs(d, cur), on = d.items.filter(x => x.st), left = on.filter(x => x.st !== "Got").length, tick = svg(UI.check, 12, 3.4);
   const row = x => `<div class="slr${x.st === "Got" ? " got" : ""}"><button class="sck" data-shgot="${esc(x.name)}" aria-label="${esc(x.name)}: ${x.st === "Got" ? "in the cart" : "check off"}">${x.st === "Got" ? tick : ""}</button><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span><input data-shq="${esc(x.name)}" value="${esc(x.q)}" placeholder="Qty or note" enterkeyhint="done"><button class="sx" data-shon="${esc(x.name)}" aria-label="Remove ${esc(x.name)}">×</button></div>`;
@@ -1114,7 +1177,7 @@ function shopScreen() {
 function setupScreen(msg) {
   return head("Connect") + `<div class="body"><form class="card setup" id="setup"><h3>Connect to MattOS</h3><p>${esc(msg || "Paste the GitHub token for the mattos-data repository once. It is kept only on this iPad.")}</p><input class="in" id="token" type="password" autocomplete="off" placeholder="Token" required><button class="btn" type="submit">Connect</button></form></div>`;
 }
-const SCREENS = { Home: homeScreen, Tasks: tasksScreen, Shopping: shopScreen, Calendar: calendarScreen, Weather: weatherScreen, Yoni: yoniScreen };
+const SCREENS = { Home: homeScreen, Tasks: tasksScreen, Shopping: shopScreen, Calendar: calendarScreen, Weather: weatherScreen, Yoni: yoniScreen, Espresso: espressoScreen };
 
 /* ---------- router and loading ---------- */
 let tab = NAV.includes(location.hash.slice(1)) ? location.hash.slice(1) : "Home", setupMsg = null;
@@ -1123,7 +1186,7 @@ function draw() {
   keepText();
   $("side").innerHTML = sideBar();
   const sc = [...document.querySelectorAll("#main .scroll")].map(e => [e.scrollTop, e.scrollLeft]);
-  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]() + (tab === "Shopping" ? "" : `<button class="fab" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 26, 2.4)}</button>`) + `${sheet()}${shSheet()}${toast()}`;
+  $("main").innerHTML = setupMsg !== null ? setupScreen(setupMsg) : SCREENS[tab]() + (tab === "Shopping" || tab === "Espresso" ? "" : `<button class="fab" data-add="Status:Open" aria-label="New task">${svg(UI.plus, 26, 2.4)}</button>`) + `${sheet()}${shSheet()}${toast()}`;
   const si = $("shIn"); if (si) si.focus();
   document.querySelectorAll("#main .scroll").forEach((e, k) => { [e.scrollTop, e.scrollLeft] = sc[k] || [0, 0]; }); /* a redraw keeps each list where it was */
 }
@@ -1134,6 +1197,7 @@ function fromKept() {
   if (t) cb.lines = t.text.split("\n");
   if (y) yo.lines = y.text.split("\n");
   const s = kept(SHOP_FILE); if (s) sh.lines = s.text.split("\n");
+  const m = kept(ESP_FILE); if (m) ep.text = m.text;
   keptWeather(); parseAll();
 }
 let loading = false;
@@ -1142,10 +1206,11 @@ async function loadAll() {
   if (loading || busy) return;
   loading = true;
   status("Updating…");
-  const [c, t, y, s] = await Promise.allSettled([readFile(CAL_FILE), readFile(CUCU_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE), loadWeather()]);
+  const [c, t, y, s, , m] = await Promise.allSettled([readFile(CAL_FILE), readFile(CUCU_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE), loadWeather(), readFile(ESP_FILE)]);
   loading = false;
   if (busy) return; /* a change made while loading is not drawn over */
   if (s.status === "fulfilled") sh.lines = s.value.text.split("\n");
+  if (m.status === "fulfilled") ep.text = m.value.text;
   if (c.status === "fulfilled") cal = parseCalendar(c.value.text);
   if (t.status === "fulfilled") cb.lines = t.value.text.split("\n");
   if (y.status === "fulfilled") yo.lines = y.value.text.split("\n");
@@ -1297,6 +1362,9 @@ document.addEventListener("click", ev => {
   else if ((x = at("[data-yo]"))) { buzz(); yoTick(+x.dataset.yo); }
   else if ((x = at("[data-add]"))) openSheet(null, x.dataset.add);
   else if ((x = at("[data-edit]"))) { const r = cb.rows[+x.dataset.edit]; if (r) openSheet(r); }
+  else if ((x = at("[data-emopen]"))) { ep.open = ep.open === x.dataset.emopen ? null : x.dataset.emopen; draw(); }
+  else if (at("[data-emfull]")) { ep.full = !ep.full; const d = document, el = d.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen, on = d.fullscreenElement || d.webkitFullscreenElement;
+    try { const pr = ep.full && req && !on ? req.call(el) : !ep.full && on ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : null; if (pr && pr.catch) pr.catch(() => {}); } catch (e2) { /* the cover alone, as in the home screen app */ } draw(); }
   else if ((x = at("[data-go]")) && !setupMsg) { if (x.dataset.go === tab && tab === "Home") loadAll(); location.hash = x.dataset.go; }
 });
 document.addEventListener("submit", ev => {
