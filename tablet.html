@@ -1163,7 +1163,7 @@ function espressoScreen() {
   const all = emRead(ep.text), title = (ep.text.match(/^\*\*Board title:\*\*[ \t]*(.*)$/m) || [, "Espresso Menu"])[1].trim();
   const secs = EM_SECS.map(s => { const m = all.filter(r => r.sec === s); return m.length ? `<section class="em-sec"><div class="em-st">${esc(s)}</div><div class="em-drinks">${m.map(emDrink).join("")}</div></section>` : ""; }).join("");
   const fs = `<button class="em-fs" data-emfull aria-label="Full screen">${svg('<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>', 18)}</button>`;
-  const board = all.length ? `<div class="em-board${ep.full ? " full" : ""}">${ep.full ? `<button class="em-x" data-emfull aria-label="Leave full screen">${svg('<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>', 18)}</button>` : ""}<div class="em-title">${esc(title).replace(/&amp;/g, "<span>&amp;</span>")}</div><div class="em-cols">${secs}</div></div>` : '<section class="card"><div class="empty">The espresso menu has not synced to this iPad yet.</div></section>';
+  const board = all.length ? `<div class="em-board${ep.full ? " full" : ""}">${ep.full ? `<button class="em-x" data-emfull aria-label="Leave full screen">${svg('<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>', 18)}</button>` : ""}<div class="em-title"><div>${esc(title).replace(/&amp;/g, "<span>&amp;</span>")}</div></div><div class="em-cols">${secs}</div></div>` : '<section class="card"><div class="empty">The espresso menu has not synced to this iPad yet.</div></section>';
   return head("Espresso Menu", "", fs + nowWx()) + `<div class="body" style="display:flex;flex-direction:column">${board}</div>`;
 }
 function shopScreen() {
