@@ -404,9 +404,36 @@
   .shtop .seg { padding: 3px; border-radius: 11px; }
   .shtop .seg button { height: 30px; line-height: 30px; padding: 0 10px; font-size: 13px; }
   .shtop .seg.vw { flex: none; width: 150px; }
-  .sadd { display: flex; gap: 8px; margin-bottom: 4px; }
-  .sadd input { flex: 1; min-width: 0; height: 38px; padding: 0 12px; border-radius: 11px; background: var(--raised); border: 1px solid var(--rule); outline: none; font-size: 16px; }
-  .sadd button { flex: none; width: 38px; height: 38px; border-radius: 11px; background: var(--blue); color: #fff; display: grid; place-items: center; }
+  /* the Add bar (shoppingListAddLaterV1 option 2): fixed at the bottom beside Done shopping, with the guessed category and catalog matches listed above it while typing */
+  .savebar.shb { flex-direction: column; gap: 0; padding: 0; }
+  .shbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; }
+  .shbar input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border-radius: 11px; background: var(--raised); border: 1px solid var(--rule); outline: none; font-size: 16px; }
+  .shbar input:focus { border-color: var(--blue); }
+  .shbar .shpl { flex: none; width: 40px; height: 40px; border-radius: 11px; background: var(--blue); color: #fff; display: none; place-items: center; }
+  .shbar.typ .shpl { display: grid; }
+  .shbar.typ .shd { display: none; }
+  .shbar .sv.shd { flex: none; height: 40px; line-height: 40px; padding: 0 16px; font-size: 14px; }
+  .shbar .spg { flex: 1; font-size: 14px; color: var(--mut); }
+  .shsug:empty { display: none; }
+  .shsug { background: var(--card); border-bottom: 1px solid var(--line); }
+  .shsg { display: flex; align-items: center; gap: 9px; width: 100%; height: 40px; padding: 0 16px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .shsg:last-child { border-bottom: 0; }
+  .shsg .semj { font-size: 15px; }
+  .shsg .grow { display: flex; align-items: center; gap: 9px; height: 100%; min-width: 0; }
+  .shk { margin-left: auto; font-size: 12px; color: var(--mut); white-space: nowrap; }
+  .shsg.nw .shk { position: relative; color: var(--acc); font-weight: 600; }
+  .shsg.nw select { position: absolute; inset: 0; opacity: 0; font-size: 16px; }
+  /* Later: greyed at the end of its section with a badge; swipe a row left to mark it, or to bring it back */
+  .slr.later .snm { color: #5f6676; }
+  .slr.later .sck { border-style: dashed; }
+  .lbdg { font-size: 10px; font-weight: 600; line-height: 16px; color: #f5b74a; background: rgba(245, 183, 74, .12); border-radius: 6px; padding: 0 6px; white-space: nowrap; }
+  .ssw { position: relative; margin: 0 -12px; overflow: hidden; }
+  .ssw .sact { position: absolute; inset: 0; display: flex; justify-content: flex-end; align-items: center; padding-right: 16px; background: #f5b74a; color: #1a1205; font-size: 12.5px; font-weight: 700; }
+  .ssw .slr { position: relative; padding: 0 14px; background: var(--card); transition: transform .15s; }
+  .ssw.drag .slr { transition: none; }
+  .scard .ssw:last-child .slr { border-bottom: 0; }
+  /* a new item: a brief blue wash */
+  .slr.new { background: #17223b; }
   .scard { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 0 12px; margin-top: 8px; }
   .scard.op { padding-bottom: 4px; }
   .slg { display: flex; align-items: center; gap: 7px; width: 100%; height: 38px; font-size: 11.5px; font-weight: 700; color: var(--mut); text-transform: uppercase; letter-spacing: .05em; }
@@ -420,7 +447,7 @@
   .scard.fin .slg { color: var(--done); }
   .sls { margin-top: 6px; font-size: 9.5px; font-weight: 700; color: #5f6676; text-transform: uppercase; letter-spacing: .05em; }
   .slr { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 34px; padding: 0 2px; border-bottom: 1px solid var(--line); }
-  .scard .slr:last-child, .sbody .slr:last-child { border-bottom: 0; }
+  .scard > .slr:last-child, .sbody .slr:last-child { border-bottom: 0; }
   .sck { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #5f6676; display: grid; place-items: center; color: #fff; }
   .slr.got .sck, .slr.on .sck { background: var(--blue); border-color: var(--blue); }
   .snm { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13.5px; }
@@ -1649,7 +1676,7 @@ function shRead(lines) {
       s.secs.push({ em: cell("Emoji"), name: cell("Section"), subs: cell("Subcategories").split(",").map(x => x.trim()).filter(Boolean) });
     } else if (kind === "item" && cell("Item")) {
       const st = cell("Status").toLowerCase();
-      items.push({ i, name: cell("Item"), sub: cell("Subcategory") || "Other", st: st === "on" ? "On" : st === "got" ? "Got" : "", q: cell("Qty"), tag: cell("Recipe") });
+      items.push({ i, name: cell("Item"), sub: cell("Subcategory") || "Other", st: st === "on" ? "On" : st === "got" ? "Got" : st === "later" ? "Later" : "", q: cell("Qty"), tag: cell("Recipe") });
     }
   });
   return { stores, items, head: ihead, end };
@@ -1679,11 +1706,56 @@ function shAdd(lines, name, sub) {
   lines.splice(at + 1, 0, `| ${t.head.map(h => cells[h] || "").join(" | ")} |`.replace(/ {2}\|/g, " |") + (lines[at].endsWith("\r") ? "\r" : ""));
   return cells;
 }
-/* Done shopping: everything in the cart comes off the list */
-function shClear(lines) { const got = shRead(lines).items.filter(x => x.st === "Got"); got.forEach(x => shSet(lines, x.name, "Status", "")); return got; }
+/* Done shopping: everything in the cart comes off the list, and Later items go back on it for the next trip */
+function shClear(lines) { const t = shRead(lines), got = t.items.filter(x => x.st === "Got"); got.forEach(x => shSet(lines, x.name, "Status", "")); t.items.filter(x => x.st === "Later").forEach(x => shSet(lines, x.name, "Status", "On")); return got; }
+/* a typed name's subcategory, guessed on the device: the longest keyword below found at the start of a word, else a catalog item sharing a word with it, else Other */
+const SH_WORDS = {
+  Fruits: "fruit,apple,banana,berr,strawberr,blueberr,raspberr,blackberr,grape,orange,clementine,pear,mango,pineapple,melon,watermelon,peach,plum,cherr,kiwi,lemon,lime,nectarine",
+  Vegetables: "potato,onion,scallion,shallot,garlic,pepper,carrot,lettuce,romaine,cucumber,zucchini,tomato,spinach,kale,broccoli,cauliflower,celery,corn,squash,green bean,snap pea,mushroom,avocado,cabbage,arugula,asparagus,eggplant,leek,radish,beet,bok choy,jalape,ginger,greens,salad",
+  Herbs: "basil,cilantro,parsley,thyme,rosemary,dill,mint,sage,chive",
+  Meat: "chicken,beef,pork,turkey,sausage,bacon,ham,steak,lamb,ground,hot dog,prosciutto,salami,pepperoni,meatball",
+  Seafood: "shrimp,salmon,cod,fish,tuna,scallop,crab,lobster,tilapia,halibut,mussel,clam",
+  Cheese: "cheese,feta,ricotta,mozzarella,cheddar,parmesan,pecorino,brie,gouda,burrata,provolone",
+  Dips: "hummus,salsa,guac,dip,tzatziki",
+  "Milk & Eggs": "milk,egg,butter,cream,half and half,creamer",
+  Yogurt: "yogurt,kefir",
+  Bread: "bread,bagel,muffin,english muffin,pita,naan,tortilla,bun,roll,baguette,croissant,loaf,sourdough,wrap",
+  "Cereal & Granola": "cereal,granola,oatmeal,oats,granola bar",
+  "Pasta & Grains": "pasta,spaghetti,penne,rigatoni,rice,quinoa,couscous,noodle,farro,orzo,lasagna",
+  "Canned & Broth": "canned,broth,chicken broth,beef broth,bone broth,stock,soup,beans,chickpea,tomato paste,crushed tomato,coconut milk",
+  "Oils & Vinegars": "oil,vinegar",
+  "Sauces & Condiments": "sauce,ketchup,mayo,mustard,dressing,jam,jelly,honey,syrup,maple syrup,peanut butter,nut butter,pesto,relish",
+  Baking: "flour,sugar,baking,yeast,vanilla,chocolate chip,cocoa,pancake mix,bread crumb,cornstarch",
+  Spices: "spice,salt,cumin,paprika,powder,cinnamon,seasoning,peppercorn,nutmeg,oregano",
+  "Chips & Crackers": "chip,cracker,pretzel,popcorn,rice cake",
+  "Nuts & Dried Fruit": "nut,almond,cashew,walnut,pecan,pistachio,peanut,raisin,dried,trail mix",
+  Sweets: "cookie,candy,chocolate,dark chocolate,gummy,fruit snack",
+  Drinks: "juice,water,soda,seltzer,lemonade,kombucha,sparkling",
+  Alcohol: "wine,beer,vodka,gin,rum,tequila,whiskey,bourbon,prosecco,champagne,cider,tonic,mezcal,vermouth",
+  "Coffee & Tea": "coffee,tea,espresso,matcha",
+  "Frozen Meals": "frozen,pizza,dumpling,nugget,fries,waffle",
+  "Frozen Treats": "ice cream,popsicle,sorbet,gelato,frozen fruit",
+  "Paper & Cleaning": "paper,towel,toilet,trash,foil,plastic wrap,zip,sponge,detergent,dish soap,bleach,cleaner,napkin,dishwasher,laundry",
+  "Personal Care": "shampoo,conditioner,deodorant,toothpaste,toothbrush,lotion,body wash,razor,floss,sunscreen,diaper,wipe,hand soap,face wash"
+};
+function shGuess(d, v) {
+  const k = " " + v.toLowerCase().replace(/[^a-z0-9 ]/g, " ");
+  let best = "", len = 0;
+  for (const [sub, words] of Object.entries(SH_WORDS)) for (const w of words.split(",")) if (w.length > len && k.includes(" " + w)) { best = sub; len = w.length; }
+  if (best) return best;
+  const stem = w => w.replace(/(es|s)$/, ""), mine = v.toLowerCase().split(/\s+/).filter(w => w.length > 3).map(stem);
+  const it = d.items.find(x => x.name.toLowerCase().split(/\s+/).some(w => mine.includes(stem(w))));
+  return it ? it.sub : "Other";
+}
+/* what the Add bar offers for a typed name: the catalog item it names, up to three catalog items holding it (those starting with it first), and the subcategory a new item would get */
+function shMatch(d, v) {
+  const k = v.toLowerCase(), hit = d.items.find(x => x.name.toLowerCase() === k);
+  const more = d.items.filter(x => x !== hit && x.name.toLowerCase().includes(k)).sort((a, b) => b.name.toLowerCase().startsWith(k) - a.name.toLowerCase().startsWith(k) || a.name.localeCompare(b.name));
+  return { hit, list: (hit ? [hit, ...more] : more).slice(0, 3), sub: hit ? hit.sub : shGuess(d, v) };
+}
 
-/* shut: the sections collapsed on the list (all start expanded); open: the sections expanded in the Catalog */
-const sh = { lines: [], d: shRead([]), store: store.get("shop-store"), cat: false, shut: {}, open: {} };
+/* shut: the sections collapsed on the list (all start expanded); open: the sections expanded in the Catalog; pick: a subcategory chosen for the item being typed; fresh: the item just added, washed blue for a moment */
+const sh = { lines: [], d: shRead([]), store: store.get("shop-store"), cat: false, shut: {}, open: {}, pick: "", fresh: "", keep: false };
 /* while Shopping is open, the list is read again every 10 seconds, so two phones shopping together see each other's ticks.
    Skipped while a change is saving or an item is being typed */
 setInterval(async () => {
@@ -1696,10 +1768,9 @@ setInterval(async () => {
 }, 10000);
 const shStore = () =>(sh.d.stores.find(x => x.name === sh.store) || sh.d.stores[0] || { name: "" }).name;
 function drawShop() {
-  const cur = shStore(), secs = shSecs(sh.d, cur), on = sh.d.items.filter(x => x.st), got = on.filter(x => x.st === "Got").length, tick = svg(UI.check, 11, 3.6);
+  const cur = shStore(), secs = shSecs(sh.d, cur), on = sh.d.items.filter(x => x.st === "On" || x.st === "Got"), got = on.filter(x => x.st === "Got").length, tick = svg(UI.check, 11, 3.6);
   const seg = (list, now, act, cls = "grow") => `<div class="seg ${cls}">${list.map(v => `<button type="button" class="${v === now ? "on" : ""}" data-tk="${act}" data-a="${esc(v)}">${esc(v)}</button>`).join("")}</div>`;
   const top = `<div class="shtop">${seg(sh.d.stores.map(s => s.name), cur, "shstore")}${seg(["List", "Catalog"], sh.cat ? "Catalog" : "List", "shview", "vw")}</div>`;
-  const add = offline ? "" : `<form class="sadd" id="shadd"><input id="sh-x" placeholder="Add an item" autocomplete="off" enterkeyhint="done"><button type="submit" aria-label="Add">${svg(UI.plus, 20, 2.4)}</button></form>`;
   let body;
   if (!sh.d.stores.length) body = `<div class="empty">The shopping list file was not found.</div>`;
   else if (sh.cat) body = secs.map(s => {
@@ -1707,20 +1778,50 @@ function drawShop() {
     return `<div class="ssec${op ? " op" : ""}"><button type="button" class="ssh" data-tk="shsec" data-a="${esc(s.name)}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sbd num${n ? "" : " z"}">${n}</span>${svg(UI.right, 16, 2.4, "scv")}</button>${op ? `<div class="sbody">${s.groups.filter(g => g.items.length).map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(x => `<button type="button" class="slr${x.st ? " on" : ""}" data-tk="shon" data-hap data-a="${esc(x.name)}"><span class="sck">${x.st ? tick : ""}</span><span class="snm">${esc(x.name)}</span></button>`).join("")}`).join("")}</div>` : ""}</div>`;
   }).join("");
   else {
-    const live = secs.map(s => { const groups = s.groups.map(g => ({ k: g.k, items: g.items.filter(x => x.st) })).filter(g => g.items.length), all = groups.flatMap(g => g.items), n = all.filter(x => x.st === "Got").length; return { ...s, groups, all, n, fin: n === all.length }; }).filter(s => s.all.length);
-    const row = x => `<button type="button" class="slr${x.st === "Got" ? " got" : ""}" data-tk="shgot" data-hap data-a="${esc(x.name)}"><span class="sck">${x.st === "Got" ? tick : ""}</span><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span>${x.q ? `<span class="sqty">${esc(x.q)}</span>` : ""}</button>`;
-    body = live.map(s => { const op = !sh.shut[s.name]; return `<div class="scard${op ? " op" : ""}${s.fin ? " fin" : ""}"><button type="button" class="slg" data-tk="shone" data-a="${esc(s.name)}" aria-expanded="${op}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sn num">${s.fin ? `✓ All ${s.all.length}` : `${s.n} of ${s.all.length}`}</span>${svg(UI.right, 14, 2.4, "scv")}</button><div class="sprog"><i style="width:${s.n / s.all.length * 100}%"></i></div>${op ? s.groups.map(g => `<div class="sls">${esc(g.k)}</div>${g.items.map(row).join("")}`).join("") : ""}</div>`; }).join("")
-      || `<div class="empty">The list is empty. Add an item above, or pick from the Catalog.</div>`;
+    /* each section lists its items by subcategory, then its Later items at the end; the count and bar leave Later out */
+    const live = secs.map(s => {
+      const rows = [...s.groups.flatMap(g => g.items.filter(x => x.st === "On" || x.st === "Got").map(x => [g.k, x])), ...s.groups.flatMap(g => g.items.filter(x => x.st === "Later").map(x => [g.k, x]))];
+      const all = rows.map(r => r[1]).filter(x => x.st !== "Later"), n = all.filter(x => x.st === "Got").length;
+      return { ...s, rows, all, n, fin: all.length > 0 && n === all.length };
+    }).filter(s => s.rows.length);
+    const row = x => `<div class="ssw"><div class="sact">${x.st === "Later" ? "↩ Back on" : "🕓 Later"}</div><button type="button" class="slr${x.st === "Got" ? " got" : x.st === "Later" ? " later" : ""}${x.name === sh.fresh ? " new" : ""}" data-tk="shgot" data-hap data-a="${esc(x.name)}"><span class="sck">${x.st === "Got" ? tick : ""}</span><span class="snm">${esc(x.name)}${x.tag ? `<span class="rtag">🍳 ${esc(x.tag)}</span>` : ""}</span>${x.q ? `<span class="sqty">${esc(x.q)}</span>` : ""}${x.st === "Later" ? `<span class="lbdg">🕓 Later</span>` : ""}</button></div>`;
+    const rowsOf = s => s.rows.map(([k, x], i) => (i && s.rows[i - 1][0] === k ? "" : `<div class="sls">${esc(k)}</div>`) + row(x)).join("");
+    body = live.map(s => { const op = !sh.shut[s.name]; return `<div class="scard${op ? " op" : ""}${s.fin ? " fin" : ""}"><button type="button" class="slg" data-tk="shone" data-a="${esc(s.name)}" aria-expanded="${op}"><span class="semj">${s.em}</span>${esc(s.name)}<span class="sn num">${!s.all.length ? "🕓 Later" : s.fin ? `✓ All ${s.all.length}` : `${s.n} of ${s.all.length}`}</span>${svg(UI.right, 14, 2.4, "scv")}</button><div class="sprog"><i style="width:${s.all.length ? s.n / s.all.length * 100 : 0}%"></i></div>${op ? rowsOf(s) : ""}</div>`; }).join("")
+      || `<div class="empty">The list is empty. Add an item below, or pick from the Catalog.</div>`;
   }
-  $("main").innerHTML = tkBar("Shopping") + top + (sh.cat ? "" : add) + body;
+  $("main").innerHTML = tkBar("Shopping") + top + body;
   $("fab").hidden = true;
-  if (sh.cat || !on.length) { leaveHabits(); return; }
-  $("savebar").innerHTML = `<span class="spg num">${on.length - got} left</span><button type="button" class="sv shd${got && !offline ? "" : " off"}" data-tk="shdone" data-hap>Done shopping${got ? ` (${got})` : ""}</button>`;
-  $("savebar").hidden = false; $("scr").classList.add("hbs");
+  if (sh.cat || !sh.d.stores.length) { leaveHabits(); return; }
+  const done = `<button type="button" class="sv shd${got && !offline ? "" : " off"}" data-tk="shdone" data-hap>Done${got ? ` (${got})` : ""}</button>`;
+  $("savebar").innerHTML = offline ? `<div class="shbar"><span class="spg num">${on.length - got} left</span>${done}</div>`
+    : `<div class="shsug" id="shsug"></div><form class="shbar" id="shadd"><input id="sh-x" placeholder="Add an item" autocomplete="off" autocapitalize="sentences" enterkeyhint="done"><button type="submit" class="shpl" aria-label="Add">${svg(UI.plus, 20, 2.4)}</button>${done}</form>`;
+  $("savebar").classList.add("shb"); $("savebar").hidden = false; $("scr").classList.add("hbs");
+  if (sh.keep) { sh.keep = false; $("sh-x").focus(); }
+  const nw = document.querySelector(".slr.new"); if (nw) nw.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+/* the rows above the Add bar while typing: a new item first, with its guessed subcategory changeable through a menu, then the catalog items that match */
+function shSug() {
+  const x = $("sh-x"), box = $("shsug");
+  if (!x || !box) return;
+  const v = tkCell(x.value), secs = shSecs(sh.d, shStore()), em = sub => (secs.find(s => s.subs.includes(sub)) || { em: "🛒" }).em;
+  $("shadd").classList.toggle("typ", !!v);
+  if (!v) { box.innerHTML = ""; return; }
+  const m = shMatch(sh.d, v), sub = sh.pick || m.sub, known = secs.some(s => s.subs.includes(sub));
+  const opts = secs.map(s => `<optgroup label="${esc(s.name)}">${s.subs.map(k => `<option${k === sub ? " selected" : ""}>${esc(k)}</option>`).join("")}</optgroup>`).join("") + `<option${known ? "" : " selected"}>${esc(known ? "Other" : sub)}</option>`;
+  box.innerHTML = (m.hit ? "" : `<div class="shsg nw"><button type="button" class="grow" data-tk="shnew"><span class="semj">${em(sub)}</span>${esc(v)}</button><label class="shk">New in ${esc(sub)} ▾<select id="sh-sub" aria-label="Subcategory">${opts}</select></label></div>`)
+    + m.list.map(it => `<button type="button" class="shsg" data-tk="shpick" data-a="${esc(it.name)}"><span class="semj">${em(it.sub)}</span>${esc(it.name)}<span class="shk">${it.st === "On" || it.st === "Got" ? "On the list" : it.st === "Later" ? "🕓 Later" : esc(it.sub)}</span></button>`).join("");
 }
 function shSave(change, message) {
   if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
   tkSave(SHOP_FILE, change, message);
+}
+/* an added item opens its section and shows washed blue for two and a half seconds; the Add bar stays focused for the next one */
+function shAdded(name, sub) {
+  const s = shSecs(sh.d, shStore()).find(x => x.subs.includes(sub));
+  if (s) sh.shut[s.name] = false;
+  sh.fresh = name; sh.pick = ""; sh.keep = true;
+  clearTimeout(shAdded.t);
+  shAdded.t = setTimeout(() => { sh.fresh = ""; document.querySelectorAll(".slr.new").forEach(r => r.classList.remove("new")); }, 2500);
 }
 function shAct(act, a) {
   const it = sh.d.items.find(x => x.name === a);
@@ -1732,18 +1833,52 @@ function shAct(act, a) {
   else if (act === "shgot" && it) {
     const to = it.st === "Got" ? "On" : "Got";
     /* checking off the last item of a section collapses it */
-    const s = shSecs(sh.d, shStore()).find(x => x.groups.some(g => g.items.some(i => i.name === a))), rest = s ? s.groups.flatMap(g => g.items).filter(x => x.st && x.name !== a) : null;
+    const s = shSecs(sh.d, shStore()).find(x => x.groups.some(g => g.items.some(i => i.name === a))), rest = s ? s.groups.flatMap(g => g.items).filter(x => (x.st === "On" || x.st === "Got") && x.name !== a) : null;
     if (to === "Got" && rest && rest.every(x => x.st === "Got")) sh.shut[s.name] = true;
     shSave(lines => shSet(lines, a, "Status", to), `Phone: ${to === "Got" ? "got" : "unchecked"} "${a}"`);
   }
+  else if (act === "shlater" && it) { const to = it.st === "Later" ? "On" : "Later"; shSave(lines => shSet(lines, a, "Status", to), `Phone: ${to === "Later" ? "save for later" : "back on the list"} "${a}"`); }
+  else if (act === "shpick" && it) { shAdded(it.name, it.sub); shSave(lines => shSet(lines, a, "Status", "On"), `Phone: add "${a}" to the shopping list`); }
+  else if (act === "shnew") shAddTyped();
   else if (act === "shdone" && sh.d.items.some(x => x.st === "Got")) { sh.shut = {}; shSave(shClear, "Phone: done shopping"); }
 }
+/* Enter or + adds the typed name: the catalog item it names, or a new one in the guessed (or picked) subcategory */
 function shAddTyped() {
-  const name = tkCell($("sh-x").value);
+  const x = $("sh-x"), name = x ? tkCell(x.value) : "";
   if (!name) return;
-  shSave(lines => shAdd(lines, name, "Other"), `Phone: add "${name}" to the shopping list`);
-  const x = $("sh-x"); if (x) x.focus();
+  const m = shMatch(sh.d, name), it = m.hit, sub = it ? it.sub : sh.pick || m.sub, nm = it ? it.name : name.charAt(0).toUpperCase() + name.slice(1);
+  shAdded(nm, sub);
+  shSave(lines => shAdd(lines, nm, sub), `Phone: add "${nm}" to the shopping list`);
 }
+document.addEventListener("input", e => { if (e.target.id === "sh-x") { sh.pick = ""; shSug(); } });
+document.addEventListener("change", e => { if (e.target.id === "sh-sub") { sh.pick = e.target.value; shSug(); const x = $("sh-x"); if (x) x.focus(); } });
+/* swipe a list row left to mark it Later, or to put a Later item back on; past 80 pixels the change saves on release */
+let ssw = null;
+document.addEventListener("touchstart", e => {
+  const r = e.target.closest(".ssw .slr");
+  ssw = r && !offline ? { r, x: e.touches[0].clientX, y: e.touches[0].clientY, dx: 0, live: false } : null;
+}, { passive: true });
+document.addEventListener("touchmove", e => {
+  if (!ssw) return;
+  const t = e.touches[0], dx = t.clientX - ssw.x, dy = t.clientY - ssw.y;
+  if (!ssw.live) {
+    if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { ssw = null; return; } /* a scroll, not a swipe */
+    if (Math.abs(dx) < 10) return;
+    ssw.live = true; ssw.r.parentNode.classList.add("drag");
+  }
+  ssw.dx = Math.max(-140, Math.min(0, dx));
+  ssw.r.style.transform = `translateX(${ssw.dx}px)`;
+}, { passive: true });
+document.addEventListener("touchend", () => {
+  if (!ssw || !ssw.live) { ssw = null; return; }
+  const { r, dx } = ssw; ssw = null;
+  r.parentNode.classList.remove("drag"); r.style.transform = "";
+  /* the click that follows a swipe must not tick the item */
+  const stop = c => { c.stopPropagation(); c.preventDefault(); };
+  document.addEventListener("click", stop, { capture: true, once: true });
+  setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
+  if (dx < -80) { buzz(); shAct("shlater", r.dataset.a); }
+});
 
 /* ---------- Strength, CucuBarri's Strength tab: 06💪-physical/strengthRegistry.md. The Routine table holds the exercises, and the Log table one line per day:
    Done names the exercises ticked, and Rest is Yes on a rest day. There are no make-ups: a missed or partly done day ends the streak, and a rest day holds it ---------- */
@@ -2362,7 +2497,7 @@ function hbWin(act, k, a, f, before) {
     else win({ em: "😔", head: `Unhealthy ${meal}`, sub: "The next meal is a fresh start", pct: w.pct, was: w.was, sad: true });
   }
 }
-function leaveHabits() { $("savebar").hidden = true; $("scr").classList.remove("hbs"); $("nbar").hidden = true; $("scr").style.paddingBottom = ""; }
+function leaveHabits() { $("savebar").hidden = true; $("savebar").classList.remove("shb"); $("scr").classList.remove("hbs"); $("nbar").hidden = true; $("scr").style.paddingBottom = ""; }
 
 /* ---------- Yoni, its own tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
    A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
