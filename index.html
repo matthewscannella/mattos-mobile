@@ -183,7 +183,9 @@
   .qhr.good u { background: var(--done); }
   .qhr span:last-child { text-align: right; color: var(--mut); }
   .qhr.good span:last-child { color: var(--done); font-weight: 600; }
-  .qnt { display: flex; align-items: center; gap: 6px; margin: 3px 0; padding: 0 8px; height: 20px; border-radius: 6px; background: repeating-linear-gradient(135deg, #0e1117 0 4px, #191d27 4px 8px); font-size: 11px; color: #5d6474; }
+  .qnt { display: flex; align-items: center; gap: 6px; margin: 3px 0; padding: 0 8px; height: 20px; border-radius: 6px; background: repeating-linear-gradient(135deg, #0e1117 0 4px, #191d27 4px 8px); font-size: 11px; color: #5d6474; white-space: nowrap; overflow: hidden; }
+  /* the notch names the day after the night, with its sky, high, and low, from tomorrowWeatherStripV2.html option 2 */
+  .qnt .tm { display: flex; align-items: center; gap: 8px; color: var(--tx); }
   /* Tasks: the workout first, then the top open tasks, then the top note */
   .qtd { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 12.5px; line-height: 17px; }
   .qtd .qi { flex: none; width: 16px; height: 16px; display: grid; place-items: center; }
@@ -2614,7 +2616,8 @@ function drawHome() {
       if (x.day) { rows.push(`<div class="qhr num${k ? "" : " now"}${wxGood(x.score)}"><span class="h">${k ? ap(x.h) : "Now"}</span><span>${x.feel}°</span>${wxIco(wxHourIcon(x), 16)}<i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`); return; }
       if (k && !hs[k - 1].day) return;
       const e = hs.findIndex((y, j) => j > k && y.day);
-      if (e > 0) rows.push(`<div class="qnt">${wxIco("moon", 11)}Night, ${ap(x.h)} to ${ap(hs[e].h)}</div>`);
+      const nd = x.h >= 12 ? addDays(td, 1) : td, t = e > 0 && wxDay(nd);
+      if (e > 0) rows.push(`<div class="qnt num">${wxIco("moon", 11)}${t ? `<span class="tm">${nd === td ? "Today" : wkDay(nd)}${wxIco(wxIcon(t.code), 12)}<span>H ${t.hi}°</span><span>L ${t.lo}°</span></span>` : `Night, ${ap(x.h)} to ${ap(hs[e].h)}`}</div>`);
     });
     wxCard = `<div class="card qwx" data-go="Today">${cur ? `<div class="wh">${wxIco(wxIcon(cur.code), 30)}<span class="v num">${cur.feel}°</span></div><div class="wt"><span class="ell">${wxLabel(cur.code)}</span>${wxTag()}</div>` : ""}<div class="s num">H ${d.hi}° L ${d.lo}°</div><div class="rule"></div>${rows.join("")}</div>`;
   }
