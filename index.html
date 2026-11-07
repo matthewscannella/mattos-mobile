@@ -3304,6 +3304,13 @@ document.addEventListener("click", e => {
 document.addEventListener("keydown", e => { if (e.target.id === "nbody") noteKeys(e); });
 document.addEventListener("beforeinput", e => { if (e.target.id === "nbody") noteBefore(e); });
 document.addEventListener("paste", e => { if (e.target.closest && e.target.closest("#nbody")) notePaste(e); });
+/* in any other text field, such as a task name, a link pasted over selected words becomes [words](link) */
+document.addEventListener("paste", e => {
+  const ta = e.target, url = ((e.clipboardData && e.clipboardData.getData("text")) || "").trim();
+  if (e.defaultPrevented || !(ta.tagName === "TEXTAREA" || (ta.tagName === "INPUT" && ta.type === "text")) || ta.readOnly) return;
+  if (ta.selectionStart === ta.selectionEnd || !NOTE_URL.test(url)) return;
+  e.preventDefault(); document.execCommand("insertText", false, `[${ta.value.slice(ta.selectionStart, ta.selectionEnd)}](${url})`);
+});
 document.addEventListener("input", e => {
   if (e.target.id === "nbody" && e.inputType) { noteAuto(e); if (!e.isComposing) noteLayout(); requestAnimationFrame(noteSeen); }
   if (e.target.id !== "ntitle" && e.target.id !== "nbody") return;
