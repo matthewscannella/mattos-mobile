@@ -599,7 +599,8 @@ const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_Yo
 const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
 /* a routine step's Days cell: empty shows every day, Weekdays Monday to Friday, and Weekend Saturday and Sunday. Yoni is at daycare from drop-off to pick-up on weekdays */
 const yoWeekend = () => [0, 6].includes(new Date(yoDay() + "T00:00:00Z").getUTCDay());
-const yoShows = days => !days || days === (yoWeekend() ? "Weekend" : "Weekdays");
+/* or a list of days, such as Mon, Tue, Wed, and Thu */
+const yoShows = days => !days || days === (yoWeekend() ? "Weekend" : "Weekdays") || days.includes(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(yoDay() + "T00:00:00Z").getUTCDay()]);
 const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
 const yoNow = () => { const [h, m] = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hourCycle: "h23" }).format(new Date()).split(":").map(Number), t = h * 60 + m; return yoWeekend() ? (t < 720 ? "Morning" : t < 1170 ? "Afternoon" : t < 1290 ? "Bed Time" : "Dream Feed") : (t < 490 ? "Morning" : t < 1080 ? "Daycare" : t < 1290 ? "Bed Time" : "Dream Feed"); };
 /* a step's text: "Label: action" shows its label in bold, and one wrapped in ** is bold throughout */
@@ -616,6 +617,8 @@ function yoRead(lines) {
     if (/^:?-+:?$/.test(c[0])) return;
     const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+(?: \w+)?) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^Packing: (.+)$/);
     if ((!part && !pk) || !yoShows(cell("Days"))) return;
+    /* Matt's own steps (Who: Matt) show on his phone only */
+    if (cell("Who")) return;
     const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk || m[2] === "Routine" ? "Item" : "Task") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), g: pk ? pk[1] : "" };
     if (!it.text) return;
     (pk ? out.packs : part[m[2] === "Routine" ? "steps" : "tasks"]).push(it); out.all.push(it);

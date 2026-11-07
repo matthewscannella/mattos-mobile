@@ -2363,7 +2363,8 @@ const yoDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_Yo
 const yoWeek = day => { const d = new Date(day + "T00:00:00Z"); if (isNaN(d)) return ""; d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); };
 /* a routine step's Days cell: empty shows every day, Weekdays Monday to Friday, and Weekend Saturday and Sunday. Yoni is at daycare from drop-off to pick-up on weekdays */
 const yoWeekend = () => [0, 6].includes(new Date(yoDay() + "T00:00:00Z").getUTCDay());
-const yoShows = days => !days || days === (yoWeekend() ? "Weekend" : "Weekdays");
+/* or a list of days, such as Mon, Tue, Wed, and Thu */
+const yoShows = days => !days || days === (yoWeekend() ? "Weekend" : "Weekdays") || days.includes(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(yoDay() + "T00:00:00Z").getUTCDay()]);
 const yoOn = (stamp, weekly) => !!stamp && (weekly ? yoWeek(stamp) === yoWeek(yoDay()) : stamp === yoDay());
 const yoNow = () => { const [h, m] = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hourCycle: "h23" }).format(new Date()).split(":").map(Number), t = h * 60 + m; return yoWeekend() ? (t < 720 ? "Morning" : t < 1170 ? "Afternoon" : t < 1290 ? "Bed Time" : "Dream Feed") : (t < 490 ? "Morning" : t < 1080 ? "Daycare" : t < 1290 ? "Bed Time" : "Dream Feed"); };
 /* a step's text: "Label: action" shows its label in bold, and one wrapped in ** is bold throughout */
@@ -2381,7 +2382,9 @@ function yoRead(lines) {
     if (/^:?-+:?$/.test(c[0])) return;
     const cell = n => c[head.indexOf(n)] || "", m = h.match(/^(\w+(?: \w+)?) (Routine|Tasks)$/), part = m && out.parts[m[1]], pk = h.match(/^Packing: (.+)$/);
     if ((!part && !pk) || !yoShows(cell("Days"))) return;
-    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk || m[2] === "Routine" ? "Item" : "Task") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), g: pk ? pk[1] : "" };
+    /* Matt's own steps (Who: Matt) show on his phone only, never on the CucuBarri profile */
+    if (cell("Who") && document.documentElement.classList.contains("cb")) return;
+    const it = { i, raw, h, on: yoOn(cell("Done"), !!m && m[1] === "Weekly"), text: cell(pk || m[2] === "Routine" ? "Item" : "Task") || (part && m[2] === "Routine" ? cell("Step") : ""), when: cell("When"), who: cell("Who"), g: pk ? pk[1] : "" };
     if (!it.text) return;
     (pk ? out.packs : part[m[2] === "Routine" ? "steps" : "tasks"]).push(it); out.all.push(it);
   });
@@ -2403,7 +2406,9 @@ function yoniBody() {
   const pack = d.packs, pc = yoCount(pack);
   const box = (on, round) => `<span class="box${round ? " rd" : ""}${on ? " on" : ""}">${on ? svg(UI.check, 12, 3.4) : ""}</span>`;
   const rows = (list, step) => list.map(it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on, step)}${it.when ? `<span class="wh num">${esc(it.when)}</span>` : ""}<span class="tx grow">${yoTx(it.text)}</span></button>`).join("") || `<div class="s" style="padding:12px 0">No ${step ? "steps" : "tasks"} yet.</div>`;
-  const partRows = P => (rows(P.steps, true)) + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : "");
+  /* a part with Matt's own steps splits them under Yoni and Me, each with its count */
+  const group = (t, list) => `<div class="sub">${t}<span class="num">${yoCount(list).join(" / ")}</span></div>${rows(list, true)}`;
+  const partRows = P => { const me = P.steps.filter(x => x.who); return (me.length ? group("Yoni", P.steps.filter(x => !x.who)) + group("Me", me) : rows(P.steps, true)) + (P.tasks.length ? `<div class="sub">Tasks</div>${rows(P.tasks, false)}` : ""); };
   if (yo.view === "Packing") {
     const pct = pc[1] ? Math.round(pc[0] / pc[1] * 100) : 0, left = pack.filter(x => !x.on), done = pack.filter(x => x.on), open = new Set(left.map(x => x.g)).size;
     const prow = it => `<button type="button" class="rw${it.on ? " done" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}">${box(it.on)}<span class="tx grow">${esc(it.text)}</span><span class="g">${esc(it.g)}</span></button>`;
