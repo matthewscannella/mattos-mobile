@@ -1313,8 +1313,11 @@ function rcRead(lines) {
 }
 function recurNext(r, from) {
   const on = r.on.split(",").map(s => RC_DAYS.indexOf(s.trim())).filter(n => n >= 0), m = r.every.match(/(\d+)\s*([dwm])/i) || [, 1, "w"], n = +m[1], u = m[2].toLowerCase();
+  /* "First Saturday" lands on that weekday's first date in the month the interval reaches */
+  const fw = (r.on.match(/^\s*first\s+(\w+)\s*$/i) || [])[1], first = fw ? RC_DAYS.indexOf(fw[0].toUpperCase() + fw.slice(1).toLowerCase()) : -1;
   const step = base => {
     const d = new Date(base + "T12:00");
+    if (first >= 0) { d.setDate(1); d.setMonth(d.getMonth() + (u === "m" ? n : 1)); while (d.getDay() !== first) d.setDate(d.getDate() + 1); return isoDay(d); }
     if (on.length > 1) { do d.setDate(d.getDate() + 1); while (!on.includes(d.getDay())); return isoDay(d); }
     if (u === "m") { const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); }
     else d.setDate(d.getDate() + n * (u === "w" ? 7 : 1));
