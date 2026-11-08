@@ -169,6 +169,14 @@
   /* Home's top, from mobileHomeTallWeatherV1.html option 3 and mobileHomeTodaySquaresV2.html: the weather down the left, Calendar and Tasks stacked on the right, then Yoni and Habits as two squares */
   .qgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   .qsq { margin-top: 8px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  /* Matt's Home is the five cards alone, stretched to fill the screen so there is nothing to scroll to */
+  .scr.qfit { display: flex; flex-direction: column; }
+  .qfit #main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .qfit #main > * { flex: none; }
+  .qfit #main > .qgrid { flex: 1.15; min-height: 0; grid-template-rows: 1fr 1fr; }
+  .qfit #main > .qsq { flex: 1; min-height: 0; }
+  .qfit .qgrid > .card, .qfit .qsq > .card { min-height: 0; overflow: hidden; }
+  .qfit .qbox { aspect-ratio: auto; }
   /* the weather card: navy, feels-like up top, the rest of today's daylight, a striped night notch, then the next morning */
   .qwx { grid-row: 1 / 3; --card: #141c33; background: var(--card); border-color: #24345e; padding: 12px 12px 10px; display: flex; flex-direction: column; min-width: 0; }
   .qwx .wh { display: flex; align-items: center; gap: 8px; color: #fff; }
@@ -549,6 +557,12 @@
   .hfr { display: flex; align-items: center; gap: 10px; min-height: 50px; }
   .hfr + .hfr { border-top: 1px solid var(--line); }
   .hfr .lb { width: 104px; flex: none; font-size: 15px; }
+  /* the rows that open under Resistance and Cardio sit indented beneath them, smaller and quieter, on a thin rail */
+  .hsub { margin: 0 0 10px 4px; padding-left: 12px; border-left: 2px solid var(--rule); }
+  .hsub .hfr { min-height: 42px; }
+  .hsub .hfr + .hfr { border-top-color: transparent; }
+  .hsub .hfr .lb { width: 88px; font-size: 13.5px; color: var(--mut); }
+  .hsub + .hfr { border-top: 1px solid var(--line); }
   .hseg { flex: 1; display: flex; background: var(--raised); border-radius: 9px; padding: 2px; }
   .hseg :is(button, label) { flex: 1; height: 34px; border-radius: 7px; display: grid; place-items: center; line-height: 34px; font-size: 13px; font-weight: 500; color: var(--mut); }
   .hseg :is(button, label).good { background: rgba(63, 207, 142, .22); color: var(--done); font-weight: 600; }
@@ -603,7 +617,9 @@
   .sv.ico { display: flex; align-items: center; justify-content: center; gap: 6px; }
 
   /* ---------- Dinner, in the Yoni tab: All, Order In, and Dine Out, food type tiles, then photo cards under folding food headings ---------- */
-  .seg.dmm { margin-top: 2px; }
+  .dmmw { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .seg.dmm { margin-top: 0; flex: 1; }
+  .dmmw .sq { width: 40px; height: 40px; }
   .seg.dmm button { height: 30px; line-height: 30px; font-size: 13px; }
   .dmt { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 10px 0 8px; border-bottom: 1px solid var(--line); }
   .dmt button { display: grid; justify-items: center; gap: 2px; padding: 6px 0; border: 1px solid transparent; border-radius: 10px; font-size: 11px; line-height: 13px; color: var(--mut); }
@@ -633,6 +649,10 @@
   .ac.open .ach .ic { transform: rotate(90deg); }
   .ach .nmr { display: flex; align-items: center; gap: 8px; }
   .ach .ct { font-size: 13px; font-weight: 400; color: var(--mut); }
+  /* the circle that checks a whole part, at the heading's right */
+  .ac { position: relative; }
+  .ac > .yall { position: absolute; right: 6px; top: 6px; width: 40px; height: 40px; padding: 0; display: grid; place-items: center; z-index: 1; }
+  .ac > .yall + .ach { padding-right: 50px; }
   .ybar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--raised); overflow: hidden; }
   .ybar i { display: block; height: 100%; border-radius: 3px; background: var(--done); }
   .ynow { height: 20px; padding: 0 8px; border-radius: 10px; font-size: 11.5px; font-weight: 600; display: grid; place-items: center; background: rgba(59, 110, 245, .2); color: var(--acc); }
@@ -899,7 +919,7 @@ TAB.Strength = `<path ${K(3.2)} d="M6 7v10M18 7v10"/><path ${K(2.6)} d="M2.5 10v
 TAB.Shopping = `<path ${K(2.6)} d="M2 3.5h3l.8 3"/><path ${FS} d="M5.8 6.5h15.4l-2 8.5H7.6z"/><circle ${F} cx="9" cy="19.6" r="1.9"/><circle ${F} cx="17.6" cy="19.6" r="1.9"/>`;
 /* the tab bar: Notes is the third word of Tasks, so its icon is used only on Home. CucuBarri's Shopping and Strength tabs are Tasks held on those views */
 const CB = document.documentElement.classList.contains("cb");
-const TAB_BAR = CB ? ["Home", "Yoni", "Tasks", "Shopping", "Strength"] : ["Calendar", "Habits", "Home", "Tasks", "Yoni"];
+const TAB_BAR = CB ? ["Home", "Yoni", "Tasks", "Shopping", "Strength"] : ["Home", "Calendar", "Habits", "Tasks", "Yoni"];
 const UI = { down: `<path d="m6 9 6 6 6-6"/>`, plus:`<path d="M12 5v14M5 12h14"/>`, minus: `<path d="M5 12h14"/>`, left: `<path d="m15 5-7 7 7 7"/>`, right: `<path d="m9 5 7 7-7 7"/>`, filter: `<path d="M4 7h16M7 12h10M10 17h4"/>`, check: `<path d="m5 12.5 4.5 4.5L19 7"/>`, trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/>`,bottle: `<path ${F} d="M9.5 2h5v3.2l2 2.6V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V7.8l2-2.6z"/>` };
 /* the five habit categories */
 const CI = {
@@ -1223,14 +1243,11 @@ function drawCalendar() {
   const td = today(), ev = cal.events.filter(e => e.d === td), ahead = cal.events.filter(e => e.d > td), side = $("wk") ? $("wk").scrollLeft : 0;
   const wx = W ? calWeather() : { head: "", strip: "", score: "", week: "", source: `<div class="srcl"><span>Weather is unavailable. Tap the Calendar tab to try again.</span></div>` };
   const row = e => `<div class="ev${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`;
-  const next = ahead.slice(0, 5).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("");
-  const seg = `<div class="segw"><div class="seg">${["Today", "Next Up"].map(v => `<button type="button" data-v="${v}" class="${v === calView ? "on" : ""}"${v === calView ? ' aria-current="true"' : ""}>${v}</button>`).join("")}</div></div>`;
-  const src = `${wx.source}<div class="srcl"><span class="ell num">${W ? `Open-Meteo, ${esc(shortAt(wxRead))}; ` : ""}GCal, ${esc(shortAt(cal.synced))}</span></div>`, end = addDays(td, 6);
-  $("main").innerHTML = seg + (calView === "Today" ? `<div class="big" style="padding-bottom:0">${fullDay(td)}</div><div class="s" style="padding:0 2px 12px">Today, ${ev.length ? `${ev.length} event${ev.length > 1 ? "s" : ""}` : "nothing scheduled"}</div>
-    ${ev.length || wx.head ? `<div class="card">${ev.map(row).join("")}${wx.head}</div>` : ""}
-    ${wx.strip}${wx.score}${src}`
-    : `<div class="big">${monDay(td)} to ${monDay(end)}</div>
-    ${wx.week}<section><div class="h2">Calendar</div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}</section>${src}`);
+  const next = cal.events.filter(e => e.d >= td).slice(0, 8).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("");
+  /* Next Up alone: the calendar from today on, then the week's weather */
+  const end = addDays(td, 6);
+  $("main").innerHTML = `<div class="big">${monDay(td)} to ${monDay(end)}</div>
+    <section><div class="h2">Calendar</div>${next || `<div class="s" style="padding:0 2px">Nothing further in the synced range.</div>`}</section>${wx.week}`;
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
@@ -1277,7 +1294,7 @@ function tkRead(lines) {
   });
   return { head, col: head ? head.indexOf("Status") : -1, end, rows, day };
 }
-const tk = { lines: [], clines: [], rows: [], col: -1, view: "Tasks", src: "All", noBB: store.get("tk-nobb") === "1", menu: false, wide: null, sheet: "" };
+const tk = { lines: [], clines: [], rows: [], col: -1, view: "Tasks", src: "All", noBB: !CB, menu: false, wide: null, sheet: "" };
 let tkBusy = 0, tkFail = false;
 /* a row keeps its file, f; on Matt's phone the CucuBarri board's rows follow his own, numbered on from them */
 function tkParse() {
@@ -1287,13 +1304,10 @@ function drawTasks() {
   if (tk.view === "Shopping") { drawShop(); return; }
   leaveHabits();
   if (tk.view === "Strength") { drawStrength(); return; }
-  /* Tasks filter by source: All Tasks, or the CucuBarri board's alone */
+  /* always All Tasks, with BB's tasks hidden on Matt's phone */
   const on = tk.src, open = r => r.st !== "Done", inSrc = tkIn;
   const show = s => esc(tName(s).replace(/<br\s*\/?>/gi, " ")), tick = n => svg(UI.check, n, 4);
-  const opts = ["All", "CucuBarri"], label = v => v !== "All" ? v : "All Tasks";
-  const count = v => tk.rows.filter(r => open(r) && (v === "All" || r.cb) && !(tk.noBB && r.own === "BB")).length;
-  const menu = tk.menu ? `<div class="veil" data-tk="menu"></div><div class="pop" role="menu">${opts.map(v => `<button type="button" class="mi${on === v ? " on" : ""}" role="menuitemradio" aria-checked="${on === v}" data-tk="src" data-a="${v}"><span class="em">${v === "CucuBarri" ? "🦜" : ""}</span><span class="grow">${label(v)}</span><span class="num">${count(v)}</span></button>`).join("")}<button type="button" class="mi${tk.noBB ? " on" : ""}" role="menuitemcheckbox" aria-checked="${tk.noBB}" data-tk="nobb"><span class="em">🙈</span><span class="grow">Hide BB's Tasks</span></button></div>` : "";
-  const bar = tkBar(tk.view, `<button type="button" class="sq${on !== "All" || tk.noBB || tk.menu ? " on" : ""}" data-tk="menu" aria-label="Filter by source${on === "All" ? "" : ": " + on}" aria-expanded="${tk.menu}">${svg(UI.filter, 18, 2.4)}</button>${menu}`);
+  const bar = tkBar(tk.view);
   const none = what => `<div class="empty">${on === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${on} ${what}.`}</div>`;
   /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
   const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${TK_DAY[TK_TIMES.indexOf(t)]}</button>`).join("")}${HUCK ? `<button type="button" class="o gpt" data-tk="gpt" aria-label="Send to ChatGPT">${GPT_LOGO}</button>` : ""}</div>`;
@@ -1315,11 +1329,11 @@ function drawTasks() {
 }
 /* the switch at the top, as on Calendar; its buttons carry data-{kind}="{act}" with the view in data-a */
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
-/* Tasks, Notes, and Shopping, shown as emojis; Notes is its own screen, so its button opens it */
+/* Tasks, Notes, and Shopping, shown as words; Notes is its own screen, so its button opens it */
 const TK_VIEWS = { Tasks: "✏️", Notes: "🗒️", Shopping: "🛒" };
 /* the right of a task row: its owner, or a faint dash while it has none */
 const tkTag = r => `<span class="cp ow ${r.own ? esc(r.own) : "none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
-const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end, TK_VIEWS);
+const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end);
 async function loadTasks(quiet) {
   const [t, y, s, c, g] = await Promise.all([readFile(TASK_FILE), readFile(FATHER_FILE), readFile(SHOP_FILE).catch(() => null), CB ? null : readFile(CB_FILE).catch(() => null), CB ? readFile(GY_FILE).catch(() => null) : null]);
   if (tab !== "Tasks" || (tkBusy && quiet !== true)) return; /* a change still being saved is not drawn over */
@@ -1560,6 +1574,7 @@ function tkAct(act, a, el) {
   else if (act === "pull") pullToday();
   else if (act === "pullnext") pullToday(true);
   else if (act === "yo") yoTick(+a);
+  else if (act === "yopart") yoPart(a);
   else if (act === "fold") { const k = el.dataset.done ? "rooms" : "open"; yo[k][a] = !yo[k][a]; drawYoni(); }
   else if (act === "yoview") { yo.view = a; $("scr").scrollTop = 0; drawYoni(); }
   else if (act === "yopacked") { yo.packed = !yo.packed; drawYoni(); }
@@ -2320,7 +2335,7 @@ function drawHabits() {
   const weight = hbIndex(d.date) === 6 ? `<div class="hfr"><span class="lb">Weight</span><div class="hstp"><input class="hin wide num" data-hbin="wt" inputmode="decimal" placeholder="lb" value="${f.wt ?? ""}" aria-label="Weight in lb"></div></div>` : "";
   const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-hap data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
     + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-hap data-k="${i}">${m.name}<i>${v == null ? "Tap" : HB_STATE[v]}</i></button>`; }).join("")}</div>`)
-    + grp("Fitness", `${hwScore(f).fitness} points`, step("Resistance", "sets", "sets", 1) + (f.sets ? parts : "") + step("Cardio", "cardio", "min", 1) + (f.cardio ? miles : "") + weight) + grp("Mental", "", step("Meditation", "med", "min", 5))
+    + grp("Fitness", `${hwScore(f).fitness} points`, step("Resistance", "sets", "sets", 1) + (f.sets ? `<div class="hsub">${parts}</div>` : "") + step("Cardio", "cardio", "min", 1) + (f.cardio ? `<div class="hsub">${miles}</div>` : "") + weight) + grp("Mental", "", step("Meditation", "med", "min", 5))
     + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-hap data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
   const bars = `<div class="hbr all"><span style="width:16px;flex:none"></span><span class="nm">Overall</span><div class="hbar grow"><i style="width:${overall}%;background:${gc}"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${overall}%</span><span class="gd" style="background:${gc}"></span></div>` + HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
   /* one day's total for one category; a day with nothing logged is a dashed blank */
@@ -2338,11 +2353,11 @@ function drawHabits() {
   /* Today is the day's form and This Week the week's progress and grid, switched at the top as on Calendar */
   $("main").innerHTML = segBar(["Today", "This Week", "Meditation"], hb.view, "hb", "view") + (hb.view === "Today" ? `<div class="hb">${head}${ended ? close : ""}${form}</div>`
     : `<div class="hb"><div class="hgl" style="margin-top:4px">Progress<span>${monDay(hb.week)} - ${monDay(sun)}</span></div><div class="hcard">${bars}</div><div class="hgl">By Day<span>Tap a day to open it</span></div>${grid}${close}</div>`);
-  /* unsaved changes: Discard, Save Draft and Submit. A draft in the file: a ticked Draft saved and Submit. A submitted day: a ticked Submitted */
+  /* unsaved changes: Save Draft and Submit. A draft in the file: a ticked Draft saved and Submit. A submitted day: a ticked Submitted */
   const tick = t => `<span class="sv ghost half saved ico">${svg(UI.check, 18, 2.6)}${t}</span>`, busy = k => hb.busy === k ? "Saving…" : "";
   $("savebar").innerHTML = !canLog ? `<button type="button" class="sv off" data-hb="save">Archived week</button>`
     : d.st === "saved" && !mine ? `<span class="sv saved ico">${svg(UI.check, 18, 2.6)}${name} submitted${at}</span>`
-    : (mine ? (hb.busy ? "" : `<button type="button" class="sv ghost sq ico" data-hb="discard" aria-label="Discard changes">${svg(UI.trash, 18)}</button>`) + `<button type="button" class="sv ghost half" data-hb="draft">${busy("Draft") || "Save Draft"}</button>`
+    : (mine ? `<button type="button" class="sv ghost half" data-hb="draft">${busy("Draft") || "Save Draft"}</button>`
       : d.st === "draft" ? tick(`Draft saved`) : "")
     + `<button type="button" class="sv${mine || d.st === "draft" ? "" : " off"}" data-hb="save">${busy("Saved") || (mine ? "Submit" : `Submit ${name}`)}</button>`;
   $("savebar").hidden = false; $("scr").classList.add("hbs");
@@ -2545,7 +2560,7 @@ const yoAll = d => yoCount([...YO_PARTS.flatMap(p => [...d.parts[p].steps, ...d.
 function yoniBody() {
   const d = yo.data, now = yoNow();
   if (yo.on !== yoDay()) { yo.on = yoDay(); yo.open = { [now]: true }; yo.rooms = {}; }
-  const seg = segBar(["Routines", "Packing", "Dinner"], yo.view, "tk", "yoview", yo.view === "Dinner" ? `<button type="button" class="sq" data-tk="dmdice" aria-label="Pick one at random">${DM_DICE}</button>` : "");
+  const seg = segBar(["Routines", "Packing", "Dinner"], yo.view, "tk", "yoview");
   if (yo.view === "Dinner") return dmBody(seg);
   if (!d.all.length) return `${seg}<div class="empty">Nothing is set up for Yoni yet. Routines are added on the laptop.</div>`;
   const pack = d.packs, pc = yoCount(pack);
@@ -2567,9 +2582,8 @@ function yoniBody() {
     ${yoToday(d).map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), full = !!c[1] && c[0] === c[1];
       /* a part whose steps and tasks are all done folds away until tapped open; one no longer done drops that tap, so it folds again when finished */
       if (!full) delete yo.rooms[p];
-      const o = full ? !!yo.rooms[p] : !!yo.open[p]; return `<div class="ac${o ? " open" : ""}"><button type="button" class="ach" data-tk="fold" data-a="${p}"${full ? ' data-done="1"' : ""} aria-expanded="${o}">${svg(UI.right, 16, 2.6)}<span class="nmr">${p}${p === now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></button>
-      ${o ? `<div class="acb">${partRows(P)}</div>` : ""}</div>`; }).join("")}
-    <p class="ynote">Routines and tasks clear at midnight Eastern.</p>`;
+      const o = full ? !!yo.rooms[p] : !!yo.open[p]; return `<div class="ac${o ? " open" : ""}">${offline ? "" : `<button type="button" class="yall" data-tk="yopart" data-hap data-a="${p}" aria-label="${full ? `Uncheck all of ${p}` : `Mark all of ${p} done`}" aria-pressed="${full}">${box(full, true)}</button>`}<button type="button" class="ach" data-tk="fold" data-a="${p}"${full ? ' data-done="1"' : ""} aria-expanded="${o}">${svg(UI.right, 16, 2.6)}<span class="nmr">${p}${p === now ? '<span class="ynow">Now</span>' : ""}</span><span class="ct num">${c.join(" / ")}</span><span class="ybar"><i style="width:${c[1] ? c[0] / c[1] * 100 : 0}%"></i></span></button>
+      ${o ? `<div class="acb">${partRows(P)}</div>` : ""}</div>`; }).join("")}`;
 }
 /* Yoni, its own tab: Routines, Packing, and Dinner, switched at the top */
 function drawYoni() { $("main").innerHTML = yoniBody(); $("fab").hidden = offline; if (yo.view === "Dinner") dmPhotos(); }
@@ -2584,7 +2598,7 @@ async function loadYoni(quiet) {
 /* ---------- Dinner: the third view of the Yoni tab, read from 17👪-family/07🍽️-dinnerMenu/dinnerMenuRegistry.md; the phones only view it ---------- */
 const DM_FILE = "17👪-family/07🍽️-dinnerMenu/dinnerMenuRegistry.md", DM_PHOTOS = "17👪-family/07🍽️-dinnerMenu/photos/";
 /* the food types in list order, as on the laptop (lifeSections.js DM_FOOD): the tile's emoji and label, and the group heading */
-const DM_FOOD = [["🍝", "Italian", "Italian"], ["🍕", "Pizza", "Pizza"], ["🍔", "American", "American, Gastropubs, and Steakhouses"], ["🌮", "Mexican", "Mexican and Latin American"], ["🥡", "Asian", "Japanese, Chinese, and Thai"], ["🥙", "Indian", "Indian, Mediterranean, and Middle Eastern"], ["🦞", "Seafood", "Seafood and French"], ["🥪", "Delis", "Delis, Sandwiches, and Bakeries"]];
+const DM_FOOD = [["🍝", "Italian", "Italian and Pizza"], ["🍔", "American", "American, Gastropubs, and Steakhouses"], ["🌮", "Mexican", "Mexican and Latin American"], ["🥡", "Asian", "Japanese, Chinese, and Thai"], ["🥙", "Indian", "Indian, Mediterranean, and Middle Eastern"], ["🦞", "Seafood", "Seafood and French"], ["🥪", "Delis", "Delis, Sandwiches, and Bakeries"]];
 const DM_DICE = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>`;
 const DM_PHONE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>`;
 const dm = { lines: [], mode: "All", on: new Set(), shut: new Set(), open: null, urls: {} };
@@ -2608,7 +2622,8 @@ const dmPh = r => `data-ph="${esc(r.ph)}"${dm.urls[r.ph] ? ` style="background-i
 function dmBody(seg) {
   const all = dmRows(), shown = dmShown(all);
   if (!all.length) return `${seg}<div class="empty">The dinner menu has not synced to this phone yet.</div>`;
-  const mode = `<div class="seg dmm">${["All", "Order In", "Dine Out"].map(m => `<button type="button" class="${dm.mode === m ? "on" : ""}" data-tk="dmmode" data-a="${m}">${m}</button>`).join("")}</div>`;
+  /* the dice sits at the right of the modes, so the switch above keeps its width on every view */
+  const mode = `<div class="dmmw"><div class="seg dmm grow">${["All", "Order In", "Dine Out"].map(m => `<button type="button" class="${dm.mode === m ? "on" : ""}" data-tk="dmmode" data-a="${m}">${m}</button>`).join("")}</div><button type="button" class="sq" data-tk="dmdice" aria-label="Pick one at random">${DM_DICE}</button></div>`;
   const tiles = `<div class="dmt">${DM_FOOD.filter(f => all.some(r => r.t === f[1] && dmIn(r))).map(f => `<button type="button" class="${dm.on.has(f[1]) ? "on" : ""}" data-tk="dmfood" data-a="${f[1]}" aria-pressed="${dm.on.has(f[1])}"><span class="e">${f[0]}</span>${f[1]}</button>`).join("")}</div>`;
   const card = r => `<button type="button" class="dmc" data-tk="dmopen" data-a="${esc(r.n)}"><span class="dmp" ${dmPh(r)}><span class="dmk">${r.m}</span></span><span class="nm">${esc(r.n)}</span><span class="sb">${esc(r.t)}</span></button>`;
   const groups = DM_FOOD.map(f => { const rows = shown.filter(r => r.t === f[1]), shut = dm.shut.has(f[1]);
@@ -2675,6 +2690,25 @@ function yoTick(i) {
     return hit;
   }, `Phone: ${to ? "check" : "uncheck"} "${it.text}"`);
   yoWin(was, it, to);
+}
+/* the circle on a part's heading checks every step and task in it at once, or unchecks them all once the part is done */
+function yoPart(p) {
+  const P = yo.data.parts[p]; if (!P) return;
+  const items = [...P.steps, ...P.tasks], full = items.every(x => x.on), to = full ? "" : yoDay(), hits = items.filter(x => x.on === full), was = yoAll(yo.data);
+  if (!hits.length) return;
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  buzz();
+  tkSave(FATHER_FILE, lines => {
+    const all = yoRead(lines).all;
+    hits.forEach(it => {
+      const hit = all.find(x => x.i === it.i && x.raw === it.raw) || all.find(x => x.h === it.h && x.raw === it.raw);
+      if (!hit) throw new Error(`"${it.text}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+      const cells = lines[hit.i].split("|");
+      cells[cells.length - 2] = to ? ` ${to} ` : " ";
+      lines[hit.i] = cells.join("|");
+    });
+  }, `Phone: ${to ? "check" : "uncheck"} all of ${p}`);
+  if (to) yoWin(was, hits[hits.length - 1], to);
 }
 /* a checked step shows its part's count in the win toast, and the part's last step the party stamp; the day's last step gets the day's stamp instead */
 const YO_EM = { Morning: "🌅", Daycare: "🎒", Afternoon: "☀️", "Bed Time": "🌙", "Dream Feed": "🍼" };
@@ -2770,8 +2804,7 @@ function drawHome() {
   const H = hbNow(), saved = hbFiled(hbTarget()).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
   const HE = { water: "💧", habits: "🥕", food: "🥗", fitness: "💪🏻", mental: "🧠" };
   const hbSq = `<div class="card qbox${saved ? " set" : ""}" data-go="Habits"><div class="mh">${saved ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Habits, 13)}Habits<span class="ov num" style="color:${og}"><span class="gd" style="background:${og}"></span>${H.overall}%</span></div><div class="qwm">${["fitness", "mental", "food", "water", "habits"].map(k => H.cats.find(x => x.c.k === k)).map(x => `<div class="qwr${x.part >= 1 ? " ok" : x.part < pace ? " behind" : ""}"><span class="e${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span><i class="qbar"><u style="width:${x.part * 100}%"></u><s style="left:${pace * 100}%"></s></i><b class="num">${x.tot}/${x.target}</b></div>`).join("")}</div></div>`;
-  const list = notes.slice(0, 3).map(n => `<div class="row"><span class="grow ell">${esc(n.title) || "Untitled"}</span><span class="meta num">${esc(shortAt(n.edited))}</span></div>`).join("") || `<div class="row">No notes yet</div>`;
-  $("main").innerHTML = `${top}<div class="qgrid">${wxCard}${calCard}${todayCard}</div><div class="qsq">${yoSq}${hbSq}</div><div class="rail">${sec("Tasks", false, tkHome, "Tasks", tkRight)}${sec("Notes", false, list)}</div>`;
+    $("main").innerHTML = `${top}<div class="qgrid">${wxCard}${calCard}${todayCard}</div><div class="qsq">${yoSq}${hbSq}</div>`;
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
@@ -2865,7 +2898,8 @@ const DY_IC = {
   barri: `<circle ${F} cx="12" cy="7.5" r="4.5"/><path ${F} d="M4 21.5c0-4.5 3.5-8 8-8s8 3.5 8 8z"/>`
 };
 const dyIco = (n, s) => svg(DY_IC[n], s, 1.75);
-const dyOn = () => !CB && !PEEK && store.get("day-home") !== "home";
+/* the Day is set aside for now: Home is the only first tab, and the sun toggle is hidden */
+const dyOn = () => false;
 const dy = { open: -1, d: "", week: [], el: null, y: 0, dy: 0, stamp: "" };
 /* "2:10 PM" or "18:00" as hours; null when there is no time */
 const dyH = s => { const m = /(\d+):(\d+)\s*([AP]M)?/i.exec(s || ""); if (!m) return null; let h = +m[1] % (m[3] ? 12 : 24); if (/p/i.test(m[3] || "")) h += 12; return h + +m[2] / 60; };
@@ -2984,7 +3018,7 @@ function dySetOpen(b) {
 }
 /* the header on the Day: month, share, round icon, the toggle, and the week strip. On Home the toggle sits beside Settings, and on every other tab the header is as it was */
 function dyChrome(plain) {
-  const on = !plain && tab === "Day", home = !plain && tab === "Home" && !CB && !PEEK;
+  const on = !plain && tab === "Day", home = false;
   $("scr").classList.toggle("dys", on);
   if (!on) $("scr").classList.remove("dyd");
   document.querySelector(".hd").classList.toggle("dyh", on);
@@ -3039,7 +3073,7 @@ async function go(name) {
   const lit = CB ? here() : tab === "Notes" ? "Tasks" : tab;
   history.replaceState(null, "", location.search + "#" + (CB ? lit : tab).toLowerCase());
   $("tabs").innerHTML = TAB_BAR.map(n => n === "Home" && dyOn() ? "Day" : n).map(n => `<button class="tab${n === lit ? " on" : ""}" type="button" data-tab="${n}" aria-label="${n}"${n === lit ? ' aria-current="page"' : ""}><span class="w">${svg(TAB[n], 24)}</span></button>`).join("");
-  dyChrome(); $("fab").hidden = true; $("scr").scrollTop = 0; $("scr").classList.toggle("cbh", CB && tab === "Home");
+  dyChrome(); $("fab").hidden = true; $("scr").scrollTop = 0; $("scr").classList.toggle("cbh", CB && tab === "Home"); $("scr").classList.toggle("qfit", !CB && !PEEK && tab === "Home");
   const hb = HUCK && tab === "Yoni";
   $("fab").classList.toggle("huck", hb); $("fab").innerHTML = hb ? HUCK_LOGO : svg(UI.plus, 24, 2.6); $("fab").setAttribute("aria-label", hb ? "Open Huckleberry" : "Add");
   if (!cfg().token && !PEEK) return showSetup();
