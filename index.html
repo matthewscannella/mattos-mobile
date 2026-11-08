@@ -171,12 +171,14 @@
   .qgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   .qsq { margin-top: 8px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   /* Matt's Home is the five cards alone, run to the bottom of the screen with the add button floating over them.
-     The squares keep their shape and the top grid takes the rest. It still drags, and springs back to the top on release (qfitBack) */
-  .scr.qfit { padding-bottom: 12px; }
-  .qfit #main { min-height: calc(100% + 1px); display: flex; flex-direction: column; }
+     The squares keep their shape and the top grid takes the rest, each card filled with as many rows as fit (qfitTrim).
+     It drags and springs back on release, as the Day's header does (qfEnd) */
+  .scr.qfit { padding-bottom: 12px; overflow-y: hidden; touch-action: none; }
+  .qfit #main { height: 100%; display: flex; flex-direction: column; transition: transform .3s cubic-bezier(.2, .9, .3, 1.2); }
   .qfit #main > * { flex: none; }
-  .qfit #main > .qgrid { flex: 1 0 auto; min-height: 380px; grid-template-rows: 1fr 1fr; }
+  .qfit #main > .qgrid { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .qfit .qgrid > .card { min-height: 0; overflow: hidden; }
+  .qfit .qbox { aspect-ratio: 1 / 1.08; }
   /* the weather card: navy, feels-like up top, the rest of today's daylight, a striped night notch, then the next morning */
   .qwx { grid-row: 1 / 3; --card: #141c33; background: var(--card); border-color: #24345e; padding: 12px 12px 10px; display: flex; flex-direction: column; min-width: 0; }
   .qwx .wh { display: flex; align-items: center; gap: 8px; color: #fff; }
@@ -2578,7 +2580,7 @@ function yoniBody() {
       ${done.length ? `<button type="button" class="pkf${yo.packed ? " open" : ""}" data-tk="yopacked" aria-expanded="${yo.packed}"><span class="ic">${svg(UI.right, 16, 2.6)}</span><span class="grow">Packed</span><span class="num">${done.length}</span></button>${yo.packed ? `<div class="pkl">${done.map(prow).join("")}</div>` : ""}` : ""}
       <p class="ynote">Checks clear at midnight Eastern, or with Clear.</p>`;
   }
-  return `${seg}<div class="hgl" style="margin-top:4px">Routines<span>Tap a part to open it</span></div>
+  return `${seg}<div class="hgl" style="margin-top:4px">Routines</div>
     ${yoToday(d).map(p => { const P = d.parts[p], c = yoCount([...P.steps, ...P.tasks]), full = !!c[1] && c[0] === c[1];
       /* a part whose steps and tasks are all done folds away until tapped open; one no longer done drops that tap, so it folds again when finished */
       if (!full) delete yo.rooms[p];
@@ -2759,9 +2761,9 @@ function drawHome() {
   const evChip = hChip("cal", ev.length ? ev[0].title : late ? "No events tomorrow" : "No events today", ev.length ? `${late ? "Tomorrow, " : ""}${ev[0].start || "All day"}${ev.length > 1 ? `, +${ev.length - 1}` : ""}` : "", ev.length ? ev.map(e => e.title).join(", ") : late ? "Tomorrow's events" : "Today's events");
   const top = CB ? `<div class="big">${fullDay(td)}</div><div class="card">${wx.head}<div class="hch">${evChip}</div></div>`
     : `<div class="big">${fullDay(td)}</div>`;
-  /* the Calendar card: up to two of the day's events, then the next three days that have any, small and grey */
-  const days = [...new Set(ahead.map(e => e.d))].slice(0, 3).map(d => { const es = ahead.filter(e => e.d === d); return `<div><em>${wkDay(d)}</em><span class="ell">${esc(es[0].title)}${es.length > 1 ? `, +${es.length - 1}` : es[0].start ? `, ${esc(es[0].start)}` : ""}</span></div>`; }).join("");
-  const calCard = `<div class="card mini" data-go="Next Up"><div class="mh">${svg(HC.cal, 13)}Calendar<span class="go">${svg(UI.right, 13, 2.2)}</span></div>${ev.slice(0, 2).map(e => `<div class="me${calWho(e)}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="none">${late ? "Nothing tomorrow" : "Nothing today"}</div>`}${ev.length > 2 ? `<div class="none num">+${ev.length - 2} more</div>` : ""}${days ? `<div class="foot num">${days}</div>` : ""}</div>`;
+  /* the Calendar card: up to four of the day's events, then the next days that have any, small and grey, as many as fit */
+  const days = [...new Set(ahead.map(e => e.d))].slice(0, 6).map(d => { const es = ahead.filter(e => e.d === d); return `<div class="cut"><em>${wkDay(d)}</em><span class="ell">${esc(es[0].title)}${es.length > 1 ? `, +${es.length - 1}` : es[0].start ? `, ${esc(es[0].start)}` : ""}</span></div>`; }).join("");
+  const calCard = `<div class="card mini" data-go="Next Up"><div class="mh">${svg(HC.cal, 13)}Calendar<span class="go">${svg(UI.right, 13, 2.2)}</span></div>${ev.slice(0, 4).map((e, k) => `<div class="me${calWho(e)}${k ? " cut" : ""}"><i></i><div class="grow"><b class="ell">${esc(e.title)}</b><span class="num">${esc(calWhen(e))}</span></div></div>`).join("") || `<div class="none">${late ? "Nothing tomorrow" : "Nothing today"}</div>`}${ev.length > 4 ? `<div class="none num">+${ev.length - 4} more</div>` : ""}${days ? `<div class="foot num">${days}</div>` : ""}</div>`;
   const wo = woWeek(home.workout, d0), rest = !wo.now || /^rest$/i.test(wo.now.what);
   const now = yoNow(), parts = yoToday(yo.data), pc = parts.map(p => yoCount([...yo.data.parts[p].steps, ...yo.data.parts[p].tasks]));
   const full = x => x[1] > 0 && x[0] === x[1], allSet = pc.every(x => !x[1] || full(x)) && pc.some(x => x[1]);
@@ -2776,35 +2778,35 @@ function drawHome() {
   const next = ahead.slice(0, 3).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   if (CB) { cbHome(top, open.filter(r => r.time === first).map(trow).join(""), next); return; }
   const go = `<span class="go">${svg(UI.right, 13, 2.2)}</span>`, ap = h => `${h % 12 || 12}${h < 12 ? "a" : "p"}`;
-  /* the weather card: feels-like now, then the next 24 hours' daylight, up to ten hours, each run of night one striped notch */
+  /* the weather card: feels-like now, then the next 24 hours' daylight, as many hours as fit, each run of night one striped notch */
   let wxCard = "";
   if (W) {
     const d = wxDay(td), cur = wxLive ? { code: W.current.weather_code, feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0], hs = wxFromNow(24), rows = [];
     hs.forEach((x, k) => {
-      if (rows.filter(r => r.startsWith('<div class="qhr')).length >= 10) return;
-      if (x.day) { rows.push(`<div class="qhr num${k ? "" : " now"}${wxGood(x.score)}"><span class="h">${k ? ap(x.h) : "Now"}</span><span>${x.feel}°</span>${wxIco(wxHourIcon(x), 16)}<i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`); return; }
+      if (x.day) { rows.push(`<div class="qhr num${k ? " cut" : " now"}${wxGood(x.score)}"><span class="h">${k ? ap(x.h) : "Now"}</span><span>${x.feel}°</span>${wxIco(wxHourIcon(x), 16)}<i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`); return; }
       if (k && !hs[k - 1].day) return;
       const e = hs.findIndex((y, j) => j > k && y.day);
       const nd = x.h >= 12 ? addDays(td, 1) : td, t = e > 0 && wxDay(nd);
-      if (e > 0) rows.push(`<div class="qnt num">${wxIco("moon", 11)}${t ? `<span class="tm">${nd === td ? "Today" : wkDay(nd)}${wxIco(wxIcon(t.code), 12)}<span>H ${t.hi}°</span><span>L ${t.lo}°</span></span>` : `Night, ${ap(x.h)} to ${ap(hs[e].h)}`}</div>`);
+      if (e > 0) rows.push(`<div class="qnt num cut">${wxIco("moon", 11)}${t ? `<span class="tm">${nd === td ? "Today" : wkDay(nd)}${wxIco(wxIcon(t.code), 12)}<span>H ${t.hi}°</span><span>L ${t.lo}°</span></span>` : `Night, ${ap(x.h)} to ${ap(hs[e].h)}`}</div>`);
     });
     wxCard = `<div class="card qwx" data-go="Today">${cur ? `<div class="wh">${wxIco(wxIcon(cur.code), 30)}<span class="v num">${cur.feel}°</span></div><div class="wt"><span class="ell">${wxLabel(cur.code)}</span>${wxTag()}</div>` : ""}<div class="s num">H ${d.hi}° L ${d.lo}°</div><div class="rule"></div>${rows.join("")}</div>`;
   }
-  /* Tasks: the workout, then the top three open tasks; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
-  const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 3);
-  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd"${PEEK ? ` data-tk="tick" data-a="${r.n}"` : ""}><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
+  /* Tasks: the workout, then the open tasks, as many as fit; from 7pm tomorrow's workout, and today's leftover tasks before tomorrow's */
+  const top3 = (late ? [day, di === 6 ? "Monday" : TK_TIMES[di + 1]] : [day]).flatMap(t => open.filter(r => r.time === t)).slice(0, 8);
+  const todayCard = `<div class="card mini" data-go="Tasks"><div class="mh">${svg(TAB.Tasks, 13)}Tasks${go}</div><div class="qtd qw"><span class="qi">${svg(HC.fitness, 15)}</span><span class="ell"><b>${rest ? "Rest day" : esc(wo.now.what)}</b>${!rest && wo.now.where ? ` <em>${esc(wo.now.where)}</em>` : ""}</span></div>${top3.map(r => `<div class="qtd cut"${PEEK ? ` data-tk="tick" data-a="${r.n}"` : ""}><span class="qi"><span class="ck"></span></span><span class="ell">${show(r.title)}</span></div>`).join("") || `<div class="none">No open tasks</div>`}${notes[0] ? `<div class="qtd qn"><span class="qi">📝</span><span class="ell">${esc(notes[0].title) || "Untitled"}</span></div>` : ""}</div>`;
   /* Yoni: a Day to Night timeline of the day's parts, then the next three steps from the part under way, each ticked here.
      A ticked step leaves the list and the next open one moves up */
   const YO_TL = { Morning: "#f7d26a", Daycare: "#f59e6b", Afternoon: "#f59e6b", "Bed Time": "#6d7fe0", "Dream Feed": "#4fb3c9" };
-  const ups = YO_PARTS.slice(YO_PARTS.indexOf(now)).flatMap(p => yo.data.parts[p].steps).filter(x => !x.on).slice(0, 3);
+  const ups = YO_PARTS.slice(YO_PARTS.indexOf(now)).flatMap(p => yo.data.parts[p].steps).filter(x => !x.on).slice(0, 5);
   const tl = `<div class="qtl"><div class="tl">${pc.map((x, k) => `<i style="--c:${YO_TL[parts[k]]}"><u style="width:${x[1] ? x[0] / x[1] * 100 : 0}%"></u></i>`).join("")}</div><div class="tlb num">${pc.map(x => `<span>${x[0]}/${x[1]}</span>`).join("")}</div></div>`;
-  const up = it => `<div class="row${it.on ? " on" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}"><span class="ck${it.on ? " on" : ""}"></span><span class="t ell">${esc(it.text.replace(/^\*\*(.+)\*\*$/, "$1"))}</span>${it.when ? `<span class="w num">${esc(it.when.replace(/\s*[AP]M$/i, ""))}</span>` : ""}</div>`;
+  const up = it => `<div class="row cut${it.on ? " on" : ""}" data-tk="yo" data-hap data-a="${it.i}" aria-pressed="${it.on}"><span class="ck${it.on ? " on" : ""}"></span><span class="t ell">${esc(it.text.replace(/^\*\*(.+)\*\*$/, "$1"))}</span>${it.when ? `<span class="w num">${esc(it.when.replace(/\s*[AP]M$/i, ""))}</span>` : ""}</div>`;
   const yoSq = `<div class="card qbox${allSet ? " set" : ""}" data-go="Yoni"><div class="mh">${allSet ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Yoni, 13)}Yoni</div>${tl}<div class="qnx"><div class="lab">Next up</div><div class="lst">${ups.map(up).join("") || `<div class="none">All steps done</div>`}</div></div></div>`;
   /* Habits: the week's overall score in the heading, graded in the scorecard colours, then Fitness, Mental, Food, Water, and Habits against the week's pace */
   const H = hbNow(), saved = hbFiled(hbTarget()).st === "saved", pace = H.logged / 7, og = hbGrade(H.overall / 100);
   const HE = { water: "💧", habits: "🥕", food: "🥗", fitness: "💪🏻", mental: "🧠" };
   const hbSq = `<div class="card qbox${saved ? " set" : ""}" data-go="Habits"><div class="mh">${saved ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Habits, 13)}Habits<span class="ov num" style="color:${og}"><span class="gd" style="background:${og}"></span>${H.overall}%</span></div><div class="qwm">${["fitness", "mental", "food", "water", "habits"].map(k => H.cats.find(x => x.c.k === k)).map(x => `<div class="qwr${x.part >= 1 ? " ok" : x.part < pace ? " behind" : ""}"><span class="e${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span><i class="qbar"><u style="width:${x.part * 100}%"></u><s style="left:${pace * 100}%"></s></i><b class="num">${x.tot}/${x.target}</b></div>`).join("")}</div></div>`;
     $("main").innerHTML = `${top}<div class="qgrid">${wxCard}${calCard}${todayCard}</div><div class="qsq">${yoSq}${hbSq}</div>`;
+  qfitTrim();
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
@@ -3193,12 +3195,30 @@ document.addEventListener("touchend", e => {
   document.addEventListener("click", stop, { capture: true, once: true });
   setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
 });
-/* Home drags but springs back to the top once the finger lifts and the scroll settles */
-let qfDown = false, qfT = 0;
-const qfitBack = () => { clearTimeout(qfT); qfT = setTimeout(() => { const s = $("scr"); if (!qfDown && s.classList.contains("qfit") && s.scrollTop > 0) s.scrollTo({ top: 0, behavior: "smooth" }); }, 120); };
-document.addEventListener("touchstart", () => { qfDown = true; clearTimeout(qfT); }, { passive: true });
-document.addEventListener("touchend", () => { qfDown = false; qfitBack(); }, { passive: true });
-$("scr").addEventListener("scroll", qfitBack, { passive: true });
+/* each Home card drops its last rows marked cut until the rest fit; the weather never ends on a night notch, and a Calendar foot left empty goes */
+function qfitTrim() {
+  if (!$("scr").classList.contains("qfit")) return;
+  $("main").querySelectorAll(".qgrid > .card, .qbox").forEach(c => {
+    for (let x; c.scrollHeight > c.clientHeight + 1 && (x = [...c.querySelectorAll(".cut")].pop());) x.remove();
+    const l = c.lastElementChild;
+    if (l && (l.classList.contains("qnt") || (l.classList.contains("foot") && !l.children.length))) l.remove();
+  });
+}
+addEventListener("resize", () => { if (tab === "Home" && !CB && $("scr").classList.contains("qfit")) drawHome(); });
+/* Home drags like the Day's header: it follows the finger at .4 of the distance and springs back on release. A drag swallows the tap that ends it */
+const qf = { y: 0, dy: 0, on: false };
+document.addEventListener("pointerdown", e => { if (!$("scr").classList.contains("qfit") || !$("main").contains(e.target)) return; qf.on = true; qf.y = e.clientY; qf.dy = 0; $("main").style.transition = "none"; });
+document.addEventListener("pointermove", e => { if (!qf.on) return; qf.dy = e.clientY - qf.y; if (Math.abs(qf.dy) > 6) $("main").style.transform = `translateY(${qf.dy * .4}px)`; });
+const qfEnd = () => {
+  if (!qf.on) return;
+  qf.on = false; $("main").style.transition = ""; $("main").style.transform = "";
+  if (Math.abs(qf.dy) <= 6) return;
+  const stop = c => { c.stopPropagation(); c.preventDefault(); };
+  document.addEventListener("click", stop, { capture: true, once: true });
+  setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
+};
+document.addEventListener("pointerup", qfEnd);
+document.addEventListener("pointercancel", qfEnd);
 /* the note editor: one editable area with a block per line, the same blocks and markdown as the web editor (pgBlocks and pgSerialize in screens.js), so a note reads the same on both.
    One area rather than one per block, so a selection can cross lines and iOS keeps the keyboard up. Markers are drawn by CSS, so the caret cannot land in them.
    Toggles, callouts, code, and tables are shown as their saved text and kept as they are; they are edited on web.
