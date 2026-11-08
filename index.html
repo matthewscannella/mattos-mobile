@@ -173,8 +173,10 @@
   /* Matt's Home is the five cards alone, run to the bottom of the screen with the add button floating over them.
      The squares keep their shape and the top grid takes the rest, each card filled with as many rows as fit (qfitTrim).
      It drags and springs back on release, as the Day's header does (qfEnd) */
-  .scr.qfit { padding-bottom: 12px; overflow-y: hidden; touch-action: none; }
-  .qfit #main { height: 100%; display: flex; flex-direction: column; transition: transform .3s cubic-bezier(.2, .9, .3, 1.2); }
+  .scr.qfit { padding-bottom: 12px; overflow-y: hidden; touch-action: none; display: flex; flex-direction: column; }
+  /* Home shows only an error in the status line, and the cards take the height left under it */
+  .qfit .status:not(.err) { display: none; }
+  .qfit #main { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; transition: transform .3s cubic-bezier(.2, .9, .3, 1.2); }
   .qfit #main > * { flex: none; }
   .qfit #main > .qgrid { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .qfit .qgrid > .card { min-height: 0; overflow: hidden; }
