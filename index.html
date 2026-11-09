@@ -610,7 +610,7 @@
   .hbtop .ring b { font-size: 11px; }
   .hpg { flex: none; display: flex; gap: 8px; margin: 8px -16px 0; padding: 0 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
   .hpg::-webkit-scrollbar { display: none; }
-  .hbp { flex: none; width: calc(100% - 28px); scroll-snap-align: start; }
+  .hbp { flex: none; width: 100%; scroll-snap-align: start; } /* as wide as the cards above and below, so only the next one's edge shows, in the margin */
   .hbp:last-child { scroll-snap-align: end; }
   .hbars { display: grid; align-content: center; padding: 6px 12px; }
   .hbars .hbr { height: 24px; gap: 9px; margin: 0 -8px; padding: 0 8px; border-radius: 8px; transition: background-color .25s ease; }
