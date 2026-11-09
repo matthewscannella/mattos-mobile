@@ -524,32 +524,24 @@
   .gystp b { min-width: 20px; text-align: center; color: var(--hi); font-size: 14px; }
 
   /* ---------- Habits ---------- */
-  /* one day's form, then the week as bars and as a grid by day. A day is a draft on this phone until Save is pressed */
+  /* the week, then one day's form as a deck of cards. A day is a draft on this phone until it is saved on the last card */
   .scr.hbs { padding-bottom: 20px; }
   .scr.hbs ~ .fab { bottom: calc(var(--tabpad) + 136px); } /* clear of the save bar */
   .hb { padding-top: 12px; }
   .hcard { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 4px 12px; --cut: var(--card); }
   .hcard.top { padding: 12px; }
-  .hsum { display: flex; align-items: center; gap: 12px; }
-  .hsum .tx { display: grid; gap: 1px; }
-  .hsum .tx b { font-size: 16px; line-height: 21px; font-weight: 600; color: #fff; }
-  .hsum .tx span { font-size: 13px; line-height: 17px; color: var(--mut); }
   .ring { flex: none; display: grid; place-items: center; position: relative; }
   .ring b { position: absolute; font-size: 14px; font-weight: 700; color: #fff; }
-  .hpill { flex: none; height: 22px; padding: 0 9px; border-radius: 11px; font-size: 12px; font-weight: 600; display: grid; place-items: center; background: var(--raised); color: var(--mut); }
-  .hpill.saved { background: rgba(63, 207, 142, .16); color: var(--done); }
-  .hpill.draft { background: rgba(245, 200, 75, .16); color: #f5c84b; }
-  .hpill.miss { background: rgba(249, 112, 102, .16); color: var(--flag); }
-  /* the week's days, with the weeks before and after at either end; the dot is saved, draft or skipped */
-  .strip { display: grid; grid-template-columns: 22px repeat(7, 1fr) 22px; gap: 4px; align-items: center; margin-top: 12px; }
-  .strip .nv { height: 50px; display: grid; place-items: center; color: var(--mut); }
+  /* the week's days by key (M T W R F S s), with the weeks before and after at either end; the dot is saved, draft or skipped */
+  .strip { flex: 1; display: grid; grid-template-columns: 14px repeat(7, 1fr) 14px; gap: 3px; align-items: center; }
+  .strip .nv { height: 42px; display: grid; place-items: center; color: var(--mut); }
   .strip .nv.off { opacity: .25; }
-  .strip .dy { height: 50px; border-radius: 10px; background: var(--raised); display: grid; align-content: center; justify-items: center; font-size: 10.5px; line-height: 12px; font-weight: 600; letter-spacing: .04em; color: var(--mut); text-transform: uppercase; position: relative; }
-  .strip .dy b { font-size: 14px; line-height: 17px; color: var(--tx); letter-spacing: 0; }
+  .strip .dy { height: 42px; border-radius: 9px; background: var(--raised); display: grid; align-content: center; justify-items: center; font-size: 10.5px; line-height: 12px; font-weight: 600; color: var(--mut); position: relative; }
+  .strip .dy b { font-size: 13.5px; line-height: 16px; color: var(--tx); }
   .strip .dy.sel { background: var(--blue); color: #fff; }
   .strip .dy.sel b { color: #fff; }
   .strip .dy.off { opacity: .4; }
-  .strip em { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; }
+  .strip em { position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; }
   .strip em.saved { background: var(--done); }
   .strip em.draft { background: #f5c84b; }
   .strip em.miss { box-shadow: inset 0 0 0 1.5px var(--flag); }
@@ -609,6 +601,53 @@
   .hwg .c { height: 32px; border-radius: 7px; background: var(--raised); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
   .hwg .c.sel { box-shadow: 0 0 0 1.5px var(--blue); }
   .hwg .c.off { background: transparent; border: 1px dashed var(--rule); }
+  /* Habits, as mobileHabitsFlowV1 option 2 with option 3's lit bar: the ring beside the week's days, the week as bars or as a grid by day,
+     swiped between with the other hanging in the right margin, then the day as a deck of cards, one per habit, that fill the rest of the screen */
+  .scr.hbf { display: flex; flex-direction: column; padding-bottom: 12px; }
+  .scr.hbf #main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .hb.hbf { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-top: 10px; }
+  .hcard.hbtop { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 10px; }
+  .hbtop .ring b { font-size: 11px; }
+  .hpg { flex: none; display: flex; gap: 8px; margin: 8px -16px 0; padding: 0 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .hpg::-webkit-scrollbar { display: none; }
+  .hbp { flex: none; width: calc(100% - 28px); scroll-snap-align: start; }
+  .hbp:last-child { scroll-snap-align: end; }
+  .hbars { display: grid; align-content: center; padding: 6px 12px; }
+  .hbars .hbr { height: 24px; gap: 9px; margin: 0 -8px; padding: 0 8px; border-radius: 8px; transition: background-color .25s ease; }
+  .hbars .hbr .nm { width: 56px; font-size: 13.5px; }
+  .hbars .hbr .val { width: 34px; font-size: 12.5px; }
+  .hbars .hbr.on { background: var(--raised); }
+  .hbars .hbr.on :is(.ic, .nm) { color: #fff; font-weight: 600; }
+  .hbars .hbar i { transition: width .3s ease, background-color .3s ease; }
+  .hcard.hwg { grid-template-columns: 50px repeat(7, 1fr); align-content: center; padding: 6px 10px; }
+  .hcard.hwg .wd { height: 18px; border-radius: 5px; letter-spacing: 0; text-transform: none; }
+  .hcard.hwg .wd.off { color: #4b5263; }
+  .hcard.hwg .rn { font-size: 12.5px; color: var(--mut); }
+  .hcard.hwg .rn.on { color: #fff; font-weight: 600; }
+  .hcard.hwg .c { height: 19px; border-radius: 5px; font-size: 11.5px; }
+  /* the deck: the card on show on top, the next two stacked behind it, and those done thrown off to the left */
+  .scr.hbf ~ .fab { display: none; } /* the deck runs to the foot of the screen, so Quick Add stays on the other tabs */
+  .hflow { flex: 1; min-height: 300px; margin-top: 8px; position: relative; isolation: isolate; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .hfc { position: absolute; inset: 0 0 16px; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 0 12px 4px; --cut: var(--card); overflow: hidden; transition: transform .38s cubic-bezier(.3, .7, .2, 1), opacity .38s ease; }
+  .hflow.still .hfc { transition: none; }
+  .hfc .hbd { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+  .hfc .hbd::-webkit-scrollbar { display: none; }
+  .hfch { flex: none; display: flex; align-items: center; gap: 8px; height: 42px; border-bottom: 1px solid var(--line); font-size: 15px; font-weight: 600; color: #fff; }
+  .hfch .ic { color: var(--mut); transition: color .25s ease; }
+  .hfch span { margin-left: auto; font-size: 13px; font-weight: 400; color: var(--mut); }
+  .hfc.ok .hfch .ic { color: var(--done); }
+  .hfc.pop .hfch .ic { animation: hbpop .45s ease; }
+  @keyframes hbpop { 40% { transform: scale(1.35); } }
+  .hfin .hbd { display: flex; flex-direction: column; }
+  .hfi { margin: auto 0; display: grid; justify-items: center; gap: 12px; padding: 14px 2px; }
+  .hfok { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: rgba(63, 207, 142, .18); color: var(--done); }
+  .hfi > b { font-size: 16px; font-weight: 600; color: #fff; }
+  .hfrow { display: flex; gap: 14px; }
+  .hfrow div { display: grid; justify-items: center; gap: 2px; font-size: 12px; color: var(--mut); }
+  .hfrow .ic { color: #3a4152; }
+  .hfrow .ok .ic { color: var(--done); }
+  .hftwo { justify-self: stretch; display: flex; gap: 8px; margin-top: 4px; }
+  .hfin .hcl { justify-self: stretch; margin: 4px 0 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; }
   .savebar { flex: none; display: flex; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); background: var(--body); }
   .sv { flex: 1; height: 46px; line-height: 46px; border-radius: 12px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 600; text-align: center; }
   .sv.ghost { flex: none; width: 96px; background: var(--raised); color: var(--tx); }
@@ -2151,7 +2190,7 @@ function hwRead(lines) {
 }
 /* week is the Monday on show and day the day open in the form; on is the date they were last set to today.
    cur is the week in the file and hist the archive. drafts holds each unsaved day's form by date, and is kept on this phone until that day is saved or discarded */
-const hb = { cur: null, hist: [], goals: [], week: "", day: "", on: "", drafts: {}, at: {}, busy: false, closing: false, view: "Today" };
+const hb = { cur: null, hist: [], goals: [], week: "", day: "", on: "", drafts: {}, at: {}, busy: false, closing: false, view: "Habits", idx: 0, shown: 0, pop: "", next: 0 };
 const hbMonday = s => addDays(s, -((atNoon(s).getDay() + 6) % 7));
 const hbIndex = s => Math.round((atNoon(s) - atNoon(hbMonday(s))) / 864e5);
 /* only the open week can be logged: the week in the file, until it is closed, or the week of today when the file holds none */
@@ -2296,7 +2335,7 @@ function medPaint() {
   pb.setAttribute("aria-label", s.run ? "Pause" : "Play"); pb.innerHTML = svg(s.run ? MED_PAUSE : MED_PLAY, 30);
 }
 function drawMeditation() {
-  $("main").innerHTML = segBar(["Today", "This Week", "Meditation"], hb.view, "hb", "view")
+  $("main").innerHTML = segBar(["Habits", "Meditation"], hb.view, "hb", "view")
     + `<div class="med"><div class="huge num" id="medtm"></div><div class="cue" id="medpz"></div><div class="dots" id="meddt"><span></span><span></span><span></span></div>
       <button type="button" class="play" id="medpb" data-hb="med" aria-label="Play"></button><span class="s">15 minutes, 4-7-8 breathing</span><button type="button" class="btn rs" id="medrs" data-hb="medreset">Reset</button>
       <div class="vol"><label>Music <input type="range" id="medsv" min="0" max="2" step=".05" value="${medVol().song}"></label><label>Chimes <input type="range" id="meddv" min="0" max="2" step=".05" value="${medVol().ding}"></label></div></div>`;
@@ -2304,9 +2343,16 @@ function drawMeditation() {
   [["medsv", "song", "songVol"], ["meddv", "ding", "dingVol"]].forEach(([id, k, node]) => $(id).addEventListener("input", e => {
     const v = medVol(); v[k] = +e.target.value; store.set("med-vol", JSON.stringify(v)); if (med[node]) med[node].gain.value = v[k];
   }));
-  $("savebar").hidden = true; $("scr").classList.remove("hbs");
+  $("savebar").hidden = true; $("scr").classList.remove("hbs", "hbf");
   medPaint();
 }
+/* the five habits in the order a day is filled in, one card each, then a last card with Save Draft and Submit. As mobileHabitsFlowV1 option 2 */
+const HB_ORDER = ["fitness", "mental", "food", "water", "habits"].map(k => HB_CATS.find(c => c.k === k));
+const HB_KEY = ["M", "T", "W", "R", "F", "S", "s"];
+/* a card whose entry is whole moves on by itself; Fitness has no full mark, so it is swiped on by hand */
+const HB_DONE = { fitness: () => false, mental: f => f.med >= 15, food: f => f.food.every(v => v != null), water: f => f.water >= 4, habits: f => f.rules.every(v => v != null) };
+/* a bar is red under half the week's target, amber to 80%, and green from there */
+const hbTone = p => p >= .8 ? "var(--done)" : p >= .5 ? "#f5c84b" : "var(--flag)";
 function drawHabits() {
   if (hb.view === "Meditation") { drawMeditation(); return; }
   const now = today(), canLog = hbLive(hb.week), row = hb.hist.find(r => r.week === hb.week), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null);
@@ -2323,26 +2369,13 @@ function drawHabits() {
   const target = c => set[c.k] || c.target, part = c => Math.max(0, Math.min(1, tot[c.k] / target(c)));
   hb.wk = Object.fromEntries(HB_CATS.map(c => [c.k, [tot[c.k], target(c)]])); /* the win stamp's ring compares the week before and after a change */
   const overall = Math.round(HB_CATS.reduce((a, c) => a + part(c), 0) / HB_CATS.length * 100), r = 48, len = 2 * Math.PI * r;
-  const gc = hbGrade(overall / 100), ring = `<div class="ring"><svg width="56" height="56" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
+  const gc = hbTone(overall / 100), ring = `<div class="ring"><svg width="42" height="42" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-opacity=".2" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="${gc}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${len * overall / 100} ${len}" transform="rotate(-90 55 55)"/></svg><b class="num">${overall}%</b></div>`;
   const at = hb.at[d.date] ? ` at ${hb.at[d.date]}` : "";
-  const sub = !canLog ? "Archived week" : mine ? "Unsaved changes, kept on this phone" : { draft: `Draft saved${at}`, saved: `Submitted${at}`, miss: "Skipped, fill it in any time", "": "Not started" }[d.st] || "";
   const last = hb.week >= hbOpen();
-  const head = `<div class="hcard top"><div class="hsum">${ring}<div class="tx grow"><b>${fullDay(d.date)}</b>${sub ? `<span>${sub}</span>` : ""}</div><span class="hpill ${d.st}">${mine ? "Unsaved" : { draft: "Draft", saved: "Submitted", miss: "Skipped", "": "New" }[d.st]}</span></div>
-    <div class="strip"><button type="button" class="nv" data-hb="week" data-a="-1" aria-label="Week before">${svg(UI.left, 16, 2.6)}</button>${days.map(x => `<button type="button" class="dy num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}"${x.date === d.date ? ' aria-current="true"' : ""}>${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b>${x.st && x.st !== "off" ? `<em class="${x.st}"></em>` : ""}</button>`).join("")}<button type="button" class="nv${last ? " off" : ""}" data-hb="week" data-a="1" aria-label="Week after"${last ? ' aria-disabled="true"' : ""}>${svg(UI.right, 16, 2.6)}</button></div></div>`;
-  /* the form, in the order of the picked design: Water, Food, Fitness, Mental, then Habits */
-  const tone = v => v === 2 ? "veg" : v === -2 ? "red" : v > 0 ? "good" : v < 0 ? "bad" : "mid", food = f.food.reduce((a, v) => a + (v || 0), 0);
-  const grp = (t, meta, body) => `<div class="hgl">${t}<span class="num">${meta}</span></div><div class="hcard">${body}</div>`;
-  const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${k === "cardio" ? hbMin(f[k]) : f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
-  /* a body part's sets, shown once the day has sets, as miles are once it has cardio */
-  const parts = HB_PARTS.map((p, n) => `<div class="hfr"><span class="lb">${p}</span><div class="hstp"><button type="button" data-hb="part" data-hap data-k="${n}" data-a="-1" aria-label="Fewer ${p} sets">${svg(UI.minus, 18, 2.6)}</button><b class="num">${(f.parts || [])[n] || 0} <i>sets</i></b><button type="button" data-hb="part" data-hap data-k="${n}" data-a="1" aria-label="More ${p} sets">${svg(UI.plus, 18, 2.6)}</button></div></div>`).join("");
-  /* miles: tap the number to type it, or hold a button to run small, then fast, then faster. Weight is typed, on Sundays only */
-  const miles = `<div class="hfr"><span class="lb">Miles</span><div class="hstp"><button type="button" class="hhold" data-hb="mile" data-hap data-a="-0.01" aria-label="Fewer miles">${svg(UI.minus, 18, 2.6)}</button><input class="hin num" data-hbin="miles" inputmode="decimal" value="${f.miles.toFixed(2)}" aria-label="Miles"><button type="button" class="hhold" data-hb="mile" data-hap data-a="0.01" aria-label="More miles">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
-  const weight = hbIndex(d.date) === 6 ? `<div class="hfr"><span class="lb">Weight</span><div class="hstp"><input class="hin wide num" data-hbin="wt" inputmode="decimal" placeholder="lb" value="${f.wt ?? ""}" aria-label="Weight in lb"></div></div>` : "";
-  const form = grp("Water", `${f.water} of 4 bottles`, `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-hap data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`)
-    + grp("Food", `${food > 0 ? "+" : ""}${food} points`, `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-hap data-k="${i}">${m.name}<i>${v == null ? "Tap" : HB_STATE[v]}</i></button>`; }).join("")}</div>`)
-    + grp("Fitness", `${hwScore(f).fitness} points`, step("Resistance", "sets", "sets", 1) + (f.sets ? `<div class="hsub">${parts}</div>` : "") + step("Cardio", "cardio", "min", 1) + (f.cardio ? `<div class="hsub">${miles}</div>` : "") + weight) + grp("Mental", "", step("Meditation", "med", "min", 5))
-    + grp("Habits", `${f.rules.reduce((a, v) => a + (v || 0), 0)} of ${HB_RULES.length}`, HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-hap data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join(""));
-  const bars = `<div class="hbr all"><span style="width:16px;flex:none"></span><span class="nm">Overall</span><div class="hbar grow"><i style="width:${overall}%;background:${gc}"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${overall}%</span><span class="gd" style="background:${gc}"></span></div>` + HB_CATS.map(c => `<div class="hbr">${svg(CI[c.k], 16)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${tot[c.k]} / ${target(c)}</span><span class="gd" style="background:${hbGrade(tot[c.k] / target(c))}"></span></div>`).join("");
+  const head = `<div class="hcard top hbtop">${ring}<div class="strip"><button type="button" class="nv" data-hb="week" data-a="-1" aria-label="Week before">${svg(UI.left, 14, 2.6)}</button>${days.map((x, i) => `<button type="button" class="dy num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}"${x.date === d.date ? ' aria-current="true"' : ""}>${HB_KEY[i]}<b>${atNoon(x.date).getDate()}</b>${x.st && x.st !== "off" ? `<em class="${x.st}"></em>` : ""}</button>`).join("")}<button type="button" class="nv${last ? " off" : ""}" data-hb="week" data-a="1" aria-label="Week after"${last ? ' aria-disabled="true"' : ""}>${svg(UI.right, 14, 2.6)}</button></div></div>`;
+  /* the week as bars, each tapped to open its card, and as a grid by day, swiped between with the other hanging in the margin. The open card's habit is lit in both */
+  const on = (HB_ORDER[hb.idx] || {}).k;
+  const bars = `<div class="hcard hbp hbars">${HB_ORDER.map((c, i) => `<button type="button" class="hbr${c.k === on ? " on" : ""}" data-hb="card" data-a="${i}">${svg(CI[c.k], 14)}<span class="nm">${c.name}</span><div class="hbar grow"><i style="width:${part(c) * 100}%;background:${hbTone(part(c))}"></i><u style="left:${live.length / 7 * 100}%"></u></div><span class="val num">${Math.round(part(c) * 100)}%</span></button>`).join("")}</div>`;
   /* one day's total for one category; a day with nothing logged is a dashed blank */
   const cell = (c, x) => {
     const sel = x.date === d.date ? " sel" : "";
@@ -2350,23 +2383,78 @@ function drawHabits() {
     const v = x.score[c.k];
     return `<span class="c num${sel}" style="${HB_SHADE[HB_RULE[c.k](v)]}">${v}</span>`;
   };
-  const grid = `<div class="hwg"><span></span>${days.map(x => `<button type="button" class="wd num${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${wkDay(x.date)}<b>${atNoon(x.date).getDate()}</b></button>`).join("")}${HB_CATS.map(c => `<span class="rn">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
-  /* the open week can be closed from its Sunday. Once it has ended the card moves to the top, as nothing new is logged until it is closed */
+  const grid = `<div class="hcard hbp hwg"><span></span>${days.map((x, i) => `<button type="button" class="wd${x.date === d.date ? " sel" : ""}${x.st === "off" ? " off" : ""}" data-hb="day" data-a="${x.date}">${HB_KEY[i]}</button>`).join("")}${HB_ORDER.map(c => `<span class="rn${c.k === on ? " on" : ""}">${c.name}</span>${days.map(x => cell(c, x)).join("")}`).join("")}</div>`;
+  /* the cards' controls */
+  const tone = v => v === 2 ? "veg" : v === -2 ? "red" : v > 0 ? "good" : v < 0 ? "bad" : "mid", food = hwSum(f.food), sc = hwScore(f);
+  const step = (label, k, unit, inc) => `<div class="hfr"><span class="lb">${label}</span><div class="hstp"><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${-inc}" aria-label="Less ${label}">${svg(UI.minus, 18, 2.6)}</button><b class="num">${k === "cardio" ? hbMin(f[k]) : f[k]} <i>${unit}</i></b><button type="button" data-hb="inc" data-hap data-k="${k}" data-a="${inc}" aria-label="More ${label}">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  /* a body part's sets, shown once the day has sets, as miles are once it has cardio */
+  const parts = HB_PARTS.map((p, n) => `<div class="hfr"><span class="lb">${p}</span><div class="hstp"><button type="button" data-hb="part" data-hap data-k="${n}" data-a="-1" aria-label="Fewer ${p} sets">${svg(UI.minus, 18, 2.6)}</button><b class="num">${(f.parts || [])[n] || 0} <i>sets</i></b><button type="button" data-hb="part" data-hap data-k="${n}" data-a="1" aria-label="More ${p} sets">${svg(UI.plus, 18, 2.6)}</button></div></div>`).join("");
+  /* miles: tap the number to type it, or hold a button to run small, then fast, then faster. Weight is typed, on Sundays only */
+  const miles = `<div class="hfr"><span class="lb">Miles</span><div class="hstp"><button type="button" class="hhold" data-hb="mile" data-hap data-a="-0.01" aria-label="Fewer miles">${svg(UI.minus, 18, 2.6)}</button><input class="hin num" data-hbin="miles" inputmode="decimal" value="${f.miles.toFixed(2)}" aria-label="Miles"><button type="button" class="hhold" data-hb="mile" data-hap data-a="0.01" aria-label="More miles">${svg(UI.plus, 18, 2.6)}</button></div></div>`;
+  const weight = hbIndex(d.date) === 6 ? `<div class="hfr"><span class="lb">Weight</span><div class="hstp"><input class="hin wide num" data-hbin="wt" inputmode="decimal" placeholder="lb" value="${f.wt ?? ""}" aria-label="Weight in lb"></div></div>` : "";
+  const body = {
+    fitness: step("Resistance", "sets", "sets", 1) + (f.sets ? `<div class="hsub">${parts}</div>` : "") + step("Cardio", "cardio", "min", 1) + (f.cardio ? `<div class="hsub">${miles}</div>` : "") + weight,
+    mental: step("Meditation", "med", "min", 5),
+    food: `<div class="chips">${HB_MEALS.map((m, i) => { const v = f.food[i]; return `<button type="button" class="chip ${v == null ? "" : tone(v)}" data-hb="cycle" data-hap data-k="${i}">${m.name}<i>${v == null ? "Tap" : HB_STATE[v]}</i></button>`; }).join("")}</div>`,
+    water: `<div class="pips">${[1, 2, 3, 4].map(n => `<button type="button" data-hb="water" data-hap data-a="${n}" class="${n <= f.water ? "on" : ""}" aria-label="${n} bottle${n === 1 ? "" : "s"}" aria-pressed="${n <= f.water}">${svg(UI.bottle, 28)}</button>`).join("")}</div>`,
+    habits: HB_RULES.map((x, i) => `<div class="hfr"><span class="lb">${x.name}</span><div class="hseg">${[[1, "Yes", "good"], [0, "No", "bad"]].map(o => `<button type="button" data-hb="set" data-hap data-k="${i}" data-a="${o[0]}" class="${f.rules[i] === o[0] ? o[2] : ""}" aria-pressed="${f.rules[i] === o[0]}">${o[1]}</button>`).join("")}</div></div>`).join("")
+  };
+  const meta = { fitness: `${sc.fitness} points`, mental: `${f.med} of 15 min`, food: `${food > 0 ? "+" : ""}${food} points`, water: `${f.water} of 4 bottles`, habits: `${hwSum(f.rules)} of ${HB_RULES.length}` };
+  /* the open week can be closed from its Sunday, on the last card. Once it has ended the card moves to the top, as nothing new is logged until it is closed */
   const sun = addDays(hb.week, 6), none = days.filter(x => x.st !== "draft" && x.st !== "saved").map(x => wkDay(x.date)), ended = canLog && now > sun;
   const close = !canLog || !hb.cur || now < sun ? "" : `<div class="hcard hcl">${hb.closing ? `<span>${none.length === 7 ? "Nothing is logged, so no week is added to the history." : `${7 - none.length} of 7 days are logged.${none.length ? ` ${hbList(none)} ${none.length > 1 ? "have" : "has"} nothing logged.` : ""}`} A closed week cannot be reopened. A clean week starts for ${monDay([addDays(hb.week, 7), hbMonday(now)].sort()[1])}.</span><div class="two"><button type="button" class="sv ghost" data-hb="closeno">Cancel</button><button type="button" class="sv" data-hb="closeyes">Close Week</button></div>`
     : `<span>${ended ? "This week has ended. Close it to start the next one." : "Finished logging? Closing saves this week to the history and starts a clean one."}</span><button type="button" class="sv${hb.busy ? " off" : ""}" data-hb="close">${hb.busy ? "Working…" : "Close Week"}</button>`}</div>`;
-  /* Today is the day's form and This Week the week's progress and grid, switched at the top as on Calendar */
-  $("main").innerHTML = segBar(["Today", "This Week", "Meditation"], hb.view, "hb", "view") + (hb.view === "Today" ? `<div class="hb">${head}${ended ? close : ""}${form}</div>`
-    : `<div class="hb"><div class="hgl" style="margin-top:4px">Progress<span>${monDay(hb.week)} - ${monDay(sun)}</span></div><div class="hcard">${bars}</div><div class="hgl">By Day<span>Tap a day to open it</span></div>${grid}${close}</div>`);
   /* unsaved changes: Save Draft and Submit. A draft in the file: a ticked Draft saved and Submit. A submitted day: a ticked Submitted */
   const tick = t => `<span class="sv ghost half saved ico">${svg(UI.check, 18, 2.6)}${t}</span>`, busy = k => hb.busy === k ? "Saving…" : "";
-  $("savebar").innerHTML = !canLog ? `<button type="button" class="sv off" data-hb="save">Archived week</button>`
+  const send = !canLog ? `<span class="sv off">Archived week</span>`
     : d.st === "saved" && !mine ? `<span class="sv saved ico">${svg(UI.check, 18, 2.6)}${name} submitted${at}</span>`
-    : (mine ? `<button type="button" class="sv ghost half" data-hb="draft">${busy("Draft") || "Save Draft"}</button>`
-      : d.st === "draft" ? tick(`Draft saved`) : "")
-    + `<button type="button" class="sv${mine || d.st === "draft" ? "" : " off"}" data-hb="save">${busy("Saved") || (mine ? "Submit" : `Submit ${name}`)}</button>`;
-  $("savebar").hidden = false; $("scr").classList.add("hbs");
+    : (mine ? `<button type="button" class="sv ghost half" data-hb="draft">${busy("Draft") || "Save Draft"}</button>` : d.st === "draft" ? tick(`Draft saved`) : "")
+      + `<button type="button" class="sv${mine || d.st === "draft" ? "" : " off"}" data-hb="save">${busy("Saved") || (mine ? "Submit" : `Submit ${name}`)}</button>`;
+  const cards = HB_ORDER.map(c => `<div class="hfc${HB_DONE[c.k](f) ? " ok" : ""}${hb.pop === c.k ? " pop" : ""}"><div class="hfch">${svg(CI[c.k], 18)}${c.name}<span class="num">${meta[c.k]}</span></div><div class="hbd">${body[c.k]}</div></div>`);
+  cards.push(`<div class="hfc hfin"><div class="hbd"><div class="hfi"><span class="hfok">${svg(UI.check, 26, 2.8)}</span><b>All done for ${d.date === now ? "today" : name}</b><div class="hfrow">${HB_ORDER.map(c => `<div class="${HB_DONE[c.k](f) || (c.k === "fitness" && sc.fitness > 0) ? "ok" : ""}">${svg(CI[c.k], 18)}<span class="num">${sc[c.k]}</span></div>`).join("")}</div><div class="hftwo">${send}</div>${ended ? "" : close}</div></div></div>`);
+  const pg = $("hpg"), keep = pg ? pg.scrollLeft : 0, tops = [...document.querySelectorAll(".hfc .hbd")].map(b => b.scrollTop);
+  $("main").innerHTML = segBar(["Habits", "Meditation"], hb.view, "hb", "view") + `<div class="hb hbf">${head}${ended ? close : ""}<div class="hpg" id="hpg">${bars}${grid}</div><div class="hflow" id="hflow">${cards.join("")}</div></div>`;
+  $("hpg").scrollLeft = keep; document.querySelectorAll(".hfc .hbd").forEach((b, i) => { if (tops[i]) b.scrollTop = tops[i]; });
+  $("savebar").hidden = true; $("scr").classList.remove("hbs"); $("scr").classList.add("hbf");
+  /* the deck is drawn where it was, then moves to the open card, so a change of card slides */
+  hbPlace(hb.shown, false);
+  if (hb.idx !== hb.shown) requestAnimationFrame(() => requestAnimationFrame(() => { hbPlace(hb.idx, true); hb.shown = hb.idx; }));
 }
+/* the card on show sits on top, those done are thrown off to the left, and the next two wait stacked behind it */
+function hbPlace(i, anim, dx = 0) {
+  const fl = $("hflow"); if (!fl) return;
+  fl.classList.toggle("still", !anim);
+  [...fl.children].forEach((c, n) => {
+    const d = n - i;
+    c.style.zIndex = 9 - Math.abs(d);
+    c.style.opacity = d < 0 || d > 2 ? 0 : 1;
+    c.style.pointerEvents = d ? "none" : "";
+    c.style.transform = d < 0 ? "translateX(-115%) rotate(-6deg)" : d === 0 ? `translateX(${dx}px) rotate(${dx / 40}deg)` : `translateY(${d * 8}px) scale(${1 - d * .04})`;
+  });
+}
+/* swipe the deck: past a fifth of the card it moves on or back. The tap a swipe ends on is dropped */
+let hbDrag = false;
+document.addEventListener("pointerdown", e => {
+  const fl = e.target.closest && e.target.closest("#hflow");
+  if (!fl || e.target.closest("input, .hhold")) return;
+  const x0 = e.clientX, y0 = e.clientY, n = fl.children.length;
+  let dx = 0, on = false;
+  const mv = ev => {
+    const x = ev.clientX - x0, y = ev.clientY - y0;
+    if (!on && Math.abs(x) > 10 && Math.abs(x) > Math.abs(y)) on = hbDrag = true;
+    if (on) { dx = x; const edge = (hb.idx === 0 && dx > 0) || (hb.idx === n - 1 && dx < 0); hbPlace(hb.idx, false, edge ? dx / 3 : dx); }
+  };
+  const up = () => {
+    removeEventListener("pointermove", mv); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
+    if (!on) return;
+    const lim = fl.clientWidth / 5;
+    if (dx < -lim && hb.idx < n - 1) hb.idx++; else if (dx > lim && hb.idx > 0) hb.idx--;
+    clearTimeout(hb.next); hb.next = 0; hb.shown = hb.idx; hbPlace(hb.idx, true);
+    setTimeout(() => { hbDrag = false; if (tab === "Habits") drawHabits(); }, 400);
+  };
+  addEventListener("pointermove", mv); addEventListener("pointerup", up); addEventListener("pointercancel", up);
+});
+document.addEventListener("click", e => { if (hbDrag) { e.stopPropagation(); e.preventDefault(); } }, true);
 async function loadHabits() {
   const [f, h] = await Promise.all([readFile(HABIT_FILE), readFile(HISTORY_FILE)]), now = today();
   if (tab !== "Habits") return;
@@ -2374,7 +2462,7 @@ async function loadHabits() {
   try { hb.drafts = JSON.parse(store.get("habit-drafts")) || hb.drafts; } catch (e) { /* nothing kept: the drafts in hand stay */ }
   /* a draft for a week that can no longer be logged is dropped */
   hb.drafts = Object.fromEntries(Object.entries(hb.drafts).filter(([date]) => hbLive(hbMonday(date))).map(([date, d]) => [date, hwForm(d)]));
-  if (hb.on !== now + hbLate()) { hb.on = now + hbLate(); hb.week = hbOpen(); hb.day = hbDayIn(hb.week); }
+  if (hb.on !== now + hbLate()) { hb.on = now + hbLate(); hb.week = hbOpen(); hb.day = hbDayIn(hb.week); hb.idx = hb.shown = 0; }
   status(f.at ? `Offline. Showing habits loaded ${f.at}; a draft is kept on this phone and can be saved once you reconnect.` : "Synced " + stamp().split(", ").pop(), f.at ? "err" : "ok");
   drawHabits(); $("fab").hidden = offline;
 }
@@ -2446,11 +2534,12 @@ function hbAct(act, k, a) {
   if (act === "save") { hbSave("Saved"); return; }
   if (act === "draft") { hbSave("Draft"); return; }
   if (act === "view") { hb.view = a; $("scr").scrollTop = 0; drawHabits(); return; }
+  if (act === "card") { clearTimeout(hb.next); hb.next = 0; hb.idx = +a; drawHabits(); return; }
   if (act === "med") { medToggle(); return; }
   if (act === "medreset") { medReset(); return; }
   if (hb.busy) return;
-  if (act === "day") { if (a > now) return; hb.day = a; hb.view = "Today"; }
-  else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbOpen()) return; hb.week = w; hb.day = w === hbOpen() ? hbDayIn(w) : addDays(w, 6); hb.closing = false; }
+  if (act === "day") { if (a > now) return; hb.day = a; hb.idx = hb.shown = 0; }
+  else if (act === "week") { const w = addDays(hb.week, 7 * a); if (w > hbOpen()) return; hb.week = w; hb.day = w === hbOpen() ? hbDayIn(w) : addDays(w, 6); hb.idx = hb.shown = 0; hb.closing = false; }
   else if (act === "discard") { delete hb.drafts[hb.day]; hbKeep(); }
   else if (act === "close") {
     const left = Object.keys(hb.drafts).filter(x => hbMonday(x) === hbOpen()).sort()[0];
@@ -2463,7 +2552,7 @@ function hbAct(act, k, a) {
   else if (hb.day > now) { status("That day has not started yet.", "err"); return; }
   else {
     /* any change makes the day a draft; changing it back to what is in the file drops the draft */
-    const was = hbFiled(hb.day).f, f = hb.drafts[hb.day] || hwForm(was);
+    const was = hbFiled(hb.day).f, f = hb.drafts[hb.day] || hwForm(was), ck = (HB_ORDER[hb.idx] || {}).k, full = ck && HB_DONE[ck](hb.drafts[hb.day] || was);
     if (act === "water") f.water = f.water === +a ? +a - 1 : +a;
     else if (act === "cycle") { const o = HB_MEALS[k].x ? [null, 2, 1, 0, -1, -2] : [null, 1, 0, -1]; f.food[k] = o[(o.indexOf(f.food[k]) + 1) % o.length]; }
     else if (act === "mile") { if (Date.now() - hbHeld < 400) return; f.miles = hbRound(Math.max(0, f.miles + +a)); }
@@ -2474,7 +2563,12 @@ function hbAct(act, k, a) {
     if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
     hbKeep();
     const before = hb.wk || {};
-    buzz(); drawHabits(); hbWin(act, k, +a, f, before);
+    /* a change that completes the open card pops its icon, then the deck moves on, so the thumb stays in place. A further change before it moves, such as cycling the last meal, waits again */
+    const wait = hb.next; clearTimeout(hb.next); hb.next = 0;
+    const whole = ck && HB_DONE[ck](f);
+    if (whole && !full) hb.pop = ck;
+    if (whole && (!full || wait)) hb.next = setTimeout(() => { hb.next = 0; if (tab === "Habits" && hb.view === "Habits" && (HB_ORDER[hb.idx] || {}).k === ck) { hb.idx++; drawHabits(); } }, 700);
+    buzz(); drawHabits(); hb.pop = ""; hbWin(act, k, +a, f, before);
     return;
   }
   drawHabits();
@@ -2517,7 +2611,7 @@ function hbWin(act, k, a, f, before) {
     else win({ em: "😔", head: `Unhealthy ${meal}`, sub: "The next meal is a fresh start", pct: w.pct, was: w.was, sad: true });
   }
 }
-function leaveHabits() { $("savebar").hidden = true; $("savebar").classList.remove("shb"); $("scr").classList.remove("hbs"); $("nbar").hidden = true; $("scr").style.paddingBottom = ""; }
+function leaveHabits() { $("savebar").hidden = true; $("savebar").classList.remove("shb"); $("scr").classList.remove("hbs", "hbf"); $("nbar").hidden = true; $("scr").style.paddingBottom = ""; }
 
 /* ---------- Yoni, its own tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
    A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
