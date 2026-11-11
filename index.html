@@ -2918,15 +2918,15 @@ function drawHome() {
   const next = ahead.slice(0, 3).map(e => `<div class="up${calWho(e)}"><span class="dt"><b>${wkDay(e.d)}</b><span class="num">${monDay(e.d)}</span></span><span class="t grow ell">${esc(e.title)}</span><span class="meta num">${esc(e.start) || relDay(e.d)}</span></div>`).join("") || `<div class="row">Nothing further in the synced range</div>`;
   if (CB) { cbHome(top, open.filter(r => r.time === first).map(trow).join(""), next); return; }
   const go = `<span class="go">${svg(UI.right, 13, 2.2)}</span>`, ap = h => `${h % 12 || 12}${h < 12 ? "a" : "p"}`;
-  /* the weather card: feels-like now, then the next 24 hours' daylight, as many hours as fit, each run of night one striped notch */
+  /* the weather card: feels-like now, then the next 48 hours' daylight, as many hours as fit, each run of night one striped notch naming the day it ends on */
   let wxCard = "";
   if (W) {
-    const d = wxDay(td), cur = wxLive ? { code: W.current.weather_code, feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0], hs = wxFromNow(24), rows = [];
+    const d = wxDay(td), cur = wxLive ? { code: W.current.weather_code, feel: Math.round(W.current.apparent_temperature) } : wxFromNow(1)[0], hs = wxFromNow(48), rows = [];
     hs.forEach((x, k) => {
       if (x.day) { rows.push(`<div class="qhr num${k ? " cut" : " now"}${wxGood(x.score)}"><span class="h">${k ? ap(x.h) : "Now"}</span><span>${x.feel}°</span>${wxIco(wxHourIcon(x), 16)}<i><u style="width:${Math.round(x.score)}%"></u></i><span>${wx10(x.score)}</span></div>`); return; }
       if (k && !hs[k - 1].day) return;
       const e = hs.findIndex((y, j) => j > k && y.day);
-      const nd = x.h >= 12 ? addDays(td, 1) : td, t = e > 0 && wxDay(nd);
+      const nd = addDays(td, hs.slice(1, e + 1).filter((y, j) => y.h < hs[j].h).length), t = e > 0 && wxDay(nd);
       if (e > 0) rows.push(`<div class="qnt num cut">${wxIco("moon", 11)}${t ? `<span class="tm">${nd === td ? "Today" : wkDay(nd)}${wxIco(wxIcon(t.code), 12)}<span>H ${t.hi}°</span><span>L ${t.lo}°</span></span>` : `Night, ${ap(x.h)} to ${ap(hs[e].h)}`}</div>`);
     });
     wxCard = `<div class="card qwx" data-go="Today">${cur ? `<div class="wh">${wxIco(wxIcon(cur.code), 30)}<span class="v num">${cur.feel}°</span></div><div class="wt"><span class="ell">${wxLabel(cur.code)}</span>${wxTag()}</div>` : ""}<div class="s num">H ${d.hi}° L ${d.lo}°</div><div class="rule"></div>${rows.join("")}</div>`;
