@@ -895,6 +895,8 @@
   .setup input { width: 100%; background: var(--body); border: 1px solid var(--rule); border-radius: 10px; padding: 10px; font-size: 16px; color: var(--tx); outline: none; }
   .setup input:focus { border-color: var(--blue); }
   .setup p { margin: 0; font-size: 14px; color: var(--mut); }
+  /* Night: a dark veil over the whole app, so white text reads as gray at night; kept on the phone */
+  html.night::after { content: ""; position: fixed; inset: 0; background: rgba(0, 0, 0, .45); pointer-events: none; z-index: 2147483647; }
 
   .toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
   .toast span { flex: 1; }
@@ -933,17 +935,17 @@
   @keyframes wFall { 0% { opacity: 0; transform: translateY(-40px) rotate(0); } 8%, 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(105vh) rotate(540deg); } }
   /* Meditation, the third view of Habits: the time left in big digits, the breath phase with its count, and a dot per phase */
   .med { display: flex; flex-direction: column; align-items: center; }
-  .med .huge { font-size: 112px; line-height: 112px; font-weight: 200; color: var(--hi); letter-spacing: -.03em; margin-top: 70px; }
-  .med .cue { margin-top: 26px; font-size: 26px; line-height: 32px; font-weight: 500; }
+  .med .huge { font-size: 76px; line-height: 80px; font-weight: 200; color: var(--hi); letter-spacing: -.03em; margin-top: 22px; }
+  .med .cue { margin-top: 12px; font-size: 26px; line-height: 32px; font-weight: 500; }
   .med .cue b { font-weight: 300; margin-left: 8px; }
-  .med .dots { display: flex; gap: 8px; margin: 18px 0 54px; }
+  .med .dots { display: flex; gap: 8px; margin: 14px 0 26px; }
   .med .dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--rule); }
   .med .dots span.on { background: currentColor; }
   .med .play { width: 76px; height: 76px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: 0 8px 22px rgba(59,110,245,.35); }
-  .med .ln { margin-top: 26px; width: 100%; max-width: 300px; } .med .ln button:disabled:not(.on) { opacity: .4; }
-  .med .s { margin-top: 14px; }
-  .med .rs { margin-top: 14px; } .med .rs:disabled { opacity: .4; }
-  .med .vol { display: grid; gap: 12px; width: 100%; max-width: 300px; margin-top: 34px; }
+  .med .ln { margin-top: 20px; width: 100%; max-width: 300px; } .med .ln button:disabled:not(.on) { opacity: .4; }
+  .med .s { margin-top: 10px; }
+  .med .rs { margin-top: 10px; } .med .rs:disabled { opacity: .4; }
+  .med .vol { display: grid; gap: 12px; width: 100%; max-width: 300px; margin-top: 20px; }
   .med .vol label { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 12px; font-size: 14px; color: var(--mut); }
   .med .vol input { width: 100%; accent-color: var(--blue); }
   .ph-in { color: var(--acc); } .ph-hold { color: #b79cf7; } .ph-out { color: var(--done); }
@@ -1005,6 +1007,7 @@ const store = {
   get: k => { try { return localStorage.getItem("mattos-" + k) || ""; } catch (e) { return ""; } },
   set: (k, v) => { try { localStorage.setItem("mattos-" + k, v); } catch (e) { /* private mode: lasts until the tab closes */ } }
 };
+document.documentElement.classList.toggle("night", store.get("night") === "1");
 const cfg = () => ({ owner: store.get("owner") || "matthewscannella", repo: store.get("repo") || "mattos-data", token: store.get("token") });
 
 /* GitHub contents API. Every function takes the file's path in the repository */
@@ -3223,7 +3226,8 @@ function showSetup(msg) {
   const c = cfg();
   dyChrome(true);
   leave(); status(""); $("fab").hidden = true; $("scr").classList.remove("cbh");
-  $("main").innerHTML = `<div class="big">Settings</div><form class="card setup" id="setup">
+  const nt = store.get("night") === "1";
+  $("main").innerHTML = `<div class="big">Settings</div><div class="card setup" style="margin-bottom:12px"><p>Night dims the whole app so nothing is bright.</p><div class="seg">${["Normal", "Night"].map((v, i) => `<button type="button" class="${nt === !!i ? "on" : ""}" data-night="${i}">${v}</button>`).join("")}</div></div><form class="card setup" id="setup">
     ${msg ? `<p style="color:var(--flag)">${esc(msg)}</p>` : ""}
     <p>Paste the GitHub token for the mattos-data repository. It is stored only in this browser.</p>
     <label>Token<input id="s-token" type="password" value="${esc(c.token)}" autocomplete="off" required></label>
@@ -3239,6 +3243,8 @@ document.addEventListener("click", e => {
   const t = e.target.closest(".tab");
   if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
   if (e.target.closest("#settings")) { showSetup(); return; }
+  const nb = e.target.closest("[data-night]");
+  if (nb) { store.set("night", nb.dataset.night); document.documentElement.classList.toggle("night", nb.dataset.night === "1"); nb.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === nb)); return; }
   if (e.target.closest("#hdday")) { dyFlip(); return; }
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
   const fold = e.target.closest("[data-fold]");
