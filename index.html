@@ -183,6 +183,8 @@
   .qfit .qoff { display: none !important; }
   .qfit .qbox { aspect-ratio: auto; }
   .qfit .qwm { flex: none; align-content: start; gap: 10px; margin-top: auto; }
+  /* the squares grow a little under their headings, and the top grid gives up the same height */
+  .qfit .qbox .mh { margin-bottom: 12px; }
   /* the weather card: navy, feels-like up top, the rest of today's daylight, a striped night notch, then the next morning */
   .qwx { grid-row: 1 / 3; --card: #141c33; background: var(--card); border-color: #24345e; padding: 12px 12px 10px; display: flex; flex-direction: column; min-width: 0; }
   .qwx > * { flex-shrink: 0; }
@@ -205,7 +207,7 @@
   .qtd { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 12.5px; line-height: 17px; }
   .qtd .qi { flex: none; width: 16px; height: 16px; display: grid; place-items: center; }
   .qtd .ck { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #5d6474; }
-  .qtd.qw { padding-bottom: 7px; border-bottom: 1px solid var(--rule); }
+  .qtd.qw { padding-bottom: 10px; margin-bottom: 4px; border-bottom: 1px solid var(--rule); }
   .qtd.qn { padding-top: 7px; border-top: 1px solid var(--rule); } .qtd.qn .qi { font-size: 12px; }
   .qtd.qw .qi { color: var(--acc); }
   .qtd.qw b { font-weight: 600; color: #fff; }
@@ -3354,6 +3356,8 @@ function qfitTrim() {
   $("main").querySelectorAll(".qgrid > .card, .qbox").forEach(c => {
     c.querySelectorAll(".qoff").forEach(x => x.classList.remove("qoff"));
     for (let x; c.scrollHeight > c.clientHeight + 1 && (x = [...c.querySelectorAll(".cut:not(.qoff)")].pop());) x.classList.add("qoff");
+    /* Tasks shows one row fewer than fit, so the list does not run into the card's foot */
+    if (c.dataset.go === "Tasks") { const x = [...c.querySelectorAll(".cut:not(.qoff)")].pop(); if (x) x.classList.add("qoff"); }
     const l = [...c.children].filter(x => !x.classList.contains("qoff")).pop();
     if (l && (l.classList.contains("qnt") || (l.classList.contains("foot") && !l.querySelector(":scope > :not(.qoff)")))) l.classList.add("qoff");
   });
