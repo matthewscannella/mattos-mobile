@@ -896,6 +896,7 @@
   .setup input:focus { border-color: var(--blue); }
   .setup p { margin: 0; font-size: 14px; color: var(--mut); }
   /* Night: a dark veil over the whole app, so white text reads as gray at night; kept on the phone */
+  #hdnight.on { color: var(--acc); }
   html.night::after { content: ""; position: fixed; inset: 0; background: rgba(0, 0, 0, .45); pointer-events: none; z-index: 2147483647; }
 
   .toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabpad) + 70px); display: flex; align-items: center; gap: 12px; background: var(--raised); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); z-index: 4; }
@@ -952,7 +953,7 @@
 </style>
 </head>
 <body>
-<header class="hd"><div class="ws"><img class="logo" id="hdlogo" src="icon.svg" alt=""><b id="hdname">MattOS</b><span class="hdpct num" id="hdpct" hidden>+0.4%</span><span class="hdrnd" id="hdrnd" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l5-6 4 3 7-8"/></svg></span><button class="av" type="button" id="hdday" hidden></button><button class="av" type="button" id="settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div><div class="hdwk" id="hdwk" hidden></div></header>
+<header class="hd"><div class="ws"><img class="logo" id="hdlogo" src="icon.svg" alt=""><b id="hdname">MattOS</b><span class="hdpct num" id="hdpct" hidden>+0.4%</span><span class="hdrnd" id="hdrnd" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l5-6 4 3 7-8"/></svg></span><button class="av" type="button" id="hdday" hidden></button><button class="av" type="button" id="hdnight" aria-label="Night" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button><button class="av" type="button" id="settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div><div class="hdwk" id="hdwk" hidden></div></header>
 <main class="scr" id="scr"><div class="status" id="status" role="status"></div><div id="main"></div></main>
 <div class="savebar" id="savebar" hidden></div>
 <button class="fab" type="button" id="fab" aria-label="Add" hidden></button>
@@ -1007,7 +1008,9 @@ const store = {
   get: k => { try { return localStorage.getItem("mattos-" + k) || ""; } catch (e) { return ""; } },
   set: (k, v) => { try { localStorage.setItem("mattos-" + k, v); } catch (e) { /* private mode: lasts until the tab closes */ } }
 };
-document.documentElement.classList.toggle("night", store.get("night") === "1");
+/* Night, set in Settings or by the moon beside it on the Meditation screen */
+function setNight(on) { store.set("night", on ? "1" : "0"); document.documentElement.classList.toggle("night", on); $("hdnight").classList.toggle("on", on); }
+setNight(store.get("night") === "1");
 const cfg = () => ({ owner: store.get("owner") || "matthewscannella", repo: store.get("repo") || "mattos-data", token: store.get("token") });
 
 /* GitHub contents API. Every function takes the file's path in the repository */
@@ -2379,6 +2382,7 @@ const HB_DONE = { fitness: () => false, mental: f => f.med >= 15, food: f => f.f
 /* a bar is red under half the week's target, amber to 80%, and green from there */
 const hbTone = p => p >= .8 ? "var(--done)" : p >= .5 ? "#f5c84b" : "var(--flag)";
 function drawHabits() {
+  $("hdnight").hidden = hb.view !== "Meditation";
   if (hb.view === "Meditation") { drawMeditation(); return; }
   const now = today(), canLog = hbLive(hb.week), row = hb.hist.find(r => r.week === hb.week), latest = hb.hist.reduce((a, r) => !a || r.week > a.week ? r : a, null);
   /* as on the desktop, an archived week is graded against its own targets and the week in progress against those of the latest archived week */
@@ -2649,7 +2653,7 @@ function hbWin(act, k, a, f, before) {
     else win({ em: "😔", head: `Unhealthy ${meal}`, sub: "The next meal is a fresh start", pct: w.pct, was: w.was, sad: true });
   }
 }
-function leaveHabits() { $("savebar").hidden = true; $("savebar").classList.remove("shb"); $("scr").classList.remove("hbs", "hbf"); $("nbar").hidden = true; $("scr").style.paddingBottom = ""; }
+function leaveHabits() { $("hdnight").hidden = true; $("savebar").hidden = true; $("savebar").classList.remove("shb"); $("scr").classList.remove("hbs", "hbf"); $("nbar").hidden = true; $("scr").style.paddingBottom = ""; }
 
 /* ---------- Yoni, its own tab: fatherRegistry.md, read and checked off as the desktop's Yoni screen does (yoDay, yoWeek, yoOn, yoNow in mattOs.html).
    A check writes the Eastern date into the row's Done cell and counts only while that date is today, or this week for the Weekly tables, so nothing has to run at midnight.
@@ -3243,8 +3247,9 @@ document.addEventListener("click", e => {
   const t = e.target.closest(".tab");
   if (t) { go(t.dataset.tab); return; } /* tapping the open tab reloads it */
   if (e.target.closest("#settings")) { showSetup(); return; }
+  if (e.target.closest("#hdnight")) { setNight(store.get("night") !== "1"); return; }
   const nb = e.target.closest("[data-night]");
-  if (nb) { store.set("night", nb.dataset.night); document.documentElement.classList.toggle("night", nb.dataset.night === "1"); nb.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === nb)); return; }
+  if (nb) { setNight(nb.dataset.night === "1"); nb.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === nb)); return; }
   if (e.target.closest("#hdday")) { dyFlip(); return; }
   if (e.target.closest("#fab")) { const s = SCREENS[tab]; if (s.add) s.add(); return; }
   const fold = e.target.closest("[data-fold]");
