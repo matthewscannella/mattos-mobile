@@ -651,9 +651,9 @@
   .hzf .chip { height: auto; font-size: 15px; line-height: 20px; gap: 2px; border-radius: 12px; }
   .hzf .chip i { font-size: 12.5px; line-height: 16px; }
   .hzh { flex: 1; display: flex; flex-direction: column; }
-  .hzh .hfr { flex: 1; }
-  .hzh .hseg { flex: none; width: 170px; margin-left: auto; }
-  .hzh .hseg button { height: 44px; font-size: 14px; }
+  .hzh .hfr { flex: 1 1 0; min-height: 0; padding: 4px 0; } /* the four rows share the card's height, so it never scrolls */
+  .hzh .hseg { flex: none; width: 170px; margin-left: auto; align-self: stretch; max-height: 44px; }
+  .hzh .hseg button { height: auto; min-height: 28px; line-height: normal; font-size: 14px; }
   .hzm { flex: 1; display: flex; gap: 8px; }
   .hzm button { flex: 1; border-radius: 14px; background: var(--raised); color: var(--tx); display: grid; place-items: center; align-content: center; gap: 4px; font-size: 15px; font-weight: 600; }
   .hfin .hbd { justify-content: space-between; gap: 10px; }
@@ -2590,11 +2590,12 @@ function hbAct(act, k, a) {
     if (JSON.stringify(f) === JSON.stringify(hwForm(was))) delete hb.drafts[hb.day]; else hb.drafts[hb.day] = f;
     hbKeep();
     const before = hb.wk || {};
-    /* a change that completes the open card pops its icon, then the deck moves on, so the thumb stays in place. A further change before it moves, such as cycling the last meal, waits again */
+    /* a change that completes the open card pops its icon, then the deck moves on, so the thumb stays in place. A further change before it moves waits again.
+       Food stays put, as each meal is cycled through its options to the one wanted, and is swiped on by hand */
     const wait = hb.next; clearTimeout(hb.next); hb.next = 0;
     const whole = ck && HB_DONE[ck](f);
     if (whole && !full) hb.pop = ck;
-    if (whole && (!full || wait)) hb.next = setTimeout(() => { hb.next = 0; if (tab === "Habits" && hb.view === "Habits" && (HB_ORDER[hb.idx] || {}).k === ck) { hb.idx++; drawHabits(); } }, 700);
+    if (whole && ck !== "food" && (!full || wait)) hb.next = setTimeout(() => { hb.next = 0; if (tab === "Habits" && hb.view === "Habits" && (HB_ORDER[hb.idx] || {}).k === ck) { hb.idx++; drawHabits(); } }, 700);
     buzz(); drawHabits(); hb.pop = ""; hbWin(act, k, +a, f, before);
     return;
   }
