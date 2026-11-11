@@ -180,6 +180,7 @@
   .qfit #main > * { flex: none; }
   .qfit #main > .qgrid { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .qfit .qgrid > .card { min-height: 0; overflow: hidden; }
+  .qfit .qoff { display: none !important; }
   .qfit .qbox { aspect-ratio: auto; }
   .qfit .qwm { flex: none; align-content: start; }
   /* the weather card: navy, feels-like up top, the rest of today's daylight, a striped night notch, then the next morning */
@@ -2946,6 +2947,7 @@ function drawHome() {
   const hbSq = `<div class="card qbox${saved ? " set" : ""}" data-go="Habits"><div class="mh">${saved ? svg(UI.check, 13, 3.4, "ok") : svg(TAB.Habits, 13)}Habits<span class="ov num" style="color:${og}"><span class="gd" style="background:${og}"></span>${H.overall}%</span></div><div class="qwm">${["fitness", "mental", "food", "water", "habits"].map(k => H.cats.find(x => x.c.k === k)).map(x => `<div class="qwr${x.part >= 1 ? " ok" : x.part < pace ? " behind" : ""}"><span class="e${x.part >= 1 ? "" : " off"}">${HE[x.c.k]}</span><i class="qbar"><u style="width:${x.part * 100}%"></u><s style="left:${pace * 100}%"></s></i><b class="num">${x.tot}/${x.target}</b></div>`).join("")}</div></div>`;
     $("main").innerHTML = `${top}<div class="qgrid">${wxCard}${calCard}${todayCard}</div><div class="qsq">${yoSq}${hbSq}</div>`;
   qfitTrim();
+  qfRO.disconnect(); if ($("main").querySelector(".qgrid")) qfRO.observe($("main").querySelector(".qgrid"));
   if ($("wk")) $("wk").scrollLeft = side;
   $("fab").hidden = offline;
 }
@@ -3343,13 +3345,16 @@ document.addEventListener("touchend", e => {
   document.addEventListener("click", stop, { capture: true, once: true });
   setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
 });
-/* each Home card drops its last rows marked cut until the rest fit; the weather never ends on a night notch, and a Calendar foot left empty goes */
+/* each Home card hides its last rows marked cut until the rest fit; the weather never ends on a night notch, and a Calendar foot left empty goes.
+   Rows are hidden, not removed, and the fit runs again whenever the top grid changes size, such as when the font loads and the squares below shrink */
+const qfRO = new ResizeObserver(() => qfitTrim());
 function qfitTrim() {
   if (!$("scr").classList.contains("qfit")) return;
   $("main").querySelectorAll(".qgrid > .card, .qbox").forEach(c => {
-    for (let x; c.scrollHeight > c.clientHeight + 1 && (x = [...c.querySelectorAll(".cut")].pop());) x.remove();
-    const l = c.lastElementChild;
-    if (l && (l.classList.contains("qnt") || (l.classList.contains("foot") && !l.children.length))) l.remove();
+    c.querySelectorAll(".qoff").forEach(x => x.classList.remove("qoff"));
+    for (let x; c.scrollHeight > c.clientHeight + 1 && (x = [...c.querySelectorAll(".cut:not(.qoff)")].pop());) x.classList.add("qoff");
+    const l = [...c.children].filter(x => !x.classList.contains("qoff")).pop();
+    if (l && (l.classList.contains("qnt") || (l.classList.contains("foot") && !l.querySelector(":scope > :not(.qoff)")))) l.classList.add("qoff");
   });
 }
 addEventListener("resize", () => { if (tab === "Home" && !CB && $("scr").classList.contains("qfit")) drawHome(); });
