@@ -3355,10 +3355,7 @@ function qfitTrim() {
   if (!$("scr").classList.contains("qfit")) return;
   $("main").querySelectorAll(".qgrid > .card, .qbox").forEach(c => {
     c.querySelectorAll(".qoff").forEach(x => x.classList.remove("qoff"));
-    for (let x; c.scrollHeight > c.clientHeight + 1 && (x = [...c.querySelectorAll(".cut:not(.qoff)")].pop());) x.classList.add("qoff");
-    /* Tasks shows one row fewer than fit, so the list does not run into the card's foot */
-    if (c.dataset.go === "Tasks") { const x = [...c.querySelectorAll(".cut:not(.qoff)")].pop(); if (x) x.classList.add("qoff"); }
-    const l = [...c.children].filter(x => !x.classList.contains("qoff")).pop();
+    for (let x; c.scrollHeight > c.clientHeight + 1 && (x = [...c.querySelectorAll(".cut:not(.qoff)")].pop());) x.classList.add("qoff");    const l = [...c.children].filter(x => !x.classList.contains("qoff")).pop();
     if (l && (l.classList.contains("qnt") || (l.classList.contains("foot") && !l.querySelector(":scope > :not(.qoff)")))) l.classList.add("qoff");
   });
 }
