@@ -3398,6 +3398,17 @@ function qfitTrim() {
     c.querySelectorAll(".qoff").forEach(x => x.classList.remove("qoff"));
     for (let x; c.scrollHeight > c.clientHeight + 1 && (x = [...c.querySelectorAll(".cut:not(.qoff)")].pop());) x.classList.add("qoff");    const l = [...c.children].filter(x => !x.classList.contains("qoff")).pop();
     if (l && (l.classList.contains("qnt") || (l.classList.contains("foot") && !l.querySelector(":scope > :not(.qoff)")))) l.classList.add("qoff");
+    /* weather: show one more hour and tighten the rows so it fits, filling the card */
+    if (c.classList.contains("qwx")) {
+      const rs = () => [...c.querySelectorAll(".qhr:not(.qoff)")], off = [...c.querySelectorAll(".cut.qoff")], hr = off.findIndex(x => x.classList.contains("qhr"));
+      rs().forEach(r => r.style.lineHeight = "");
+      if (hr < 0) return;
+      off.slice(0, hr + 1).forEach(x => x.classList.remove("qoff"));
+      const over = c.scrollHeight - c.clientHeight, cut = Math.ceil(over / rs().length);
+      if (over <= 0) return;
+      if (cut <= 4) rs().forEach(r => r.style.lineHeight = 24 - cut + "px");
+      else off.slice(0, hr + 1).forEach(x => x.classList.add("qoff"));
+    }
   });
 }
 addEventListener("resize", () => { if (tab === "Home" && !CB && $("scr").classList.contains("qfit")) drawHome(); });
