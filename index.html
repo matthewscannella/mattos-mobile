@@ -3023,10 +3023,10 @@ const HUCK = !CB;
 const HUCK_URL = "shortcuts://run-shortcut?name=" + encodeURIComponent("Open Huckleberry");
 const HUCK_LOGO = `<svg width="34" height="34" viewBox="80 100 290 245" aria-hidden="true"><path fill="#cfcb00" d="M90 117c48-1 88 3 106 17 13 10 22 26 26 41-49 2-98-13-132-58z"/><path fill="#cfcb00" d="M358 117c-48-1-88 3-106 17-13 10-22 26-26 41 49 2 98-13 132-58z"/><circle fill="#2dbcd6" cx="224" cy="260" r="78"/></svg>`;
 function openHuckleberry() { location.href = HUCK_URL; }
-/* ---------- Yoni Diary (yoniDiaryComponentsV1 1d, 2c, and 3c): on Sundays from 9:30 PM to midnight Eastern, Matt's Yoni add button glows as the diary,
+/* ---------- Yoni Diary (yoniDiaryComponentsV1 1d, 2c, and 3c): all day Sunday Eastern, from midnight on, Matt's Yoni add button glows as the diary,
    and a tap opens this week's note, YD and the Sunday's date, to dictate into. While it is open, the 8 themes take the bar above the keyboard and light
    up once talked about. The Monday cloud routine files the note into 17👪-family/11📔-yoniDiary/yoniDiaryRegistry.md; reading is on the laptop ---------- */
-const ydNight = () => { const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hourCycle: "h23" }).formatToParts(new Date()).map(x => [x.type, x.value])); return p.weekday === "Sun" && +p.hour * 60 + +p.minute >= 1290; };
+const ydNight = () => new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short" }).format(new Date()) === "Sun";
 const ydTitle = () => { const [, m, d] = yoDay().split("-").map(Number); return `YD ${m}/${d}`; };
 const ydIsNote = () => !!openId && !!$("ntitle") && /^YD\s/i.test($("ntitle").value);
 function ydFab() {
