@@ -138,6 +138,7 @@
   /* in a YD note the 8 diary themes take the bar, gray until talked about */
   .nbar .ydt { flex: 1; min-width: 0; height: 44px; display: grid; place-items: center; font-size: 19px; opacity: .3; filter: grayscale(1); transition: opacity .2s, filter .2s; }
   .nbar .ydt.on { opacity: 1; filter: none; }
+  .nbar button.ydcam { font-size: 19px; }
 
   /* ---------- Calendar ---------- */
   /* Today and Next Up are two screens, switched at the top. The switch stays pinned (62px tall), and each category's
@@ -3048,8 +3049,43 @@ const YD_THEMES = [["🍼", /bottle|formula|milk|ounce|feed|food|eat|burp|puree|
   ["👪", /grandpa|grandma|gma|baba|aunt|uncle|cousin|family|visit/i], ["🏠", /nursery|home|house|room|decal|apartment|shelf|couch/i], ["😂", /funny|laugh|joke|puke|poop|fauda|silly|scream/i], ["❤️", /love|heart|proud|lucky|grateful|miss you/i]];
 function ydBar() {
   const bar = $("nbar"), on = ydIsNote();
-  if (bar.classList.contains("yd") !== on) { bar.classList.toggle("yd", on); bar.innerHTML = on ? YD_THEMES.map(([e]) => `<span class="ydt">${e}</span>`).join("") + `<button type="button" data-nb="hide" aria-label="Hide keyboard">${svg(UI.down, 22)}</button>` : NOTE_BAR.map(([a, name, ico]) => `<button type="button" data-nb="${a}" aria-label="${name}">${ico}</button>`).join(""); }
+  if (bar.classList.contains("yd") !== on) { bar.classList.toggle("yd", on); bar.innerHTML = on ? YD_THEMES.map(([e]) => `<span class="ydt">${e}</span>`).join("") + `<button type="button" data-nb="ydphoto" class="ydcam" aria-label="Add photos of this week">📷</button><button type="button" data-nb="hide" aria-label="Hide keyboard">${svg(UI.down, 22)}</button>` : NOTE_BAR.map(([a, name, ico]) => `<button type="button" data-nb="${a}" aria-label="${name}">${ico}</button>`).join(""); }
   if (on) { const tx = noteText(); bar.querySelectorAll(".ydt").forEach((x, i) => x.classList.toggle("on", YD_THEMES[i][1].test(tx))); }
+}
+/* yoniDiaryPhotosV1: the 📷 in a YD note saves picked photos beside the diary, named by the note's week (its Sunday); the Monday pass
+   picks the favorite and links each photo to the highlight it shows */
+const YD_PHOTOS = "17👪-family/11📔-yoniDiary/photos/";
+function ydSunday() {
+  const y = +yoDay().slice(0, 4), m = ($("ntitle").value.match(/(\d+)\/(\d+)/) || []), d = m[1] ? new Date(y, m[1] - 1, +m[2], 12) : new Date(yoDay() + "T12:00:00");
+  d.setDate(d.getDate() + (7 - d.getDay()) % 7);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+/* a photo shrinks to 1600 pixels on its long side as a JPEG, so a week of them stays small in the repository */
+const ydShrink = file => new Promise((ok, no) => {
+  const u = URL.createObjectURL(file), img = new Image();
+  img.onload = () => { const k = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL("image/jpeg", .85).split(",")[1]); };
+  img.onerror = () => { URL.revokeObjectURL(u); no(new Error("unreadable")); };
+  img.src = u;
+});
+async function ydPhotos(files) {
+  if (!files.length) return;
+  const say = msg => { toast(msg); $("undo").hidden = true; }, many = n => n === 1 ? "1 photo" : n + " photos";
+  if (PEEK || offline) return say("Add photos from the phone, with a connection.");
+  const sun = ydSunday();
+  let n = 0;
+  say(`📷 Saving ${many(files.length)}…`);
+  for (const f of files) {
+    try {
+      const r = await fetch(apiUrl(`${YD_PHOTOS}${sun}-${Date.now().toString(36)}.jpg`), { method: "PUT", headers: { ...headers(), "Content-Type": "application/json" }, body: JSON.stringify({ message: `Phone: Yoni Diary photo for ${sun}`, content: await ydShrink(f), branch: "main" }) });
+      if (r.ok) n++;
+    } catch (e) { /* counted as not saved */ }
+  }
+  say(n === files.length ? `📷 ${many(n)} saved to this week` : `📷 ${n} of ${many(files.length)} saved. Pick the rest again.`);
+}
+function ydPick() {
+  let i = $("ydfile");
+  if (!i) { i = Object.assign(document.createElement("input"), { type: "file", accept: "image/*", multiple: true, id: "ydfile", hidden: true }); i.onchange = () => { ydPhotos([...i.files]); i.value = ""; }; document.body.append(i); }
+  i.click();
 }
 /* and a submitted day of habits offers Kindle the same way, through the iOS Shortcut "Open Kindle" */
 const KINDLE_URL = "shortcuts://run-shortcut?name=" + encodeURIComponent("Open Kindle");
@@ -3655,6 +3691,7 @@ $("nbar").innerHTML = NOTE_BAR.map(([a, name, ico]) => `<button type="button" da
 function noteBarAct(a) {
   const box = $("nbody"); if (!box) return;
   if (a === "hide") { box.blur(); return; }
+  if (a === "ydphoto") { ydPick(); return; }
   if (!noteRange() && noteLast) { const s = getSelection(); s.removeAllRanges(); s.addRange(noteLast); }
   if (a === "b" || a === "i") { document.execCommand(a === "b" ? "bold" : "italic"); noteBarMark(); return; }
   const lines = notePicked().filter(noteFree); if (!lines.length) return;
