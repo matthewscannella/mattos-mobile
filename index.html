@@ -1375,7 +1375,7 @@ function tkRead(lines) {
     end = i;
     const cell = n => c[head.indexOf(n)] || "";
     if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note"))) return;
-    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell(day)), part: day === "Day" ? tkPartOf(cell("Timing")) : "", title: cell("Task"), note: cell("Note"), own: cell("Owner") });
+    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell(day)), part: day === "Day" ? tkPartOf(cell("Timing")) : "", title: cell("Task"), note: cell("Note").replace(/\s*<!-- td:\S+ -->/, ""), own: cell("Owner") });
   });
   return { head, col: head ? head.indexOf("Status") : -1, end, rows, day };
 }
