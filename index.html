@@ -383,7 +383,8 @@
   .tr .cp { width: 34px; padding-top: var(--pad); text-align: center; font-size: var(--es); line-height: var(--tl); }
   /* a task shows its owner, MS, BB, or CC, or a faint dash while it has none */
   .cp.ow { font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--mut); }
-  .cp.ow.MS { color: #8dabf9; } .cp.ow.BB { color: #7fd0e8; } .cp.ow.CC { color: #d97757; }
+  .cp.ow.MS { color: #8dabf9; } .cp.ow.BB { color: #7fd0e8; } .cp.ow.CC { color: #d97757; } .cp.ow.Duet { color: #c4b5fd; }
+  .tag.late { background: rgba(249, 112, 102, .18); color: var(--flag); } .tag.wait { background: rgba(167, 139, 250, .18); color: #c4b5fd; }
   .cp.ow.none { opacity: .5; }
   .tr.wide .ell { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   .tl .tr { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -1376,7 +1377,7 @@ function tkRead(lines) {
     end = i;
     const cell = n => c[head.indexOf(n)] || "";
     if (/^:?-+:?$/.test(c[0]) || (!cell("Task") && !cell("Note"))) return;
-    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell(day)), part: day === "Day" ? tkPartOf(cell("Timing")) : "", title: cell("Task"), note: cell("Note").replace(/\s*<!-- td:\S+ -->/, ""), own: cell("Owner") });
+    rows.push({ n: rows.length, i, raw, st: TK_STATUS.includes(cell("Status")) ? cell("Status") : "Open", cat: tkCatOf(cell("Category")), time: tkTimeOf(cell(day)), part: day === "Day" ? tkPartOf(cell("Timing")) : "", title: cell("Task"), note: cell("Note").replace(/\s*<!-- td:[^>]*-->/, ""), flags: (cell("Note").match(/<!-- td:\S+((?: [\w-]+)*) -->/) || ["", ""])[1].trim(), own: cell("Owner") });
   });
   return { head, col: head ? head.indexOf("Status") : -1, end, rows, day };
 }
@@ -1396,8 +1397,8 @@ function drawTasks() {
   const bar = tkBar(tk.view);
   const none = what => `<div class="empty">${on === "All" ? `No ${what} yet. Tap the add button to add one.` : `No ${on} ${what}.`}</div>`;
   /* one tap on the circle checks a task off, and it leaves the list, as done tasks are not shown; a tap on the card shows its full text and the days it can move to */
-  const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${TK_DAY[TK_TIMES.indexOf(t)]}</button>`).join("")}${HUCK ? `<button type="button" class="o gpt" data-tk="gpt" aria-label="Send to ChatGPT">${GPT_LOGO}</button>` : ""}</div>`;
-  const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-hap data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${tRich(r.title)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
+  const days = r => tk.wide !== r.n || offline ? "" : `<div class="opts mv" role="group" aria-label="Move to">${TK_TIMES.map(t => `<button type="button" class="o${r.time === t ? " on" : ""}" data-tk="move" data-a="${t}" aria-pressed="${r.time === t}">${TK_DAY[TK_TIMES.indexOf(t)]}</button>`).join("")}${HUCK ? `<button type="button" class="o gpt" data-tk="gpt" aria-label="Send to ChatGPT">${GPT_LOGO}</button>` : ""}${HUCK && r.own !== "Duet" ? `<button type="button" class="o" data-tk="duet" aria-label="Hand to Claude Duet">🤝 Duet</button>` : ""}${HUCK && r.cat === "Work" ? `<a class="o" href="${esc(workMail(r))}" aria-label="Email to work">✉️ Work</a>` : ""}</div>`;
+  const card = r => `<div class="tr${open(r) ? "" : " dn"}${tk.wide === r.n ? " wide" : ""}" data-tk="wide" data-a="${r.n}"><button type="button" class="rcb" data-tk="tick" data-hap data-a="${r.n}" aria-label="${show(r.title)}: ${r.st}. Tap to ${open(r) ? "mark done" : "reopen"}"><span class="rc ${r.st}">${open(r) ? "" : tick(12)}</span></button><div class="rt"><div class="tt ell">${tRich(r.title)}${tkFlags(r)}</div>${r.note ? `<div class="tm ell">${show(rcNote(r.note))}</div>` : ""}${days(r)}</div>${tkTag(r)}</div>`;
   /* once the parts move to tomorrow, none of them has passed */
   const today = tkFocus(), now = today === TK_TIMES[(new Date().getDay() + 6) % 7] ? tkPartNow() : -1;
   /* today's parts all show, even when empty, so a task can be dragged into any of them; a part that has passed is greyed */
@@ -1417,6 +1418,33 @@ function drawTasks() {
 const segBar = (views, on, kind, act, end = "", lab = null) => `<div class="segw tkbar"><div class="seg grow">${views.map(v => `<button type="button" class="${on === v ? "on" : ""}" data-${kind}="${act}" data-a="${v}"${lab ? ` aria-label="${v}"` : ""}${on === v ? ' aria-current="true"' : ""}>${lab ? `<span class="emo">${lab[v]}</span>` : v}</button>`).join("")}</div>${end}</div>`;
 /* Tasks, Notes, and Shopping, shown as words; Notes is its own screen, so its button opens it */
 const TK_VIEWS = { Tasks: "✏️", Notes: "🗒️", Shopping: "🛒" };
+/* the flags Todoist sets on a task: Late when it is past its due date, and Needs you when Claude Duet has added duet-waiting */
+const tkFlags = r => (/late/.test(r.flags || "") ? ' <span class="tag late">Late</span>' : "") + (/waiting/.test(r.flags || "") ? ' <span class="tag wait">Needs you</span>' : "");
+/* a work task goes to the work inbox as an email: the task is the subject and its note the body */
+const WORK_EMAIL = "";
+const workMail = r => `mailto:${WORK_EMAIL}?subject=${encodeURIComponent(tName(r.title))}&body=${encodeURIComponent(rcNote(r.note || "").replace(/<br\s*\/?>/gi, "\n"))}`;
+/* Hand to Duet, as on the web: a line of context goes into the note, and Duet becomes the owner, which is the duet label in Todoist */
+function duetTask(n) {
+  const r = tk.rows[n];
+  if (!r) return;
+  if (offline) { status("Offline. Changes are off until you reconnect.", "err"); return; }
+  const ctx = prompt("Context for Claude Duet (for example, a preferred barber or times that work):");
+  if (ctx === null) return;
+  tk.wide = null;
+  tkSave(r.f, lines => {
+    const t = tkRead(lines), hit = t.rows.find(x => x.i === r.i && x.raw === r.raw) || t.rows.find(x => x.raw === r.raw), ow = t.head.indexOf("Owner"), nt = t.head.indexOf("Note");
+    if (!hit) throw new Error(`"${r.title}" changed on the laptop, so it was not saved. The list has been reloaded.`);
+    if (ow < 0 || nt < 0) throw new Error("The task table has no Owner or Note column, so the task was not handed to Duet.");
+    const cells = lines[hit.i].split("|");
+    cells[ow + 1] = " Duet ";
+    if (ctx.trim()) {
+      const old = cells[nt + 1].trim(), m = old.match(/\s*<!-- td:[^>]*-->$/), body = m ? old.slice(0, m.index) : old;
+      cells[nt + 1] = ` ${body}${body ? "<br><br>" : ""}For Duet: ${ctx.trim().replace(/\|/g, "/")}${m ? " " + m[0].trim() : ""} `;
+    }
+    lines[hit.i] = cells.join("|");
+    return hit;
+  }, `Phone: hand "${r.title}" to Duet`);
+}
 /* the right of a task row: its owner, or a faint dash while it has none */
 const tkTag = r => `<span class="cp ow ${r.own ? esc(r.own) : "none"}" aria-label="${r.own ? "Owner " + r.own : "Not yet assigned"}">${r.own ? esc(r.own) : "–"}</span>`;
 const tkBar = (on, end = "") => CB ? "" : segBar(Object.keys(TK_VIEWS), on, "tk", "view", end);
@@ -1468,8 +1496,10 @@ function recurNext(r, from) {
   return next;
 }
 let rcBusy = false;
+const RECUR_OFF = true;
 async function recurSync() {
-  if (CB || offline || rcBusy) return;
+  /* Todoist now repeats Matt's tasks itself, so this engine is off; the rules file stays as a record */
+  if (RECUR_OFF || CB || offline || rcBusy) return;
   rcBusy = true;
   try {
     const rules = rcRead((await fetchFile(REC_FILE)).text.split("\n")).rows, now = new Date(), day0 = today();
@@ -1657,6 +1687,7 @@ function tkAct(act, a, el) {
   else if (act === "tick") { buzz(); tickTask(+a); }
   else if (act === "move") moveTask(tk.wide, a);
   else if (act === "gpt") sendToChatGPT(tk.rows[tk.wide]);
+  else if (act === "duet") duetTask(tk.wide);
   else if (act === "pull") pullToday();
   else if (act === "pullnext") pullToday(true);
   else if (act === "yo") yoTick(+a);
